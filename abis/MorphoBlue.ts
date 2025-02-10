@@ -1,4 +1,4 @@
-export const MorphoAbi = [
+export const morphoBlueAbi = [
   {
     inputs: [{ internalType: "address", name: "newOwner", type: "address" }],
     stateMutability: "nonpayable",

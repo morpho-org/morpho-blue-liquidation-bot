@@ -1,7 +1,7 @@
 import { createConfig } from "ponder";
 import { http } from "viem";
 
-import { MorphoAbi } from "./abis/MorphoAbi";
+import { morphoBlueAbi } from "./abis/MorphoBlue";
 
 export default createConfig({
   networks: {
@@ -9,7 +9,7 @@ export default createConfig({
   },
   contracts: {
     Morpho: {
-      abi: MorphoAbi,
+      abi: morphoBlueAbi,
       address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
       network: "mainnet",
       startBlock: 18883124,
