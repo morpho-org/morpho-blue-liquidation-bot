@@ -24,7 +24,7 @@ export const market = onchainTable(
   (table) => ({
     // Composite primary key uniquely identifies a market across chains
     pk: primaryKey({ columns: [table.chainId, table.id] }),
-  })
+  }),
 );
 
 export const marketRelations = relations(market, ({ many }) => ({
@@ -48,7 +48,7 @@ export const position = onchainTable(
     pk: primaryKey({ columns: [table.chainId, table.marketId, table.user] }),
     // Index speeds up relational queries
     marketIdx: index().on(table.chainId, table.marketId),
-  })
+  }),
 );
 
 export const positionRelations = relations(position, ({ one }) => ({

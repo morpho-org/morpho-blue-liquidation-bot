@@ -178,8 +178,7 @@ ponder.on("Morpho:Liquidate", async ({ event, context }) => {
       })
       .set((row) => ({
         collateral: row.collateral - event.args.seizedAssets,
-        borrowShares:
-          row.borrowShares - event.args.repaidShares - event.args.badDebtShares,
+        borrowShares: row.borrowShares - event.args.repaidShares - event.args.badDebtShares,
       })),
   ]);
 });

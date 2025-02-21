@@ -91,9 +91,7 @@ export const morphoBlueAbi = [
   },
   {
     anonymous: false,
-    inputs: [
-      { indexed: true, internalType: "address", name: "irm", type: "address" },
-    ],
+    inputs: [{ indexed: true, internalType: "address", name: "irm", type: "address" }],
     name: "EnableIrm",
     type: "event",
   },
@@ -749,9 +747,7 @@ export const morphoBlueAbi = [
     type: "function",
   },
   {
-    inputs: [
-      { internalType: "address", name: "newFeeRecipient", type: "address" },
-    ],
+    inputs: [{ internalType: "address", name: "newFeeRecipient", type: "address" }],
     name: "setFeeRecipient",
     outputs: [],
     stateMutability: "nonpayable",
