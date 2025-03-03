@@ -57,3 +57,17 @@ export const positionRelations = relations(position, ({ one }) => ({
     references: [market.chainId, market.id],
   }),
 }));
+
+export const vault = onchainTable(
+  "vault",
+  (t) => ({
+    chainId: t.integer().notNull(),
+    address: t.hex().notNull(),
+
+    withdrawQueue: t.hex().array().notNull().default([]),
+  }),
+  (table) => ({
+    // Composite primary key uniquely identifies a vault across chains
+    pk: primaryKey({ columns: [table.chainId, table.address] }),
+  }),
+);
