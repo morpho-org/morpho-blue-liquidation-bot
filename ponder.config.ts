@@ -1,7 +1,9 @@
 import { createConfig, factory } from "ponder";
-import { http } from "viem";
+import { getAbiItem, http } from "viem";
 
-import { createMetaMorphoAbi, metaMorphoAbi, morphoBlueAbi } from "./abis/MorphoBlue";
+import { metaMorphoAbi } from "./abis/MetaMorpho";
+import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
+import { morphoBlueAbi } from "./abis/MorphoBlue";
 
 export default createConfig({
   networks: {
@@ -27,19 +29,25 @@ export default createConfig({
       network: {
         mainnet: {
           address: factory({
-            address: "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
-            event: createMetaMorphoAbi,
+            address: [
+              "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
+              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
+            ],
+            event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
             parameter: "metaMorpho",
           }),
-          startBlock: 21439510,
+          startBlock: 18925584,
         },
         base: {
           address: factory({
-            address: "0xFf62A7c278C62eD665133147129245053Bbf5918",
-            event: createMetaMorphoAbi,
+            address: [
+              "0xFf62A7c278C62eD665133147129245053Bbf5918",
+              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
+            ],
+            event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
             parameter: "metaMorpho",
           }),
-          startBlock: 23928808,
+          startBlock: 13978134,
         },
       },
     },

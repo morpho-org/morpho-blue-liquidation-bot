@@ -3,11 +3,16 @@ import { vault } from "ponder:schema";
 
 ponder.on("MetaMorpho:SetWithdrawQueue", async ({ event, context }) => {
   await context.db
-    .update(vault, {
+    .insert(vault)
+    .values({
+      // primary key
       chainId: context.network.chainId,
       address: event.log.address,
+
+      // `WithdrawQueue`
+      withdrawQueue: [...event.args.newWithdrawQueue],
     })
-    .set({
+    .onConflictDoUpdate({
       withdrawQueue: [...event.args.newWithdrawQueue],
     });
 });
