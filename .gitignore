@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+**/node_modules
 
 # Debug
 npm-debug.log*
@@ -12,7 +12,3 @@ yarn-error.log*
 
 # Env files
 .env*.local
-
-# Ponder
-/generated/
-/.ponder/

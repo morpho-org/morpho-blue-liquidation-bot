@@ -21,6 +21,5 @@
     // Skip type checking for node modules
     "skipLibCheck": true
   },
-  "include": ["./**/*.ts"],
   "exclude": ["node_modules"]
 }

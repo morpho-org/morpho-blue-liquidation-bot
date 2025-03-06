@@ -1,0 +1,9 @@
+{
+  "name": "@morpho-blue-liquidation-bot/client",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ponder/client": "^0.9.27"
+  }
+}

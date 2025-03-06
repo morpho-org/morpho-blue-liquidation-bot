@@ -4,12 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "ponder dev",
-    "start": "ponder start",
-    "db": "ponder db",
-    "codegen": "ponder codegen",
-    "lint": "eslint . --fix",
-    "typecheck": "tsc",
+    "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -17,14 +12,10 @@
       "eslint --fix"
     ]
   },
-  "dependencies": {
-    "hono": "^4.5.0",
-    "ponder": "^0.9.19",
-    "viem": "^2.21.3"
-  },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/node": "^20.9.0",
+    "concurrently": "^9.1.2",
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-import-resolver-typescript": "^3.8.3",
