@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "tsc && concurrently \"tsc --watch\" \"node dist/client/src/index.js\"",
+    "lint": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@ponder/client": "^0.9.27"
   }
