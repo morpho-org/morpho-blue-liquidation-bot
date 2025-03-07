@@ -1,6 +1,7 @@
 import { createConfig, factory } from "ponder";
 import { getAbiItem, http } from "viem";
 
+import { adaptiveCurveIrmAbi } from "./abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "./abis/MetaMorpho";
 import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
 import { morphoBlueAbi } from "./abis/MorphoBlue";
@@ -48,6 +49,19 @@ export default createConfig({
             parameter: "metaMorpho",
           }),
           startBlock: 13978134,
+        },
+      },
+    },
+    AdaptiveCurveIRM: {
+      abi: adaptiveCurveIrmAbi,
+      network: {
+        mainnet: {
+          address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+          startBlock: 18883124,
+        },
+        base: {
+          address: "0x46415998764C29aB2a25CbeA6254146D50D22687",
+          startBlock: 13977152,
         },
       },
     },
