@@ -6,7 +6,7 @@ import type { Address } from "viem";
 
 import { morphoChainlinkOracleV2Abi } from "../../abis/MorphoChainlinkOracleV2";
 
-import { mulDivDown, ORACLE_PRICE_SCALE, toAssetsUp, wMulDown } from "./helpers";
+import { seizableCollateral } from "./helpers";
 
 const app = new Hono();
 
@@ -60,7 +60,7 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
 
   const { totalBorrowAssets, totalBorrowShares, oracle, lltv } = market[0];
 
-  const oraclePrice = await publicClients[
+  const collateralPrice = await publicClients[
     chainId as unknown as keyof typeof publicClients
   ].readContract({
     address: oracle,
@@ -68,14 +68,21 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
     functionName: "price",
   });
 
-  const liquidatablePositions = positions.filter((position) => {
-    const borrowed = toAssetsUp(position.borrowShares, totalBorrowAssets, totalBorrowShares);
-    const maxBorrow = wMulDown(
-      mulDivDown(position.collateral, oraclePrice, ORACLE_PRICE_SCALE),
-      lltv,
-    );
-    return borrowed > maxBorrow;
-  });
+  const liquidatablePositions = positions
+    .map((position) => {
+      return {
+        ...position,
+        seizableCollateral: seizableCollateral(
+          position.collateral,
+          position.borrowShares,
+          totalBorrowShares,
+          totalBorrowAssets,
+          lltv,
+          collateralPrice,
+        ),
+      };
+    })
+    .filter((position) => position.seizableCollateral !== undefined);
 
   return c.json(liquidatablePositions);
 });
