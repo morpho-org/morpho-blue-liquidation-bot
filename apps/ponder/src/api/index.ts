@@ -2,9 +2,9 @@ import { Hono } from "hono";
 import { and, client, eq, graphql } from "ponder";
 import { db, publicClients } from "ponder:api";
 import schema from "ponder:schema";
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 
-import { morphoChainlinkOracleV2Abi } from "../../abis/MorphoChainlinkOracleV2";
+import { oracleAbi } from "../../abis/Oracle";
 
 import { seizableCollateral } from "./helpers";
 
@@ -35,9 +35,7 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
     db
       .select()
       .from(schema.market)
-      .where(
-        and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId as Address)),
-      )
+      .where(and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId as Hex)))
       .limit(1),
     db
       .select()
@@ -45,7 +43,7 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
       .where(
         and(
           eq(schema.position.chainId, Number(chainId)),
-          eq(schema.position.marketId, marketId as Address),
+          eq(schema.position.marketId, marketId as Hex),
         ),
       ),
   ]);
@@ -64,7 +62,7 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
     chainId as unknown as keyof typeof publicClients
   ].readContract({
     address: oracle,
-    abi: morphoChainlinkOracleV2Abi,
+    abi: oracleAbi,
     functionName: "price",
   });
 
