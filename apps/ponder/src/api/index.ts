@@ -28,35 +28,38 @@ app.get("/chain/:id/vault/:address", async (c) => {
   return c.json(vault[0]?.withdrawQueue);
 });
 
-app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
-  const { id: chainId, id: marketId } = c.req.param();
+app.post("/chain/:id/liquidatable-positions", async (c) => {
+  const { id: chainId } = c.req.param();
+  const { marketIds }: { marketIds: Hex[] } = await c.req.json();
 
+  const liquidatablePositions = await Promise.all(
+    marketIds.map((marketId) => getLiquidatablePositions(Number(chainId), marketId)),
+  );
+
+  return c.json(liquidatablePositions.flat());
+});
+
+async function getLiquidatablePositions(chainId: number, marketId: Hex) {
   const [market, positions] = await Promise.all([
     db
       .select()
       .from(schema.market)
-      .where(and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId as Hex)))
+      .where(and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId)))
       .limit(1),
     db
       .select()
       .from(schema.position)
       .where(
-        and(
-          eq(schema.position.chainId, Number(chainId)),
-          eq(schema.position.marketId, marketId as Hex),
-        ),
+        and(eq(schema.position.chainId, Number(chainId)), eq(schema.position.marketId, marketId)),
       ),
   ]);
 
-  if (!market[0]) {
-    return c.json({ error: "Market not found" }, 404);
-  }
+  if (!market[0]) return [];
 
-  if (!Object.keys(publicClients).includes(chainId)) {
-    return c.json({ error: "Chain not supported" }, 404);
-  }
+  if (!Object.keys(publicClients).includes(String(chainId))) return [];
 
-  const { totalBorrowAssets, totalBorrowShares, oracle, lltv } = market[0];
+  const { totalBorrowAssets, totalBorrowShares, oracle, lltv, loanToken, collateralToken, irm } =
+    market[0];
 
   const collateralPrice = await publicClients[
     chainId as unknown as keyof typeof publicClients
@@ -66,10 +69,15 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
     functionName: "price",
   });
 
-  const liquidatablePositions = positions
+  return positions
     .map((position) => {
       return {
         ...position,
+        loanToken,
+        collateralToken,
+        irm,
+        oracle,
+        lltv,
         seizableCollateral: seizableCollateral(
           position.collateral,
           position.borrowShares,
@@ -81,8 +89,6 @@ app.get("/chain/:id/market/:id/liquidatable-positions", async (c) => {
       };
     })
     .filter((position) => position.seizableCollateral !== undefined);
-
-  return c.json(liquidatablePositions);
-});
+}
 
 export default app;
