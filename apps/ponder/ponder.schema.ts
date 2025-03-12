@@ -20,6 +20,9 @@ export const market = onchainTable(
     totalBorrowShares: t.bigint().notNull().default(0n),
     lastUpdate: t.bigint().notNull(),
     fee: t.bigint().notNull().default(0n),
+
+    // AdaptiveCurveIRM fields
+    rateAtTarget: t.bigint().notNull().default(0n),
   }),
   (table) => ({
     // Composite primary key uniquely identifies a market across chains
