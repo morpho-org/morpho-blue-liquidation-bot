@@ -11,7 +11,7 @@ import {
   zeroAddress,
 } from "viem";
 import type { LiquidityVenue } from "../liquidityVenue";
-import { morphoBlueAbi } from "../../../abis/MorphoBlue";
+import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue";
 
 export class uniswapV3Swap implements LiquidityVenue {
   private readonly MORPHO_ADDRESS: Address = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb"; // TODO: import from ponder
