@@ -6,7 +6,7 @@ import type { Address, Hex } from "viem";
 
 import { oracleAbi } from "../../abis/Oracle";
 
-import { seizableCollateral } from "./helpers";
+import { liquidationValues } from "./helpers";
 
 const app = new Hono();
 
@@ -71,6 +71,14 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
 
   return positions
     .map((position) => {
+      const { seizableCollateral, repaidAssets } = liquidationValues(
+        position.collateral,
+        position.borrowShares,
+        totalBorrowShares,
+        totalBorrowAssets,
+        lltv,
+        collateralPrice,
+      );
       return {
         ...position,
         loanToken,
@@ -78,17 +86,11 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         irm,
         oracle,
         lltv,
-        seizableCollateral: seizableCollateral(
-          position.collateral,
-          position.borrowShares,
-          totalBorrowShares,
-          totalBorrowAssets,
-          lltv,
-          collateralPrice,
-        ),
+        seizableCollateral,
+        repaidAssets,
       };
     })
-    .filter((position) => position.seizableCollateral !== undefined);
+    .filter((position) => position.seizableCollateral !== 0n && position.repaidAssets !== 0n);
 }
 
 export default app;
