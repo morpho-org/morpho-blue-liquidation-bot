@@ -1,5 +1,5 @@
 import type { ExecutorEncoder } from "executooor-viem";
-import type { AdditionalParams, ToConvert } from "../utils";
+import type { ToConvert } from "../utils";
 
 /**
  * Liquidity venues are used to convert an amount from a source token to a destination token.
@@ -14,9 +14,5 @@ export interface LiquidityVenue {
   /**
    * Convert the amount from src to dst.
    */
-  convert(
-    executor: ExecutorEncoder,
-    toConvert: ToConvert,
-    additionalParams: AdditionalParams,
-  ): Promise<void>;
+  convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<void>;
 }
