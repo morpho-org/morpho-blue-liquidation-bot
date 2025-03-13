@@ -1,13 +1,16 @@
 import type { ExecutorEncoder } from "executooor-viem";
-import type { ToConvert } from "../../utils";
-import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
+import { encodeFunctionData, maxUint256, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
-import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
-import { type Address, encodeFunctionData, maxUint256, zeroAddress } from "viem";
+
+import type { ToConvert } from "../../utils";
 import type { LiquidityVenue } from "../liquidityVenue";
+
+import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
+import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
+
 export class uniswapV3Swap implements LiquidityVenue {
   isAdaptedTo(toConvert: ToConvert): boolean {
-    return true;
+    return toConvert.src !== toConvert.dst;
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
