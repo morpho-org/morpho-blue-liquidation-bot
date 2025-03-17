@@ -33,6 +33,7 @@ const min = (a: bigint, b: bigint) => (a < b ? a : b);
 const mulDivDown = (x: bigint, y: bigint, d: bigint): bigint => (x * y) / d;
 const mulDivUp = (x: bigint, y: bigint, d: bigint): bigint => (x * y + (d - 1n)) / d;
 const wDivDown = (x: bigint, y: bigint): bigint => mulDivDown(x, WAD, y);
+const wDivUp = (x: bigint, y: bigint): bigint => mulDivUp(x, WAD, y);
 const wMulDown = (x: bigint, y: bigint): bigint => mulDivDown(x, y, WAD);
 
 const toAssetsUp = (shares: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
@@ -40,6 +41,9 @@ const toAssetsUp = (shares: bigint, totalAssets: bigint, totalShares: bigint): b
 };
 const toAssetsDown = (shares: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
   return mulDivDown(shares, totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
+};
+const toSharesUp = (assets: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
+  return mulDivUp(assets, totalShares + VIRTUAL_SHARES, totalAssets + VIRTUAL_ASSETS);
 };
 
 export const toSharesDown = (assets: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
@@ -87,7 +91,7 @@ const liquidationIncentiveFactor = (lltv: bigint): bigint => {
   );
 };
 
-export const seizableCollateral = (
+export const liquidationValues = (
   collateral: bigint,
   borrowShares: bigint,
   totalBorrowShares: bigint,
@@ -99,7 +103,7 @@ export const seizableCollateral = (
   const maxBorrow = wMulDown(mulDivDown(collateral, collateralPrice, ORACLE_PRICE_SCALE), lltv);
 
   if (borrowed > maxBorrow) {
-    return min(
+    const seizableCollateral = min(
       collateral,
       mulDivDown(
         wMulDown(
@@ -110,8 +114,18 @@ export const seizableCollateral = (
         collateralPrice,
       ),
     );
+
+    const seizedAssetsQuoted = mulDivUp(seizableCollateral, collateralPrice, ORACLE_PRICE_SCALE);
+    const repaidShares = toSharesUp(
+      wDivUp(seizedAssetsQuoted, liquidationIncentiveFactor(lltv)),
+      totalBorrowAssets,
+      totalBorrowShares,
+    );
+    const repayableAssets = toAssetsUp(repaidShares, totalBorrowAssets, totalBorrowShares);
+
+    return { seizableCollateral, repayableAssets };
   }
-  return undefined;
+  return { seizableCollateral: 0n, repayableAssets: 0n };
 };
 
 const wTaylorCompounded = (x: bigint, n: bigint): bigint => {
