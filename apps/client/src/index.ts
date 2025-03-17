@@ -1,9 +1,28 @@
-import { createClient } from "@ponder/client";
+import { chainConfigs } from "../config.js";
+import { fetchWhiteListedMarkets } from "./utils/fetchers.js";
 
-import * as schema from "../../ponder/ponder.schema.js";
+export async function main() {
+  const args = process.argv.slice(2);
+  const chainIdArg = args.find((arg) => arg.startsWith("--chainId="));
 
-const client = createClient("http://localhost:42069/sql", { schema });
+  if (chainIdArg === undefined) {
+    throw new Error("Chain ID is missing");
+  }
+  const chainId = Number(chainIdArg);
 
-const result = await client.db.select().from(schema.vault).limit(10);
+  if (chainConfigs[chainId] === undefined) {
+    throw new Error(`Chain ${chainId} not supported`);
+  }
 
-console.log(result);
+  const { vaultWhitelist } = chainConfigs[chainId];
+
+  const whitelistedMarkets = [
+    ...new Set(
+      (
+        await Promise.all(vaultWhitelist.map((vault) => fetchWhiteListedMarkets(chainId, vault)))
+      ).flat(),
+    ),
+  ];
+
+  return whitelistedMarkets;
+}

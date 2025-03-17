@@ -6,3 +6,8 @@ export type ToConvert = {
   srcAmount: bigint;
   // minDstAmount ? (repaidAssets, can be computed within the api endpoint)
 };
+
+export type ChainConfig = {
+  vaultWhitelist: Address[];
+  rpcUrl: string;
+};

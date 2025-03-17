@@ -1,7 +1,7 @@
 import type { ExecutorEncoder } from "executooor-viem";
 import type { Address } from "viem";
 
-import type { ToConvert } from "../utils";
+import type { ToConvert } from "../utils/types";
 
 /**
  * Liquidity venues are used to convert an amount from a source token to a destination token.
