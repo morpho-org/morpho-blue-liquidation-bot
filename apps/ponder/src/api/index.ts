@@ -6,7 +6,7 @@ import type { Address, Hex } from "viem";
 
 import { oracleAbi } from "../../abis/Oracle";
 
-import { liquidationValues } from "./helpers";
+import { accrueInterest, liquidationValues } from "./helpers";
 
 const app = new Hono();
 
@@ -58,8 +58,12 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
 
   if (!Object.keys(publicClients).includes(String(chainId))) return [];
 
-  const { totalBorrowAssets, totalBorrowShares, oracle, lltv, loanToken, collateralToken, irm } =
-    market[0];
+  const { oracle, lltv, loanToken, collateralToken, irm } = market[0];
+
+  const { totalBorrowAssets, totalBorrowShares } = accrueInterest(
+    market[0],
+    market[0].rateAtTarget,
+  );
 
   const collateralPrice = await publicClients[
     chainId as unknown as keyof typeof publicClients
