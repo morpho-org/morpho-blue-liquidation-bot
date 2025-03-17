@@ -63,9 +63,9 @@ export const liquidationValues = (
       totalBorrowAssets,
       totalBorrowShares,
     );
-    const repaidAssets = toAssetsUp(repaidShares, totalBorrowAssets, totalBorrowShares);
+    const repayableAssets = toAssetsUp(repaidShares, totalBorrowAssets, totalBorrowShares);
 
-    return { seizableCollateral, repaidAssets };
+    return { seizableCollateral, repayableAssets };
   }
-  return { seizableCollateral: 0n, repaidAssets: 0n };
+  return { seizableCollateral: 0n, repayableAssets: 0n };
 };
