@@ -1,4 +1,6 @@
 import type { ExecutorEncoder } from "executooor-viem";
+import type { Address } from "viem";
+
 import type { ToConvert } from "../utils";
 
 /**
@@ -9,7 +11,7 @@ export interface LiquidityVenue {
   /**
    * Whether the venue is adapted to the conversion.
    */
-  isAdaptedTo(toConvert: ToConvert): boolean;
+  supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean>;
 
   /**
    * Convert the amount from src to dst.

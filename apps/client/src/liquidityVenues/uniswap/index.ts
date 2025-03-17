@@ -1,5 +1,5 @@
 import type { ExecutorEncoder } from "executooor-viem";
-import { encodeFunctionData, maxUint256, zeroAddress } from "viem";
+import { type Address, encodeFunctionData, maxUint256, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 
 import type { ToConvert } from "../../utils";
@@ -8,9 +8,35 @@ import type { LiquidityVenue } from "../liquidityVenue";
 import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
 import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
 
-export class uniswapV3Swap implements LiquidityVenue {
-  isAdaptedTo(toConvert: ToConvert): boolean {
-    return toConvert.src !== toConvert.dst;
+export class UniswapV3Swap implements LiquidityVenue {
+  async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean> {
+    if (src === dst) return false;
+
+    const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
+
+    if (addresses === undefined) {
+      throw new Error("Uniswap V3 is not supported on this chain");
+    }
+
+    const { factory } = addresses;
+
+    const pools = (
+      await Promise.all(
+        FEE_TIERS.map(async (fee) => {
+          return {
+            address: await readContract(encoder.client, {
+              address: factory,
+              abi: uniswapV3FactoryAbi,
+              functionName: "getPool",
+              args: [src, dst, fee],
+            }),
+            fee,
+          };
+        }),
+      )
+    ).filter((pool) => pool.address !== zeroAddress);
+
+    return pools.length > 0;
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
