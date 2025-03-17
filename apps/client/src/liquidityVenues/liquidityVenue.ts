@@ -7,7 +7,7 @@ import type { ToConvert } from "../utils";
  */
 export interface LiquidityVenue {
   /**
-   * Wether the venue is adapted to the conversion.
+   * Whether the venue is adapted to the conversion.
    */
   isAdaptedTo(toConvert: ToConvert): boolean;
 
