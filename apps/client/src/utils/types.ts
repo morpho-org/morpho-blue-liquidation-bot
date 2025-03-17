@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Chain, Hex } from "viem";
 
 export type ToConvert = {
   src: Address;
@@ -8,6 +8,33 @@ export type ToConvert = {
 };
 
 export type ChainConfig = {
-  vaultWhitelist: Address[];
+  chain: Chain;
   rpcUrl: string;
+  vaultWhitelist: Address[];
+  executorAddress: Address;
+  liquidationPrivateKey: Hex;
+};
+
+export type MarketParams = {
+  loanToken: Address;
+  collateralToken: Address;
+  irm: Address;
+  oracle: Address;
+  lltv: bigint;
+};
+
+export type Position = {
+  chainId: number;
+  marketId: Hex;
+  user: Address;
+  supplyShares: bigint;
+  borrowShares: bigint;
+  collateral: bigint;
+};
+
+export type LiquidatablePosition = {
+  position: Position;
+  marketParams: MarketParams;
+  seizableCollateral: bigint;
+  repayableAssets: bigint;
 };
