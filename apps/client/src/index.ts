@@ -1,11 +1,17 @@
-import { createWalletClient, http } from "viem";
+import { createWalletClient, encodeAbiParameters, http } from "viem";
+import { simulateCalls } from "viem/actions";
+import { privateKeyToAccount } from "viem/accounts";
+
+import { ExecutorEncoder } from "executooor-viem";
+
 import { chainConfigs } from "../config.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarkets } from "./utils/fetchers.js";
-import { ExecutorEncoder } from "executooor-viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { UniswapV3Swap } from "./liquidityVenues/uniswap/index.js";
+
 import { Erc4626 } from "./liquidityVenues/erc4626/index.js";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper/index.js";
+import { UniswapV3Swap } from "./liquidityVenues/uniswap/index.js";
+
+import { morphoBlueAbi } from "../../ponder/abis/MorphoBlue";
 
 export async function main() {
   const args = process.argv.slice(2);
@@ -24,7 +30,6 @@ export async function main() {
   }
 
   const { vaultWhitelist } = chainConfigs[chainId];
-
   const whitelistedMarkets = [
     ...new Set(
       (
@@ -40,7 +45,6 @@ export async function main() {
     transport: http(chainConfigs[chainId].rpcUrl),
     account: privateKeyToAccount(chainConfigs[chainId].liquidationPrivateKey),
   });
-
   const executorAddress = chainConfigs[chainId].executorAddress;
 
   await Promise.all(
@@ -70,16 +74,42 @@ export async function main() {
       if (await uniswapV3Swap.supportsRoute(encoder, toConvert.src, toConvert.dst))
         toConvert = await uniswapV3Swap.convert(encoder, toConvert);
 
-      encoder.morphoBlueLiquidate(
-        MORPHO_ADDRESS,
-        liquidatablePosition.marketParams,
-        liquidatablePosition.position.user,
-        liquidatablePosition.seizableCollateral,
-        0n,
-        encoder.flush(),
-      );
+      const callbacks = encoder.flush();
 
-      /// TODO: simulate and execute the txs
+      /// TX SIMULATION
+
+      const { results } = await simulateCalls(encoder.client, {
+        calls: [
+          {
+            to: MORPHO_ADDRESS,
+            abi: morphoBlueAbi,
+            functionName: "liquidate",
+            args: [
+              liquidatablePosition.marketParams,
+              liquidatablePosition.position.user,
+              liquidatablePosition.seizableCollateral,
+              0n,
+              encodeAbiParameters(
+                [{ type: "bytes[]" }, { type: "bytes" }],
+                [encoder.flush(), "0x"],
+              ),
+            ],
+          },
+        ],
+      });
+
+      if (results[0].status === "success") {
+        encoder.morphoBlueLiquidate(
+          MORPHO_ADDRESS,
+          liquidatablePosition.marketParams,
+          liquidatablePosition.position.user,
+          liquidatablePosition.seizableCollateral,
+          0n,
+          callbacks,
+        );
+
+        /// TODO: execute the tx
+      }
     }),
   );
 }
