@@ -41,16 +41,17 @@ export async function main() {
     account: privateKeyToAccount(chainConfigs[chainId].liquidationPrivateKey),
   });
 
-  const encoder = new ExecutorEncoder(chainConfigs[chainId].executorAddress, client);
+  const executorAddress = chainConfigs[chainId].executorAddress;
 
   await Promise.all(
-    // Warning: this parallelization might be wrong as calls could be misordered
     liquidatablePositions.map(async (liquidatablePosition) => {
       let toConvert = {
         src: liquidatablePosition.marketParams.loanToken,
         dst: liquidatablePosition.marketParams.collateralToken,
         srcAmount: liquidatablePosition.seizableCollateral,
       };
+
+      const encoder = new ExecutorEncoder(executorAddress, client);
 
       /// LIQUIDITY VENUES
 
@@ -77,9 +78,8 @@ export async function main() {
         0n,
         encoder.flush(),
       );
+
+      /// TODO: simulate and execute the txs
     }),
   );
-
-  /// TODO: simulate and execute the txs
-  /// REMARK: here we try to batch all the txs. This might not be a good idea as if one tx reverts, the whole batch will revert.
 }
