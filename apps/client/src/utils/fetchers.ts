@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem";
 import type { LiquidatablePosition } from "./types";
 
-export async function fetchWhiteListedMarkets(
+export async function fetchWhiteListedMarketsForVault(
   chainId: number,
   vaultAddress: Address,
 ): Promise<Hex[]> {

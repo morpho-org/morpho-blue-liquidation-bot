@@ -5,7 +5,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { ExecutorEncoder } from "executooor-viem";
 
 import { chainConfigs } from "../config.js";
-import { fetchLiquidatablePositions, fetchWhiteListedMarkets } from "./utils/fetchers.js";
+import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 
 import { Erc4626 } from "./liquidityVenues/erc4626/index.js";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper/index.js";
@@ -33,7 +33,9 @@ export async function main() {
   const whitelistedMarkets = [
     ...new Set(
       (
-        await Promise.all(vaultWhitelist.map((vault) => fetchWhiteListedMarkets(chainId, vault)))
+        await Promise.all(
+          vaultWhitelist.map((vault) => fetchWhiteListedMarketsForVault(chainId, vault)),
+        )
       ).flat(),
     ),
   ];
