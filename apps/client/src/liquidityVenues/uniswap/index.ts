@@ -9,7 +9,9 @@ import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
 import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
 
 export class UniswapV3Swap implements LiquidityVenue {
-  async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean> {
+  private pools: { address: Address; fee: number }[] = [];
+
+  async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
 
     const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
@@ -36,6 +38,8 @@ export class UniswapV3Swap implements LiquidityVenue {
       )
     ).filter((pool) => pool.address !== zeroAddress);
 
+    this.pools = pools;
+
     return pools.length > 0;
   }
 
@@ -46,27 +50,11 @@ export class UniswapV3Swap implements LiquidityVenue {
       throw new Error("Uniswap V3 is not supported on this chain");
     }
 
-    const { factory, router } = addresses;
+    const { router } = addresses;
     const { src, dst, srcAmount } = toConvert;
 
-    const pools = (
-      await Promise.all(
-        FEE_TIERS.map(async (fee) => {
-          return {
-            address: await readContract(encoder.client, {
-              address: factory,
-              abi: uniswapV3FactoryAbi,
-              functionName: "getPool",
-              args: [src, dst, fee],
-            }),
-            fee,
-          };
-        }),
-      )
-    ).filter((pool) => pool.address !== zeroAddress);
-
     const liquidities = await Promise.all(
-      pools.map(async (pool) => {
+      this.pools.map(async (pool) => {
         return {
           ...pool,
           amount: await readContract(encoder.client, {
@@ -107,5 +95,8 @@ export class UniswapV3Swap implements LiquidityVenue {
         ],
       }),
     );
+
+    /// assumed to be the last liquidity venue
+    return toConvert;
   }
 }

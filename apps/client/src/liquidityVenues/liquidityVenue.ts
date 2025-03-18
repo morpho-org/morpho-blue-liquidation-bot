@@ -11,10 +11,10 @@ export interface LiquidityVenue {
   /**
    * Whether the venue is adapted to the conversion.
    */
-  supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean>;
+  supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean> | boolean;
 
   /**
    * Convert the amount from src to dst.
    */
-  convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<void>;
+  convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<ToConvert> | ToConvert;
 }
