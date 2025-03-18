@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ponder/client": "^0.9.27"
+    "@ponder/client": "^0.9.27",
+    "executooor-viem": "^1.3.3"
   }
 }
