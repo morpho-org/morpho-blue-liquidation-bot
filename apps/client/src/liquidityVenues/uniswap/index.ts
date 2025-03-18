@@ -95,5 +95,8 @@ export class UniswapV3Swap implements LiquidityVenue {
         ],
       }),
     );
+
+    /// assumed to be the last liquidity venue
+    return toConvert;
   }
 }

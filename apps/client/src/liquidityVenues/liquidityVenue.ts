@@ -16,5 +16,5 @@ export interface LiquidityVenue {
   /**
    * Convert the amount from src to dst.
    */
-  convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<void>;
+  convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<ToConvert>;
 }
