@@ -4,6 +4,8 @@ import { fetchLiquidatablePositions, fetchWhiteListedMarkets } from "./utils/fet
 import { ExecutorEncoder } from "executooor-viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { UniswapV3Swap } from "./liquidityVenues/uniswap/index.js";
+import { Erc4626 } from "./liquidityVenues/erc4626/index.js";
+import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper/index.js";
 
 export async function main() {
   const args = process.argv.slice(2);
@@ -44,18 +46,28 @@ export async function main() {
   await Promise.all(
     // Warning: this parallelization might be wrong as calls could be misordered
     liquidatablePositions.map(async (liquidatablePosition) => {
-      const toConvert = {
+      let toConvert = {
         src: liquidatablePosition.marketParams.loanToken,
         dst: liquidatablePosition.marketParams.collateralToken,
         srcAmount: liquidatablePosition.seizableCollateral,
       };
 
-      /// TODO: populate with other liquidity venues
+      /// LIQUIDITY VENUES
+
+      /// Erc20Wrapper
+      const erc20Wrapper = new Erc20Wrapper();
+      if (erc20Wrapper.supportsRoute(encoder, toConvert.src, toConvert.dst))
+        toConvert = erc20Wrapper.convert(encoder, toConvert);
+
+      /// Erc4626
+      const erc4626 = new Erc4626();
+      if (await erc4626.supportsRoute(encoder, toConvert.src, toConvert.dst))
+        toConvert = await erc4626.convert(encoder, toConvert);
 
       /// UniswapV3
       const uniswapV3Swap = new UniswapV3Swap();
       if (await uniswapV3Swap.supportsRoute(encoder, toConvert.src, toConvert.dst))
-        await uniswapV3Swap.convert(encoder, toConvert);
+        toConvert = await uniswapV3Swap.convert(encoder, toConvert);
 
       encoder.morphoBlueLiquidate(
         MORPHO_ADDRESS,
