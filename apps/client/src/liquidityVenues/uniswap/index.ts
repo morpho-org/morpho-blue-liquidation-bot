@@ -8,7 +8,7 @@ import type { LiquidityVenue } from "../liquidityVenue";
 import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
 import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
 
-export class UniswapV3Swap implements LiquidityVenue {
+export class UniswapV3 implements LiquidityVenue {
   private pools: { address: Address; fee: number }[] = [];
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
