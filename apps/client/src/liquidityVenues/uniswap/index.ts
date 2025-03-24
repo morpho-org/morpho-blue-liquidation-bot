@@ -2,7 +2,7 @@ import type { ExecutorEncoder } from "executooor-viem";
 import { type Address, encodeFunctionData, maxUint256, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 
-import type { ToConvert } from "../../utils";
+import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
 import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";

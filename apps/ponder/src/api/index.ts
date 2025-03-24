@@ -84,12 +84,14 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         collateralPrice,
       );
       return {
-        ...position,
-        loanToken,
-        collateralToken,
-        irm,
-        oracle,
-        lltv,
+        position,
+        marketParams: {
+          loanToken,
+          collateralToken,
+          irm,
+          oracle,
+          lltv,
+        },
         seizableCollateral,
         repayableAssets,
       };

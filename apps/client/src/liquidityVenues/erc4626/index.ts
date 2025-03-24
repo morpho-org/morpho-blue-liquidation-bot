@@ -2,7 +2,7 @@ import type { ExecutorEncoder } from "executooor-viem";
 import { erc4626Abi, zeroAddress, type Address } from "viem";
 import { readContract } from "viem/actions";
 
-import type { ToConvert } from "../../utils";
+import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
 export class Erc4626 implements LiquidityVenue {
