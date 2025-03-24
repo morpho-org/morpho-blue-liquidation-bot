@@ -6,27 +6,35 @@ import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
 export class Erc4626 implements LiquidityVenue {
-  private underlying: Address = zeroAddress;
+  private underlying: Record<Address, Address> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
+    if (this.underlying[src] !== undefined) {
+      return this.underlying[src] !== zeroAddress;
+    }
     try {
       const underlying = await readContract(encoder.client, {
         address: src,
         abi: erc4626Abi,
         functionName: "asset",
       });
-      if (underlying === zeroAddress) return false;
-      this.underlying = underlying;
-      return true;
-    } catch (error) {
-      console.error(error);
+      this.underlying[src] = underlying;
+      return underlying !== zeroAddress;
+    } catch {
+      this.underlying[src] = zeroAddress;
       return false;
     }
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
     const { src, dst, srcAmount } = toConvert;
+
+    const underlying = this.underlying[src];
+
+    if (underlying === undefined) {
+      return toConvert;
+    }
 
     try {
       const withdrawAmount = await readContract(encoder.client, {
@@ -38,9 +46,8 @@ export class Erc4626 implements LiquidityVenue {
       if (withdrawAmount === 0n) return toConvert;
 
       encoder.erc4626Redeem(src, srcAmount, encoder.address, encoder.address);
-      return { src: this.underlying, dst, srcAmount: withdrawAmount };
-    } catch (error) {
-      console.error(error);
+      return { src: underlying, dst, srcAmount: withdrawAmount };
+    } catch {
       return toConvert;
     }
   }

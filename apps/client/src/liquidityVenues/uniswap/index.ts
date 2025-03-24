@@ -9,38 +9,16 @@ import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
 import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
 
 export class UniswapV3 implements LiquidityVenue {
-  private pools: { address: Address; fee: number }[] = [];
+  private pools: Record<Address, Record<Address, { address: Address; fee: number }[]>> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
 
-    const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
+    const pools = this.getCachedPools(src, dst);
 
-    if (addresses === undefined) {
-      throw new Error("Uniswap V3 is not supported on this chain");
-    }
+    if (pools !== undefined) return pools.filter((pool) => pool.address !== zeroAddress).length > 0;
 
-    const { factory } = addresses;
-
-    const pools = (
-      await Promise.all(
-        FEE_TIERS.map(async (fee) => {
-          return {
-            address: await readContract(encoder.client, {
-              address: factory,
-              abi: uniswapV3FactoryAbi,
-              functionName: "getPool",
-              args: [src, dst, fee],
-            }),
-            fee,
-          };
-        }),
-      )
-    ).filter((pool) => pool.address !== zeroAddress);
-
-    this.pools = pools;
-
-    return pools.length > 0;
+    return await this.fetchPools(encoder, src, dst);
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
@@ -53,8 +31,14 @@ export class UniswapV3 implements LiquidityVenue {
     const { router } = addresses;
     const { src, dst, srcAmount } = toConvert;
 
+    const pools = this.getCachedPools(src, dst);
+
+    if (pools === undefined) {
+      return toConvert;
+    }
+
     const liquidities = await Promise.all(
-      this.pools.map(async (pool) => {
+      pools.map(async (pool) => {
         return {
           ...pool,
           amount: await readContract(encoder.client, {
@@ -98,5 +82,43 @@ export class UniswapV3 implements LiquidityVenue {
 
     /// assumed to be the last liquidity venue
     return toConvert;
+  }
+
+  private getCachedPools(src: Address, dst: Address) {
+    if (this.pools[src]?.[dst] !== undefined) return this.pools[src][dst];
+    if (this.pools[dst]?.[src] !== undefined) return this.pools[dst][src];
+    return undefined;
+  }
+
+  private async fetchPools(encoder: ExecutorEncoder, src: Address, dst: Address) {
+    const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
+
+    if (addresses === undefined) {
+      throw new Error("Uniswap V3 is not supported on this chain");
+    }
+
+    const { factory } = addresses;
+
+    const newPools = (
+      await Promise.all(
+        FEE_TIERS.map(async (fee) => {
+          return {
+            address: await readContract(encoder.client, {
+              address: factory,
+              abi: uniswapV3FactoryAbi,
+              functionName: "getPool",
+              args: [src, dst, fee],
+            }),
+            fee,
+          };
+        }),
+      )
+    ).filter((pool) => pool.address !== zeroAddress);
+
+    if (this.pools[src]?.[dst] === undefined) {
+      this.pools[src] = { ...this.pools[src], [dst]: newPools };
+    }
+
+    return newPools.filter((pool) => pool.address !== zeroAddress).length > 0;
   }
 }
