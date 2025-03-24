@@ -11,7 +11,7 @@ import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
 export class UniswapV3Swap implements LiquidityVenue {
   private pools: { address: Address; fee: number }[] = [];
 
-  async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address): Promise<boolean> {
+  async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
 
     const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
