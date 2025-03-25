@@ -1,4 +1,4 @@
-import { type Address, createWalletClient, encodeAbiParameters, http } from "viem";
+import { type Address, createWalletClient, http } from "viem";
 import { simulateCalls } from "viem/actions";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -7,11 +7,10 @@ import { ExecutorEncoder } from "executooor-viem";
 import { chainConfigs } from "../config.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 
-import { morphoBlueAbi } from "../../ponder/abis/MorphoBlue";
 import type { ChainConfig } from "./utils/types.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 
-class LiquidationBot {
+export class LiquidationBot {
   private chainId: number;
   private chainConfig: ChainConfig;
 
@@ -71,41 +70,35 @@ class LiquidationBot {
             toConvert = await venue.convert(encoder, toConvert);
         }
 
-        const callbacks = encoder.flush();
+        encoder.morphoBlueLiquidate(
+          this.MORPHO_ADDRESS,
+          liquidatablePosition.marketParams,
+          liquidatablePosition.position.user,
+          liquidatablePosition.seizableCollateral,
+          0n,
+          encoder.flush(),
+        );
+
+        const liquidationCall = encoder.flush()[0];
 
         /// TX SIMULATION
 
         const { results } = await simulateCalls(encoder.client, {
           calls: [
             {
-              to: this.MORPHO_ADDRESS,
-              abi: morphoBlueAbi,
-              functionName: "liquidate",
-              args: [
-                liquidatablePosition.marketParams,
-                liquidatablePosition.position.user,
-                liquidatablePosition.seizableCollateral,
-                0n,
-                encodeAbiParameters(
-                  [{ type: "bytes[]" }, { type: "bytes" }],
-                  [encoder.flush(), "0x"],
-                ),
-              ],
+              to: encoder.address,
+              data: liquidationCall,
             },
           ],
         });
 
-        if (results[0].status === "success") {
-          encoder.morphoBlueLiquidate(
-            this.MORPHO_ADDRESS,
-            liquidatablePosition.marketParams,
-            liquidatablePosition.position.user,
-            liquidatablePosition.seizableCollateral,
-            0n,
-            callbacks,
-          );
+        // TX EXECUTION
 
-          /// TODO: execute the tx
+        if (results[0].status === "success") {
+          await client.sendTransaction({
+            to: encoder.address,
+            data: liquidationCall,
+          });
         }
       }),
     );
