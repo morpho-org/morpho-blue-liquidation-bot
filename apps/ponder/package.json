@@ -10,7 +10,7 @@
     "codegen": "ponder codegen",
     "lint": "eslint . --fix",
     "typecheck": "tsc",
-    "dev:test": "ponder start --schema test/ponder.schema.ts --config test/ponder.config.ts",
+    "dev:test": "timeout 20m ponder start --schema test/ponder.schema.ts --config test/ponder.config.ts",
     "test": "concurrently \"pnpm run dev:test\" \"pnpm vitest indexer\""
   },
   "dependencies": {
