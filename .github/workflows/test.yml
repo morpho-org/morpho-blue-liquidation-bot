@@ -30,7 +30,11 @@ jobs:
           key: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-
 
-      - name: Install dependencies
+      - name: Install test app dependencies
+        run: pnpm i --frozen-lockfile
+        working-directory: apps/test
+
+      - name: Install ponder app dependencies
         run: pnpm i --frozen-lockfile
         working-directory: apps/ponder
 
