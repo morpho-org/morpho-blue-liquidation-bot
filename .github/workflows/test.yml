@@ -4,8 +4,13 @@ on:
   push:
     branches:
       - main
+    secrets:
+      PONDER_RPC_URL_1:
+        required: true
   pull_request:
-  workflow_dispatch:
+    secrets:
+      PONDER_RPC_URL_1:
+        required: true
 
 jobs:
   indexer-test:
