@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-    secrets:
-      PONDER_RPC_URL_1:
-        required: true
   pull_request:
-    secrets:
-      PONDER_RPC_URL_1:
-        required: true
 
 jobs:
   indexer-test:
@@ -43,6 +37,8 @@ jobs:
       - name: Run tests
         run: pnpm test
         working-directory: apps/ponder
+        env:
+          PONDER_RPC_URL_1: ${{ secrets.PONDER_RPC_URL_1 }}
 
       - name: Save Ponder cache
         uses: actions/cache/save@v3
