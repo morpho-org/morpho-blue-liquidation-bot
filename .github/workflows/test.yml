@@ -36,7 +36,7 @@ jobs:
       - name: Install Foundry (anvil, forge, cast)
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: stable
 
       - name: Run tests
         run: pnpm test
