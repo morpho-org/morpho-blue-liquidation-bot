@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up pnpm
         uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
@@ -24,6 +24,14 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      - name: Restore Ponder cache
+        uses: actions/cache@v3
+        with:
+          path: apps/ponder/.ponder
+          key: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-
+
+      - name: Install dependencies
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
         working-directory: apps/ponder
@@ -31,3 +39,9 @@ jobs:
       - name: Run tests
         run: pnpm test
         working-directory: apps/ponder
+
+      - name: Save Ponder cache
+        uses: actions/cache/save@v3
+        with:
+          path: apps/ponder/.ponder
+          key: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-${{ github.sha }}
