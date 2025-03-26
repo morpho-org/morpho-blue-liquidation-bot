@@ -17,7 +17,7 @@ export default createConfig({
         mainnet: {
           address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
           startBlock: 18883124,
-          endBlock: 19500000,
+          endBlock: 19200000,
         },
       },
     },
@@ -31,7 +31,7 @@ export default createConfig({
             parameter: "metaMorpho",
           }),
           startBlock: 18925584,
-          endBlock: 19500000,
+          endBlock: 19200000,
         },
       },
     },
@@ -41,7 +41,7 @@ export default createConfig({
         mainnet: {
           address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
           startBlock: 18883124,
-          endBlock: 19500000,
+          endBlock: 19200000,
         },
       },
     },

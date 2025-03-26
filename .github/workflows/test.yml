@@ -36,7 +36,7 @@ jobs:
         working-directory: apps/ponder
 
       - name: Run tests
-        run: pnpm dev:test
+        run: pnpm test
         working-directory: apps/ponder
 
       - name: Save Ponder cache
