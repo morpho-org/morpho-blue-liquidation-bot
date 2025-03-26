@@ -32,7 +32,6 @@ jobs:
           restore-keys: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-
 
       - name: Install dependencies
-      - name: Install dependencies
         run: pnpm i --frozen-lockfile
         working-directory: apps/ponder
 
