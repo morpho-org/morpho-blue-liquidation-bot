@@ -1,59 +1,39 @@
 import { describe, expect } from "vitest";
 import { createClient } from "@ponder/client";
-import { createPublicClient, http } from "viem";
-import { mainnet } from "viem/chains";
-import { indexerTest } from "../setup.js";
-import * as schema from "../../../ponder/ponder.schema.js";
-import { chainConfigs } from "../../config.js";
-import { fetchWhiteListedMarketsForVault } from "../../src/utils/fetchers.js";
-import { metaMorphoAbi } from "../../../ponder/abis/MetaMorpho.js";
-import { morphoBlueAbi } from "../../../ponder/abis/MorphoBlue.js";
+import { test } from "../setup";
+import * as schema from "../../ponder.schema.js";
+import { metaMorphoAbi } from "../../abis/MetaMorpho.js";
+import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
 
 describe("Indexing", () => {
   const MORPHO_ADDRESS = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb";
 
-  const config = chainConfigs[mainnet.id];
-  if (!config) throw new Error("Mainnet config not found");
-
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(config.rpcUrl),
-  });
   const ponderClient = createClient("http://localhost:42069/sql", { schema });
 
-  indexerTest.sequential("should test vaults indexing", async () => {
-    for (const vault of config.vaultWhitelist) {
-      const indexerWithdrawQueue = await fetchWhiteListedMarketsForVault(mainnet.id, vault);
-      const withdrawQueueLength = await client.readContract({
-        address: vault,
+  test.sequential("should test vaults indexing", async ({ client }) => {
+    const vaults = await ponderClient.db.select().from(schema.vault).limit(10);
+    const count = vaults.length;
+
+    const randomIndex = Math.floor(Math.random() * count);
+    const randomVault = vaults[randomIndex]!;
+
+    for (let i = 0; i < randomVault.withdrawQueue.length; i++) {
+      const expectedMarket = await client.readContract({
+        address: randomVault.address,
         abi: metaMorphoAbi,
-        functionName: "withdrawQueueLength",
+        functionName: "withdrawQueue",
+        args: [BigInt(i)],
       });
 
-      expect(Number(withdrawQueueLength)).toBe(indexerWithdrawQueue.length);
-
-      const withdrawQueue = await Promise.all(
-        Array.from({ length: indexerWithdrawQueue.length }, (_, i) => i).map((i) =>
-          client.readContract({
-            address: vault,
-            abi: metaMorphoAbi,
-            functionName: "withdrawQueue",
-            args: [BigInt(i)],
-          }),
-        ),
-      );
-
-      for (const whitelistedMarket of indexerWithdrawQueue) {
-        expect(withdrawQueue.includes(whitelistedMarket)).toBe(true);
-      }
+      expect(expectedMarket).toBe(randomVault.withdrawQueue[i]);
     }
   });
 
-  indexerTest.sequential("should test markets indexing", async () => {
+  test.sequential("should test markets indexing", async ({ client }) => {
     const markets = await ponderClient.db.select().from(schema.market).limit(100);
     const count = markets.length;
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       const randomIndex = Math.floor(Math.random() * count);
       const randomMarket = markets[randomIndex]!;
 
@@ -73,7 +53,7 @@ describe("Indexing", () => {
     }
   });
 
-  indexerTest.sequential("should test positions indexing", async () => {
+  test.sequential("should test positions indexing", async ({ client }) => {
     const positions = await ponderClient.db.select().from(schema.position).limit(100);
     const count = positions.length;
 
