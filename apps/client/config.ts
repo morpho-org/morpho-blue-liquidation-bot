@@ -5,7 +5,11 @@ import type { ChainConfig } from "./src/utils/types";
 export const chainConfigs: Record<number, ChainConfig> = {
   [mainnet.id]: {
     chain: mainnet,
-    vaultWhitelist: [],
+    vaultWhitelist: [
+      "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
+      "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
+      "0xBEEf050ecd6a16c4e7bfFbB52Ebba7846C4b8cD4",
+    ],
     rpcUrl: process.env.RPC_URL_MAINNET ?? mainnet.rpcUrls.default.http[0],
     executorAddress: (process.env.EXECUTOR_ADDRESS_MAINNET as Address) ?? "",
     liquidationPrivateKey: (process.env.LIQUIDATION_PRIVATE_KEY_MAINNET as Hex) ?? "",
