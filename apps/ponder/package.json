@@ -10,8 +10,7 @@
     "codegen": "ponder codegen",
     "lint": "eslint . --fix",
     "typecheck": "tsc",
-    "dev:test": "ponder start --schema test/ponder.schema.ts --config test/ponder.config.ts",
-    "test": "tsx test/scripts/run-tests-with-ponder.ts"
+    "test": "tsx test/script.ts"
   },
   "dependencies": {
     "hono": "^4.5.0",
@@ -19,6 +18,7 @@
   },
   "devDependencies": {
     "@ponder/client": "^0.9.27",
+    "@types/node": "^22.13.14",
     "concurrently": "^9.1.2",
     "dotenv": "^16.4.7",
     "vitest": "^3.0.9"
