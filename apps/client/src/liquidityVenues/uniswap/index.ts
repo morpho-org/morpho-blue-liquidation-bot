@@ -6,7 +6,12 @@ import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
 import { swapRouterAbi, uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
-import { FEE_TIERS, UNISWAP_ADDRESSES } from "./config";
+import {
+  FEE_TIERS,
+  DEFAULT_FACTORY_ADDRESS,
+  DEFAULT_ROUTER_ADDRESS,
+  specificAddresses,
+} from "./config";
 
 export class UniswapV3 implements LiquidityVenue {
   private pools: Record<Address, Record<Address, { address: Address; fee: number }[]>> = {};
@@ -22,7 +27,10 @@ export class UniswapV3 implements LiquidityVenue {
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
-    const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
+    const addresses = specificAddresses[encoder.client.chain.id] ?? {
+      factory: DEFAULT_FACTORY_ADDRESS,
+      router: DEFAULT_ROUTER_ADDRESS,
+    };
 
     if (addresses === undefined) {
       throw new Error("Uniswap V3 is not supported on this chain");
@@ -91,7 +99,10 @@ export class UniswapV3 implements LiquidityVenue {
   }
 
   private async fetchPools(encoder: ExecutorEncoder, src: Address, dst: Address) {
-    const addresses = UNISWAP_ADDRESSES[encoder.client.chain.id];
+    const addresses = specificAddresses[encoder.client.chain.id] ?? {
+      factory: DEFAULT_FACTORY_ADDRESS,
+      router: DEFAULT_ROUTER_ADDRESS,
+    };
 
     if (addresses === undefined) {
       throw new Error("Uniswap V3 is not supported on this chain");
