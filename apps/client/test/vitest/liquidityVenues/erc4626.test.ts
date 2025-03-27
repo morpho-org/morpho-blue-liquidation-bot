@@ -1,15 +1,12 @@
-import { erc20Abi, erc4626Abi, parseUnits, type Address } from "viem";
+import { erc20Abi, erc4626Abi, parseUnits } from "viem";
 import { describe, expect } from "vitest";
 import { test } from "../../setup.js";
 import { Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
+import { steakUSDC, WBTC, USDC } from "../../constants.js";
 
 describe("erc4626 liquidity venue", () => {
-  const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
-  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599" as Address;
-  const steakUSDC = "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB" as Address;
-
   const liquidityVenue = new Erc4626();
 
   test.sequential("should test supportsRoute", async ({ encoder }) => {
