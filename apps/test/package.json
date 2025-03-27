@@ -37,7 +37,6 @@
   "peerDependencies": {
     "@playwright/test": "^1.48.1",
     "ethers": "^6.13.0",
-    "viem": "^2.21.10",
     "vitest": ">=2.0.0 <4.0.0"
   },
   "peerDependenciesMeta": {
