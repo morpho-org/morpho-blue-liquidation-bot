@@ -20,6 +20,7 @@
   "devDependencies": {
     "@ponder/client": "^0.9.27",
     "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
     "vitest": "^3.0.9"
   }
 }

@@ -1,5 +1,6 @@
 import { ponder } from "ponder:registry";
 import { market, position } from "ponder:schema";
+import { zeroFloorSub } from "./utils";
 
 ponder.on("Morpho:CreateMarket", async ({ event, context }) => {
   // `CreateMarket` can only fire once for a given `{ chainId, id }`,
@@ -165,9 +166,13 @@ ponder.on("Morpho:Liquidate", async ({ event, context }) => {
       .update(market, { chainId: context.network.chainId, id: event.args.id })
       .set((row) => ({
         totalSupplyAssets: row.totalSupplyAssets - event.args.badDebtAssets,
-        totalSupplyShares: row.totalSupplyAssets - event.args.badDebtShares,
-        totalBorrowAssets: row.totalBorrowAssets - event.args.repaidAssets,
-        totalBorrowShares: row.totalBorrowShares - event.args.repaidShares,
+        totalSupplyShares: row.totalSupplyShares - event.args.badDebtShares,
+        totalBorrowAssets: zeroFloorSub(
+          row.totalBorrowAssets,
+          event.args.repaidAssets + event.args.badDebtAssets,
+        ),
+        totalBorrowShares:
+          row.totalBorrowShares - event.args.repaidShares - event.args.badDebtShares,
       })),
     // Row must exist because `Liquidate` cannot preceed `SupplyCollateral`.
     context.db

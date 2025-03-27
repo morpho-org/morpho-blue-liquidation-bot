@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 const PONDER_API = "http://localhost:42069/ready";
 
-console.log("Ponder is indexing...");
+import dotenv from "dotenv";
 
 async function waitForIndexing(maxWaitMs = 20 * 60 * 1000) {
   const start = Date.now();
@@ -27,11 +27,16 @@ async function waitForIndexing(maxWaitMs = 20 * 60 * 1000) {
 }
 
 async function run() {
+  dotenv.config();
+
   const ponder = spawn(
     "pnpm",
     ["ponder", "start", "--schema", "test/ponder.schema.ts", "--config", "test/ponder.config.ts"],
     { stdio: "inherit" },
   );
+
+  console.log("Ponder is indexing...");
+
   try {
     await waitForIndexing();
 
