@@ -63,6 +63,7 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
   const { totalBorrowAssets, totalBorrowShares } = accrueInterest(
     market[0],
     market[0].rateAtTarget,
+    BigInt(Math.round(Date.now() / 1000)),
   );
 
   const collateralPrice = await publicClients[
