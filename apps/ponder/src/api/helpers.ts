@@ -34,7 +34,7 @@ const mulDivDown = (x: bigint, y: bigint, d: bigint): bigint => (x * y) / d;
 const mulDivUp = (x: bigint, y: bigint, d: bigint): bigint => (x * y + (d - 1n)) / d;
 const wDivDown = (x: bigint, y: bigint): bigint => mulDivDown(x, WAD, y);
 const wDivUp = (x: bigint, y: bigint): bigint => mulDivUp(x, WAD, y);
-const wMulDown = (x: bigint, y: bigint): bigint => mulDivDown(x, y, WAD);
+export const wMulDown = (x: bigint, y: bigint): bigint => mulDivDown(x, y, WAD);
 
 const toAssetsUp = (shares: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
   return mulDivUp(shares, totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
