@@ -74,6 +74,8 @@ export class LiquidationBot {
         for (const venue of this.liquidationVenues) {
           if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
             toConvert = await venue.convert(encoder, toConvert);
+
+          if (toConvert.src === toConvert.dst || toConvert.srcAmount === 0n) break;
         }
 
         encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);

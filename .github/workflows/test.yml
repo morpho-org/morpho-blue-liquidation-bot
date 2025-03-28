@@ -41,7 +41,7 @@ jobs:
       - name: Run liquidity venue tests
         run: pnpm test:liquidity-venues
         env:
-          PONDER_RPC_URL_1: ${{ secrets.PONDER_RPC_URL_1 }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
 
       - name: Run indexer tests
         run: pnpm test

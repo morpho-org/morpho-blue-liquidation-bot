@@ -54,7 +54,7 @@ describe("uniswapV3 liquidity venue", () => {
     const expectedCalls = encoder.flush();
 
     await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
-    await liquidityVenue.convert(encoder, {
+    const toConvert = await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,
       srcAmount: amount,
@@ -63,6 +63,11 @@ describe("uniswapV3 liquidity venue", () => {
     const calls = encoder.flush();
 
     expect(calls).toEqual(expectedCalls);
+    expect(toConvert).toEqual({
+      src: USDC,
+      dst: USDC,
+      srcAmount: 0n,
+    });
   });
 
   test.sequential("should test convert encoding execution", async ({ encoder }) => {

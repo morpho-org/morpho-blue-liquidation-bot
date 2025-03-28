@@ -89,7 +89,11 @@ export class UniswapV3 implements LiquidityVenue {
     );
 
     /// assumed to be the last liquidity venue
-    return toConvert;
+    return {
+      src: dst,
+      dst: dst,
+      srcAmount: 0n,
+    };
   }
 
   private getCachedPools(src: Address, dst: Address) {
