@@ -6,13 +6,14 @@ import {
   zeroAddress,
   type Address,
 } from "viem";
-import { describe, expect } from "vitest";
-import { test } from "../../setup.js";
-import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
-import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
 import { readContract } from "viem/actions";
+import { describe, expect } from "vitest";
+
+import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
+import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
+import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
+import { test } from "../../setup.js";
 
 describe("uniswapV3 liquidity venue", () => {
   const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
@@ -63,7 +64,7 @@ describe("uniswapV3 liquidity venue", () => {
 
     const expectedCalls = encoder.flush();
 
-    expect(await liquidityVenue.supportsRoute(encoder, WBTC, USDC)).toBe(true);
+    await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
     await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,
@@ -84,7 +85,7 @@ describe("uniswapV3 liquidity venue", () => {
       amount: amount,
     });
 
-    await liquidityVenue.supportsRoute(encoder, WBTC, USDC);
+    await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
     await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,

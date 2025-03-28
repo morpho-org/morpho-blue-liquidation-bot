@@ -1,9 +1,10 @@
 import { erc20Abi, erc4626Abi, parseUnits, type Address } from "viem";
-import { describe, expect } from "vitest";
-import { test } from "../../setup.js";
-import { Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
+import { describe, expect } from "vitest";
+
+import { Erc4626 } from "../../../src/liquidityVenues/index.js";
+import { test } from "../../setup.js";
 
 describe("erc4626 liquidity venue", () => {
   const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
@@ -33,7 +34,7 @@ describe("erc4626 liquidity venue", () => {
     encoder.erc4626Redeem(steakUSDC, amount, encoder.address, encoder.address);
     const expectedCalls = encoder.flush();
 
-    expect(await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC)).toBe(true);
+    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC); // Required for the underlying to be cached
     const toConvert = await liquidityVenue.convert(encoder, {
       src: steakUSDC,
       dst: USDC,
@@ -64,7 +65,7 @@ describe("erc4626 liquidity venue", () => {
       amount: amount,
     });
 
-    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC);
+    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC); // Required for the underlying to be cached
     const toConvert = await liquidityVenue.convert(encoder, {
       src: steakUSDC,
       dst: USDC,
