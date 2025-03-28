@@ -1,6 +1,14 @@
-import type { Account, Address, Chain, Client, Transport } from "viem";
-import { sendTransaction, simulateCalls } from "viem/actions";
-import { ExecutorEncoder } from "executooor-viem";
+import {
+  encodeFunctionData,
+  maxUint256,
+  type Account,
+  type Address,
+  type Chain,
+  type Client,
+  type Transport,
+} from "viem";
+import { estimateGas, writeContract } from "viem/actions";
+import { executorAbi, ExecutorEncoder } from "executooor-viem";
 
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
@@ -51,9 +59,11 @@ export class LiquidationBot {
 
     await Promise.all(
       liquidatablePositions.map(async (liquidatablePosition) => {
+        const { marketParams } = liquidatablePosition;
+
         let toConvert = {
-          src: liquidatablePosition.marketParams.loanToken,
-          dst: liquidatablePosition.marketParams.collateralToken,
+          src: marketParams.collateralToken,
+          dst: marketParams.loanToken,
           srcAmount: liquidatablePosition.seizableCollateral,
         };
 
@@ -66,36 +76,44 @@ export class LiquidationBot {
             toConvert = await venue.convert(encoder, toConvert);
         }
 
+        encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
+
         encoder.morphoBlueLiquidate(
           this.morphoAddress,
-          liquidatablePosition.marketParams,
+          marketParams,
           liquidatablePosition.position.user,
           liquidatablePosition.seizableCollateral,
           0n,
           encoder.flush(),
         );
 
-        const liquidationCall = encoder.flush()[0];
+        const calls = encoder.flush();
 
         /// TX SIMULATION
 
-        const { results } = await simulateCalls(encoder.client, {
-          calls: [
-            {
-              to: encoder.address,
-              data: liquidationCall,
-            },
-          ],
-        });
+        const populatedTx = {
+          to: encoder.address,
+          data: encodeFunctionData({
+            abi: executorAbi,
+            functionName: "exec_606BaXt",
+            args: [calls],
+          }),
+          value: 0n, // TODO: find a way to get encoder value
+        };
+
+        const gasLimit = await estimateGas(client, populatedTx);
+
+        // TODO: maybe try/catch the simulation, and execute the tx if it succeeds
+        // TODO: add a way to price loanToken and ETH to check profit
 
         // TX EXECUTION
 
-        if (results[0].status === "success") {
-          await sendTransaction(client, {
-            to: encoder.address,
-            data: liquidationCall,
-          });
-        }
+        await writeContract(client, {
+          address: encoder.address,
+          abi: executorAbi,
+          functionName: "exec_606BaXt",
+          args: [calls],
+        });
       }),
     );
   }

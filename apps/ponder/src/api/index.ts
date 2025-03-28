@@ -73,30 +73,32 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
     functionName: "price",
   });
 
-  return positions
-    .map((position) => {
-      const { seizableCollateral, repayableAssets } = liquidationValues(
-        position.collateral,
-        position.borrowShares,
-        totalBorrowShares,
-        totalBorrowAssets,
-        lltv,
-        collateralPrice,
-      );
-      return {
-        position,
-        marketParams: {
-          loanToken,
-          collateralToken,
-          irm,
-          oracle,
+  return {
+    positions: positions
+      .map((position) => {
+        const { seizableCollateral, repayableAssets } = liquidationValues(
+          position.collateral,
+          position.borrowShares,
+          totalBorrowShares,
+          totalBorrowAssets,
           lltv,
-        },
-        seizableCollateral,
-        repayableAssets,
-      };
-    })
-    .filter((position) => position.seizableCollateral !== 0n && position.repayableAssets !== 0n);
+          collateralPrice,
+        );
+        return {
+          position,
+          marketParams: {
+            loanToken,
+            collateralToken,
+            irm,
+            oracle,
+            lltv,
+          },
+          seizableCollateral,
+          repayableAssets,
+        };
+      })
+      .filter((position) => position.seizableCollateral !== 0n && position.repayableAssets !== 0n),
+  };
 }
 
 export default app;

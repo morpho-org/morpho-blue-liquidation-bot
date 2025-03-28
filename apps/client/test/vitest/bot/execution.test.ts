@@ -1,11 +1,14 @@
-import { maxUint256, parseUnits } from "viem";
+import nock from "nock";
 import { describe, expect } from "vitest";
+import { erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
+import { mainnet } from "viem/chains";
 import { test } from "../../setup.js";
+import { testAccount } from "../../../../test/src/fixtures/index.js";
+import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3, Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
-import { MORPHO, wstEthUSDC } from "../../constants.js";
-import { testAccount } from "../../../../test/src/fixtures/index.js";
+import { MORPHO, wbtcUSDC } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
 
 describe("uexecute liquidation", () => {
@@ -16,13 +19,13 @@ describe("uexecute liquidation", () => {
 
   test.sequential("should test convert encoding", async ({ encoder }) => {
     const { client } = encoder;
-    const collateralAmount = parseUnits("1", 18);
+    const collateralAmount = parseUnits("0.1", 8);
 
     const _marketParams = await readContract(encoder.client, {
       address: MORPHO,
       abi: morphoBlueAbi,
       functionName: "idToMarketParams",
-      args: [wstEthUSDC],
+      args: [wbtcUSDC],
     });
 
     const marketParams = {
@@ -58,9 +61,62 @@ describe("uexecute liquidation", () => {
       address: MORPHO,
       abi: morphoBlueAbi,
       functionName: "borrow",
-      args: [marketParams, parseUnits("2500", 6), 0n, borrower.address, borrower.address],
+      args: [marketParams, parseUnits("5000", 6), 0n, borrower.address, borrower.address],
     });
 
-    await overwriteCollateral(client, wstEthUSDC, borrower.address, collateralAmount / 2n);
+    await overwriteCollateral(client, wbtcUSDC, borrower.address, collateralAmount / 2n);
+
+    const position = await readContract(client, {
+      address: MORPHO,
+      abi: morphoBlueAbi,
+      functionName: "position",
+      args: [wbtcUSDC, borrower.address],
+    });
+
+    nock("http://localhost:42069")
+      .post("/chain/1/liquidatable-positions", { marketIds: [] })
+      .reply(200, {
+        positions: [
+          {
+            position: {
+              chainId: mainnet.id,
+              marketId: wbtcUSDC,
+              user: borrower.address,
+              supplyShares: position[0],
+              borrowShares: position[1],
+              collateral: position[2],
+            },
+            marketParams,
+            seizableCollateral: position[2],
+            // not adding repayableAssets as it's not used for now
+          },
+        ],
+      });
+
+    const bot = new LiquidationBot(mainnet.id, client, MORPHO, [], encoder.address, [
+      erc4626,
+      uniswapV3,
+    ]);
+
+    await bot.run();
+
+    const positionPostLiquidation = await readContract(client, {
+      address: MORPHO,
+      abi: morphoBlueAbi,
+      functionName: "position",
+      args: [wbtcUSDC, borrower.address],
+    });
+
+    const executorBalance = await readContract(client, {
+      address: marketParams.loanToken,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [encoder.address],
+    });
+
+    expect(executorBalance).toBeGreaterThan(0n);
+    expect(positionPostLiquidation[0]).toBe(0n);
+    expect(positionPostLiquidation[1]).toBe(0n);
+    expect(positionPostLiquidation[2]).toBe(0n);
   });
 });

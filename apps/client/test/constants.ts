@@ -9,8 +9,7 @@ export const steakUSDC = "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB" as Address
 
 /// Markets
 
-export const wstEthUSDC =
-  "0xb323495f7e4148be5643a4ea4a8221eef163e4bccfdedc2a6f4696baacbc86cc" as Hex;
+export const wbtcUSDC = "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49" as Hex;
 /// Protocols addresses
 
 export const MORPHO = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
