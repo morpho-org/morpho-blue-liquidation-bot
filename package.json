@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:liquidity-venues": "vitest liquidityVenues"
   },
   "lint-staged": {
     "*.ts": [
@@ -20,6 +21,7 @@
     "@eslint/js": "^9.20.0",
     "@types/node": "^20.9.0",
     "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-import-resolver-typescript": "^3.8.3",
@@ -29,14 +31,15 @@
     "lint-staged": "^15.4.3",
     "prettier": "3.5.1",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.1"
+    "typescript-eslint": "^8.24.1",
+    "vitest": "^3.0.9"
   },
   "engines": {
     "node": ">=18.14"
   },
   "pnpm": {
-  "overrides": {
-    "viem": "2.23.2"
+    "overrides": {
+      "viem": "2.23.2"
     }
   },
   "packageManager": "pnpm@9.13.2+sha1.969cc200a41db98449afee1bfa7578b3ce6ff330"

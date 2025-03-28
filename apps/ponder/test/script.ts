@@ -40,10 +40,10 @@ async function run() {
   try {
     await waitForIndexing();
 
-    const tests = spawn("pnpm", ["vitest", "run"], { stdio: "inherit" });
+    const tests = spawn("pnpm", ["vitest", "indexer", "run"], { stdio: "inherit" });
 
     tests.on("exit", (code) => {
-      console.log(`🧪 Tests over ${code}`);
+      console.log("🧪 Tests over");
       ponder.kill("SIGTERM");
       process.exit(code ?? 1);
     });

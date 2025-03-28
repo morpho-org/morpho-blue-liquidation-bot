@@ -38,7 +38,12 @@ jobs:
         with:
           version: stable
 
-      - name: Run tests
+      - name: Run liquidity venue tests
+        run: pnpm test:liquidity-venues
+        env:
+          PONDER_RPC_URL_1: ${{ secrets.PONDER_RPC_URL_1 }}
+
+      - name: Run indexer tests
         run: pnpm test
         working-directory: apps/ponder
         env:
