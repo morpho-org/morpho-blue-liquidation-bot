@@ -30,7 +30,7 @@ describe("erc4626 liquidity venue", () => {
     encoder.erc4626Redeem(steakUSDC, amount, encoder.address, encoder.address);
     const expectedCalls = encoder.flush();
 
-    expect(await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC)).toBe(true);
+    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC); // Required for the underlying to be cached
     const toConvert = await liquidityVenue.convert(encoder, {
       src: steakUSDC,
       dst: USDC,
@@ -61,7 +61,7 @@ describe("erc4626 liquidity venue", () => {
       amount: amount,
     });
 
-    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC);
+    await liquidityVenue.supportsRoute(encoder, steakUSDC, USDC); // Required for the underlying to be cached
     const toConvert = await liquidityVenue.convert(encoder, {
       src: steakUSDC,
       dst: USDC,

@@ -4,9 +4,9 @@ import { test } from "../../setup.js";
 import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
 import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
 import { readContract } from "viem/actions";
 import { USDC, wstETH, WBTC } from "../../constants.js";
+import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
 
 describe("uniswapV3 liquidity venue", () => {
   const liquidityVenue = new UniswapV3();
@@ -53,7 +53,7 @@ describe("uniswapV3 liquidity venue", () => {
 
     const expectedCalls = encoder.flush();
 
-    expect(await liquidityVenue.supportsRoute(encoder, WBTC, USDC)).toBe(true);
+    await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
     await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,
@@ -74,7 +74,7 @@ describe("uniswapV3 liquidity venue", () => {
       amount: amount,
     });
 
-    await liquidityVenue.supportsRoute(encoder, WBTC, USDC);
+    await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
     await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,

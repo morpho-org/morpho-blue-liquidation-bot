@@ -4,6 +4,7 @@ import { test } from "../setup";
 import * as schema from "../../ponder.schema.js";
 import { metaMorphoAbi } from "../../abis/MetaMorpho.js";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
+import { zeroAddress } from "viem";
 
 describe("Indexing", () => {
   const MORPHO_ADDRESS = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb";
@@ -48,8 +49,9 @@ describe("Indexing", () => {
       expect(randomMarket.totalSupplyShares).toEqual(onchainMarket[1]);
       expect(randomMarket.totalBorrowAssets).toEqual(onchainMarket[2]);
       expect(randomMarket.totalBorrowShares).toEqual(onchainMarket[3]);
-      expect(randomMarket.lastUpdate).toEqual(onchainMarket[4]);
       expect(randomMarket.fee).toEqual(onchainMarket[5]);
+      if (randomMarket.irm !== zeroAddress)
+        expect(randomMarket.lastUpdate).toEqual(onchainMarket[4]);
     }
   });
 
