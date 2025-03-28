@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
     "prepare": "husky",
-    "test:liquidity-venues": "vitest liquidityVenues"
+    "test:liquidity-venues": "vitest liquidityVenues",
+    "test:execution": "vitest execution"
   },
   "lint-staged": {
     "*.ts": [
