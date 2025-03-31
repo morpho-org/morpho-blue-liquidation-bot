@@ -1,27 +1,32 @@
 import { createConfig, factory } from "ponder";
 import { getAbiItem, http } from "viem";
+import { base, mainnet } from "viem/chains";
+import { chainConfig } from "../config";
 
 import { adaptiveCurveIrmAbi } from "./abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "./abis/MetaMorpho";
 import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
 import { morphoBlueAbi } from "./abis/MorphoBlue";
 
+const mainnetConfig = chainConfig(mainnet.id);
+const baseConfig = chainConfig(base.id);
+
 export default createConfig({
   networks: {
-    mainnet: { chainId: 1, transport: http(process.env.PONDER_RPC_URL_1) },
-    base: { chainId: 8453, transport: http(process.env.PONDER_RPC_URL_8453) },
+    mainnet: { chainId: mainnet.id, transport: http(mainnetConfig.rpcUrl) },
+    base: { chainId: base.id, transport: http(baseConfig.rpcUrl) },
   },
   contracts: {
     Morpho: {
       abi: morphoBlueAbi,
       network: {
         mainnet: {
-          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-          startBlock: 18883124,
+          address: mainnetConfig.morpho.address,
+          startBlock: mainnetConfig.morpho.startBlock,
         },
         base: {
-          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-          startBlock: 13977148,
+          address: baseConfig.morpho.address,
+          startBlock: baseConfig.morpho.startBlock,
         },
       },
     },
@@ -30,25 +35,19 @@ export default createConfig({
       network: {
         mainnet: {
           address: factory({
-            address: [
-              "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
-              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
-            ],
+            address: mainnetConfig.metaMorphoFactories.addresses,
             event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
             parameter: "metaMorpho",
           }),
-          startBlock: 18925584,
+          startBlock: mainnetConfig.metaMorphoFactories.startBlock,
         },
         base: {
           address: factory({
-            address: [
-              "0xFf62A7c278C62eD665133147129245053Bbf5918",
-              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
-            ],
+            address: baseConfig.metaMorphoFactories.addresses,
             event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
             parameter: "metaMorpho",
           }),
-          startBlock: 13978134,
+          startBlock: baseConfig.metaMorphoFactories.startBlock,
         },
       },
     },
@@ -56,12 +55,12 @@ export default createConfig({
       abi: adaptiveCurveIrmAbi,
       network: {
         mainnet: {
-          address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-          startBlock: 18883124,
+          address: mainnetConfig.adaptiveCurveIrm.address,
+          startBlock: mainnetConfig.adaptiveCurveIrm.startBlock,
         },
         base: {
-          address: "0x46415998764C29aB2a25CbeA6254146D50D22687",
-          startBlock: 13977152,
+          address: baseConfig.adaptiveCurveIrm.address,
+          startBlock: baseConfig.adaptiveCurveIrm.startBlock,
         },
       },
     },
