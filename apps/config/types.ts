@@ -7,7 +7,7 @@ export type ChainConfig = Config & {
   liquidationPrivateKey: Hex;
 };
 
-export type Config = {
+export interface Config {
   chain: Chain;
   morpho: {
     address: Address;
@@ -23,11 +23,11 @@ export type Config = {
   };
   vaultWhitelist: Address[];
   additionalMarketsWhitelist: Hex[];
-};
+}
 
-export type EnvVariables = {
+export interface EnvVariables {
   ponderRpcUrl: string | undefined;
-  rpcUrl: string | undefined;
+  rpcUrl?: string | undefined;
   executorAddress: string | undefined;
   liquidationPrivateKey: string | undefined;
-};
+}
