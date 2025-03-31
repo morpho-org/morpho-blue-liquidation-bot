@@ -1,17 +1,16 @@
 import { describe, expect } from "vitest";
 import { createClient } from "@ponder/client";
-import { test } from "../setup";
+import { indexingTest } from "../setup";
 import * as schema from "../../ponder.schema.js";
 import { metaMorphoAbi } from "../../abis/MetaMorpho.js";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
 import { zeroAddress } from "viem";
+import { MORPHO } from "../../../client/test/constants.js";
 
 describe("Indexing", () => {
-  const MORPHO_ADDRESS = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb";
-
   const ponderClient = createClient("http://localhost:42069/sql", { schema });
 
-  test.sequential("should test vaults indexing", async ({ client }) => {
+  indexingTest.sequential("should test vaults indexing", async ({ client }) => {
     const vaults = await ponderClient.db.select().from(schema.vault).limit(10);
     const count = vaults.length;
 
@@ -30,7 +29,7 @@ describe("Indexing", () => {
     }
   });
 
-  test.sequential("should test markets indexing", async ({ client }) => {
+  indexingTest.sequential("should test markets indexing", async ({ client }) => {
     const markets = await ponderClient.db.select().from(schema.market).limit(100);
     const count = markets.length;
 
@@ -39,7 +38,7 @@ describe("Indexing", () => {
       const randomMarket = markets[randomIndex]!;
 
       const onchainMarket = await client.readContract({
-        address: MORPHO_ADDRESS,
+        address: MORPHO,
         abi: morphoBlueAbi,
         functionName: "market",
         args: [randomMarket.id],
@@ -55,7 +54,7 @@ describe("Indexing", () => {
     }
   });
 
-  test.sequential("should test positions indexing", async ({ client }) => {
+  indexingTest.sequential("should test positions indexing", async ({ client }) => {
     const positions = await ponderClient.db.select().from(schema.position).limit(100);
     const count = positions.length;
 
@@ -64,7 +63,7 @@ describe("Indexing", () => {
       const randomPosition = positions[randomIndex]!;
 
       const onchainPosition = await client.readContract({
-        address: MORPHO_ADDRESS,
+        address: MORPHO,
         abi: morphoBlueAbi,
         functionName: "position",
         args: [randomPosition.marketId, randomPosition.user],

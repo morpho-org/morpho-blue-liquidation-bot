@@ -34,7 +34,7 @@ const mulDivDown = (x: bigint, y: bigint, d: bigint): bigint => (x * y) / d;
 const mulDivUp = (x: bigint, y: bigint, d: bigint): bigint => (x * y + (d - 1n)) / d;
 const wDivDown = (x: bigint, y: bigint): bigint => mulDivDown(x, WAD, y);
 const wDivUp = (x: bigint, y: bigint): bigint => mulDivUp(x, WAD, y);
-const wMulDown = (x: bigint, y: bigint): bigint => mulDivDown(x, y, WAD);
+export const wMulDown = (x: bigint, y: bigint): bigint => mulDivDown(x, y, WAD);
 
 const toAssetsUp = (shares: bigint, totalAssets: bigint, totalShares: bigint): bigint => {
   return mulDivUp(shares, totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
@@ -50,8 +50,11 @@ export const toSharesDown = (assets: bigint, totalAssets: bigint, totalShares: b
   return mulDivDown(assets, totalShares + VIRTUAL_SHARES, totalAssets + VIRTUAL_ASSETS);
 };
 
-export const accrueInterest = (marketState: MarketState, rateAtTarget: bigint): MarketState => {
-  const timestamp = BigInt(Math.round(Date.now() / 1000));
+export function accrueInterest(
+  marketState: MarketState,
+  rateAtTarget: bigint,
+  timestamp: bigint,
+): MarketState {
   const elapsed = timestamp - marketState.lastUpdate;
   if (elapsed === 0n) return marketState;
 
@@ -82,7 +85,7 @@ export const accrueInterest = (marketState: MarketState, rateAtTarget: bigint): 
     return marketWithNewTotal;
   }
   return marketState;
-};
+}
 
 const liquidationIncentiveFactor = (lltv: bigint): bigint => {
   return min(
@@ -91,14 +94,14 @@ const liquidationIncentiveFactor = (lltv: bigint): bigint => {
   );
 };
 
-export const liquidationValues = (
+export function liquidationValues(
   collateral: bigint,
   borrowShares: bigint,
   totalBorrowShares: bigint,
   totalBorrowAssets: bigint,
   lltv: bigint,
   collateralPrice: bigint,
-) => {
+) {
   const borrowed = toAssetsUp(borrowShares, totalBorrowAssets, totalBorrowShares);
   const maxBorrow = wMulDown(mulDivDown(collateral, collateralPrice, ORACLE_PRICE_SCALE), lltv);
 
@@ -126,7 +129,7 @@ export const liquidationValues = (
     return { seizableCollateral, repayableAssets };
   }
   return { seizableCollateral: 0n, repayableAssets: 0n };
-};
+}
 
 const wTaylorCompounded = (x: bigint, n: bigint): bigint => {
   const firstTerm = x * n;
@@ -135,7 +138,11 @@ const wTaylorCompounded = (x: bigint, n: bigint): bigint => {
   return firstTerm + secondTerm + thirdTerm;
 };
 
-const borrowRate = (market: MarketState, startRateAtTarget: bigint, timestamp: bigint): bigint => {
+export function borrowRate(
+  market: MarketState,
+  startRateAtTarget: bigint,
+  timestamp: bigint,
+): bigint {
   const utilization =
     market.totalSupplyAssets > 0n
       ? wDivDown(market.totalBorrowAssets, market.totalSupplyAssets)
@@ -168,7 +175,7 @@ const borrowRate = (market: MarketState, startRateAtTarget: bigint, timestamp: b
   }
 
   return curve(avgRateAtTarget, err);
-};
+}
 
 const wMulToZero = (x: bigint, y: bigint): bigint => {
   return (x * y) / WAD;
