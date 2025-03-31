@@ -1,25 +1,14 @@
-import {
-  encodeFunctionData,
-  erc20Abi,
-  maxUint256,
-  parseUnits,
-  zeroAddress,
-  type Address,
-} from "viem";
+import { encodeFunctionData, erc20Abi, maxUint256, parseUnits, zeroAddress } from "viem";
+import { describe, expect } from "vitest";
+import { test } from "../../setup.js";
+import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
+import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
-import { describe, expect } from "vitest";
-
-import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
+import { USDC, wstETH, WBTC } from "../../constants.js";
 import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
-import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
-import { test } from "../../setup.js";
 
 describe("uniswapV3 liquidity venue", () => {
-  const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
-  const wstETH = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0" as Address;
-  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599" as Address;
-
   const liquidityVenue = new UniswapV3();
 
   test.sequential("should test supportsRoute", async ({ encoder }) => {
@@ -65,7 +54,7 @@ describe("uniswapV3 liquidity venue", () => {
     const expectedCalls = encoder.flush();
 
     await liquidityVenue.supportsRoute(encoder, WBTC, USDC); // Required for the pools to be cached
-    await liquidityVenue.convert(encoder, {
+    const toConvert = await liquidityVenue.convert(encoder, {
       src: WBTC,
       dst: USDC,
       srcAmount: amount,
@@ -74,6 +63,11 @@ describe("uniswapV3 liquidity venue", () => {
     const calls = encoder.flush();
 
     expect(calls).toEqual(expectedCalls);
+    expect(toConvert).toEqual({
+      src: USDC,
+      dst: USDC,
+      srcAmount: 0n,
+    });
   });
 
   test.sequential("should test convert encoding execution", async ({ encoder }) => {

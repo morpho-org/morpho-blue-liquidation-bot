@@ -33,7 +33,7 @@ export async function fetchLiquidatablePositions(
     throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
 
-  const liquidatablePositions = (await response.json()) as LiquidatablePosition[];
+  const data = (await response.json()) as { positions: LiquidatablePosition[] };
 
-  return liquidatablePositions;
+  return data.positions;
 }
