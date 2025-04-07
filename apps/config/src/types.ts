@@ -1,7 +1,6 @@
 import type { Address, Chain, Hex } from "viem";
 
 export type ChainConfig = Config & {
-  ponderRpcUrl: string;
   rpcUrl: string;
   executorAddress: Address;
   liquidationPrivateKey: Hex;
@@ -26,7 +25,6 @@ export type Config = {
 };
 
 export type EnvVariables = {
-  ponderRpcUrl: string | undefined;
   rpcUrl: string | undefined;
   executorAddress: string | undefined;
   liquidationPrivateKey: string | undefined;

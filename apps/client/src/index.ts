@@ -3,7 +3,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot } from "./bot";
-import { chainConfig } from "../../config";
+import { chainConfig } from "@morpho-blue-liquidation-bot/config";
 
 import { UniswapV3 } from "./liquidityVenues/uniswap";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
