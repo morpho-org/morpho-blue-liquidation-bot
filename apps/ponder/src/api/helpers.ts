@@ -124,11 +124,11 @@ export function liquidationValues(
       totalBorrowAssets,
       totalBorrowShares,
     );
-    const repayableAssets = toAssetsUp(repaidShares, totalBorrowAssets, totalBorrowShares);
+    const repayableAssets = Number(toAssetsUp(repaidShares, totalBorrowAssets, totalBorrowShares));
 
-    return { seizableCollateral, repayableAssets };
+    return { seizableCollateral: Number(seizableCollateral), repayableAssets };
   }
-  return { seizableCollateral: 0n, repayableAssets: 0n };
+  return { seizableCollateral: 0, repayableAssets: 0 };
 }
 
 const wTaylorCompounded = (x: bigint, n: bigint): bigint => {

@@ -180,8 +180,8 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
-      expect(seizableCollateral).toBe(0n);
-      expect(repayableAssets).toBe(0n);
+      expect(seizableCollateral).toBe(0);
+      expect(repayableAssets).toBe(0);
     },
   );
 
@@ -279,26 +279,26 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
-      expect(seizableCollateral).toBe(collateralAmount / 2n);
+      expect(seizableCollateral).toBe(Number(collateralAmount / 2n));
 
       await client.deal({
         erc20: marketParams.loanToken,
         account: client.account,
-        amount: repayableAssets,
+        amount: BigInt(repayableAssets),
       });
 
       await client.writeContract({
         address: marketParams.loanToken,
         abi: erc20Abi,
         functionName: "approve",
-        args: [MORPHO, repayableAssets],
+        args: [MORPHO, BigInt(repayableAssets)],
       });
 
       await client.writeContract({
         address: MORPHO,
         abi: morphoBlueAbi,
         functionName: "liquidate",
-        args: [marketParams, borrower.address, seizableCollateral, 0n, "0x"],
+        args: [marketParams, borrower.address, BigInt(seizableCollateral), 0n, "0x"],
       });
 
       const [positionPostLiquidation, loanTokenLiquidatorBalance] = await Promise.all([
@@ -425,21 +425,21 @@ describe("Helpers", () => {
       await client.deal({
         erc20: marketParams.loanToken,
         account: client.account,
-        amount: repayableAssets,
+        amount: BigInt(repayableAssets),
       });
 
       await client.writeContract({
         address: marketParams.loanToken,
         abi: erc20Abi,
         functionName: "approve",
-        args: [MORPHO, repayableAssets],
+        args: [MORPHO, BigInt(repayableAssets)],
       });
 
       await client.writeContract({
         address: MORPHO,
         abi: morphoBlueAbi,
         functionName: "liquidate",
-        args: [marketParams, borrower.address, seizableCollateral, 0n, "0x"],
+        args: [marketParams, borrower.address, BigInt(seizableCollateral), 0n, "0x"],
       });
 
       const [positionPostLiquidation, loanTokenLiquidatorBalance] = await Promise.all([
@@ -458,7 +458,7 @@ describe("Helpers", () => {
       ]);
 
       expect(positionPostLiquidation[0]).toBe(0n);
-      expect(positionPostLiquidation[2]).toBe(newCollateralAmount - seizableCollateral);
+      expect(positionPostLiquidation[2]).toBe(newCollateralAmount - BigInt(seizableCollateral));
 
       expect(loanTokenLiquidatorBalance).toBe(0n);
     },
