@@ -26,6 +26,16 @@ cd morpho-blue-liquidation-bot
 pnpm install
 ```
 
+## Run the bot
+
+Once the bot is installed and configured (see [Chain Configuration](#chain-configuration) and [Liquidity Venues](#liquidity-venues)), you can run it by executing the following command:
+
+```bash
+pnpm liquidate
+```
+
+This will start the bot, which will start liquidating once the configured chains are fully indexed.
+
 ## Chain Configuration
 
 The bot can be configured to run on any EVM-compatible chain. The chain configuration is done in the `apps/config/config.ts` file.
@@ -57,12 +67,25 @@ The bot will only liquidate positions from the markets that are whitelisted. The
 
 ### Secrets
 
+For each chain, the following secrets must be set:
+
 - `rpcUrl`: The RPC URL of the chain that will be used by the bot.
-- `ponderRpcUrl`: The RPC URL that will be used by the indexer. This field is optional, if not set, the indexer will use `rpcUrl`.
 - `executorAddress`: The address of the executor contract. The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
 - `liquidationPrivateKey`: The private key of the EOA that will be used to execute the liquidations.
 
-The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), and the corresponding keys must be set in the `apps/config/config.ts` file.
+The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), with the following keys:
+
+- `RPC_URL_<chainId>`
+- `EXECUTOR_ADDRESS_<chainId>`
+- `LIQUIDATION_PRIVATE_KEY_<chainId>`
+
+Example for mainnet (chainId 1):
+
+```
+RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/<your-alchemy-api-key>
+EXECUTOR_ADDRESS_1=0x1234567890123456789012345678901234567890
+LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012345678901234
+```
 
 ## Liquidity Venues
 

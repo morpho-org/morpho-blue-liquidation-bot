@@ -24,9 +24,3 @@ export interface Config {
   vaultWhitelist: Address[];
   additionalMarketsWhitelist: Hex[];
 }
-
-export interface EnvVariables {
-  rpcUrl?: string | undefined;
-  executorAddress: string | undefined;
-  liquidationPrivateKey: string | undefined;
-}

@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address, Chain, Hex } from "viem";
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
 import dotenv from "dotenv";
@@ -10,21 +10,36 @@ export function chainConfig(chainId: number): ChainConfig {
   if (!config) {
     throw new Error(`No config found for chainId ${chainId}`);
   }
-  if (!config.rpcUrl) {
-    throw new Error(`No RPC URL found for chainId ${chainId}`);
-  }
-  if (!config.executorAddress) {
-    throw new Error(`No executor address found for chainId ${chainId}`);
-  }
-  if (!config.liquidationPrivateKey) {
-    throw new Error(`No liquidation private key found for chainId ${chainId}`);
-  }
+  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
   return {
     ...config,
     chainId,
-    rpcUrl: config.rpcUrl,
-    executorAddress: config.executorAddress as Address,
-    liquidationPrivateKey: config.liquidationPrivateKey as Hex,
+    rpcUrl,
+    executorAddress,
+    liquidationPrivateKey,
+  };
+}
+
+export function getSecrets(chainId: number, chain?: Chain) {
+  const defaultRpcUrl = chain?.rpcUrls.default.http[0];
+
+  const rpcUrl = process.env[`RPC_URL_${chainId}`] ?? defaultRpcUrl;
+  const executorAddress = process.env[`EXECUTOR_ADDRESS_${chainId}`];
+  const liquidationPrivateKey = process.env[`LIQUIDATION_PRIVATE_KEY_${chainId}`];
+
+  if (!rpcUrl) {
+    throw new Error(`No RPC URL found for chainId ${chainId}`);
+  }
+  if (!executorAddress) {
+    throw new Error(`No executor address found for chainId ${chainId}`);
+  }
+  if (!liquidationPrivateKey) {
+    throw new Error(`No liquidation private key found for chainId ${chainId}`);
+  }
+  return {
+    rpcUrl,
+    executorAddress: executorAddress as Address,
+    liquidationPrivateKey: liquidationPrivateKey as Hex,
   };
 }
 
