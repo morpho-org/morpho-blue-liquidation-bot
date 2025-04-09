@@ -14,6 +14,9 @@ importers:
       ponder:
         specifier: ^0.9.19
         version: 0.9.28(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       viem:
         specifier: 2.23.2
         version: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
@@ -87,9 +90,6 @@ importers:
       hono:
         specifier: ^4.5.0
         version: 4.7.5
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
     devDependencies:
       '@morpho-blue-liquidation-bot/config':
         specifier: workspace:*

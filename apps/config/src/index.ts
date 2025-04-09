@@ -21,10 +21,11 @@ export function chainConfig(chainId: number): ChainConfig {
   }
   return {
     ...config,
+    chainId,
     rpcUrl: config.rpcUrl,
     executorAddress: config.executorAddress as Address,
     liquidationPrivateKey: config.liquidationPrivateKey as Hex,
   };
 }
 
-export { chainConfigs };
+export { chainConfigs, type ChainConfig };

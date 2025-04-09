@@ -1,6 +1,7 @@
 import type { Address, Chain, Hex } from "viem";
 
 export type ChainConfig = Config & {
+  chainId: number;
   rpcUrl: string;
   executorAddress: Address;
   liquidationPrivateKey: Hex;
