@@ -9,7 +9,8 @@
     "test:liquidity-venues": "vitest liquidityVenues",
     "test:execution": "vitest execution",
     "test:helpers": "vitest helpers",
-    "liquidate": "tsx apps/client/src/script.ts --env-file=.env"
+    "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
+    "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env"
   },
   "lint-staged": {
     "*.ts": [
