@@ -8,7 +8,8 @@
     "prepare": "husky",
     "test:liquidity-venues": "vitest liquidityVenues",
     "test:execution": "vitest execution",
-    "test:helpers": "vitest helpers"
+    "test:helpers": "vitest helpers",
+    "liquidate": "tsx apps/client/src/script.ts --env-file=.env"
   },
   "lint-staged": {
     "*.ts": [
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "ponder": "^0.9.19",
+    "tsx": "^4.19.3",
     "viem": "^2.23.2"
   },
   "devDependencies": {
@@ -44,5 +46,8 @@
       "viem": "2.23.2"
     }
   },
+  "workspaces": [
+    "apps/*"
+  ],
   "packageManager": "pnpm@9.13.2+sha1.969cc200a41db98449afee1bfa7578b3ce6ff330"
 }

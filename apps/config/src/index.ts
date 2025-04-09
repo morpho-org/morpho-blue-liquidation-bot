@@ -1,6 +1,9 @@
 import type { Address, Hex } from "viem";
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export function chainConfig(chainId: number): ChainConfig {
   const config = chainConfigs[chainId];
@@ -18,9 +21,11 @@ export function chainConfig(chainId: number): ChainConfig {
   }
   return {
     ...config,
-    ponderRpcUrl: config.ponderRpcUrl ?? config.rpcUrl,
+    chainId,
     rpcUrl: config.rpcUrl,
     executorAddress: config.executorAddress as Address,
     liquidationPrivateKey: config.liquidationPrivateKey as Hex,
   };
 }
+
+export { chainConfigs, type ChainConfig };

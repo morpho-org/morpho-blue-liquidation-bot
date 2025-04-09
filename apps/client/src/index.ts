@@ -3,23 +3,13 @@ import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot } from "./bot";
-import { chainConfig } from "../../config";
 
 import { UniswapV3 } from "./liquidityVenues/uniswap";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
+import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
 
-const main = () => {
-  const args = process.argv.slice(2);
-  const chainIdArg = args.find((arg) => arg.startsWith("--chainId="));
-
-  if (chainIdArg === undefined) {
-    throw new Error("Chain ID is missing");
-  }
-  const chainId = Number(chainIdArg);
-
-  const config = chainConfig(chainId);
-
+export const launchBot = (config: ChainConfig) => {
   const client = createWalletClient({
     chain: config.chain,
     transport: http(config.rpcUrl),
@@ -33,7 +23,7 @@ const main = () => {
   liquidityVenues.push(new Erc4626());
 
   const bot = new LiquidationBot(
-    chainId,
+    config.chainId,
     client,
     config.morpho.address,
     config.vaultWhitelist,

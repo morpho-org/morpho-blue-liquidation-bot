@@ -14,6 +14,9 @@ importers:
       ponder:
         specifier: ^0.9.19
         version: 0.9.28(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       viem:
         specifier: 2.23.2
         version: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
@@ -66,6 +69,9 @@ importers:
 
   apps/client:
     dependencies:
+      '@morpho-blue-liquidation-bot/config':
+        specifier: workspace:*
+        version: link:../config
       '@ponder/client':
         specifier: ^0.9.27
         version: 0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
@@ -77,15 +83,17 @@ importers:
         specifier: ^14.0.2
         version: 14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
+  apps/config: {}
+
   apps/ponder:
     dependencies:
       hono:
         specifier: ^4.5.0
         version: 4.7.5
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
     devDependencies:
+      '@morpho-blue-liquidation-bot/config':
+        specifier: workspace:*
+        version: link:../config
       '@ponder/client':
         specifier: ^0.9.27
         version: 0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
