@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import dotenv from "dotenv";
 import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
 import { launchBot } from ".";
 
@@ -21,21 +20,12 @@ async function waitForIndexing() {
 }
 
 async function run() {
-  dotenv.config();
-
   const configs = Object.keys(chainConfigs).map((config) => chainConfig(Number(config)));
 
   const ponder = spawn(
     "pnpm",
-    [
-      "ponder",
-      "start",
-      "--schema",
-      "apps/ponder/ponder.schema.ts",
-      "--config",
-      "apps/ponder/ponder.config.ts",
-    ],
-    { stdio: "inherit" },
+    ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
+    { stdio: "inherit", cwd: "apps/ponder" },
   );
 
   console.log("Ponder is indexing...");
