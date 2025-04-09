@@ -4,12 +4,10 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 
 ## Features
 
-- RPC-only (no extra infra required)
-- Has its own built-in indexer
-- Automatically detects liquidatable positions
-- Configurable liquidity venues
+- Automatically detects liquidatable positions and executes the liquidations
 - Multi-chain compatible
-- Minimal setup and dependencies
+- Configurable liquidity venues
+- Minimal setup and dependencies (RPC-only, no extra infra required)
 
 ## Requirements
 
@@ -34,7 +32,7 @@ Once the bot is installed and configured (see [Chain Configuration](#chain-confi
 pnpm liquidate
 ```
 
-This will start the bot, which will start liquidating once the configured chains are fully indexed.
+This command will start the bot, which will start liquidating once the configured chains are fully indexed.
 
 ## Chain Configuration
 
