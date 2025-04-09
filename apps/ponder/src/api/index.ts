@@ -68,9 +68,10 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
     BigInt(Math.round(Date.now() / 1000)),
   );
 
+  // biome-ignore lint/style/noNonNullAssertion: Never null
   const collateralPrice = await publicClients[
     chainId as unknown as keyof typeof publicClients
-  ].readContract({
+  ]!.readContract({
     address: oracle,
     abi: oracleAbi,
     functionName: "price",

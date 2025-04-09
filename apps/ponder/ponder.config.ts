@@ -1,69 +1,96 @@
 import { createConfig, factory } from "ponder";
-import { getAbiItem, http } from "viem";
+import { type AbiEvent, getAbiItem, http } from "viem";
+
+import { chainConfig, chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
 import { adaptiveCurveIrmAbi } from "./abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "./abis/MetaMorpho";
 import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
 import { morphoBlueAbi } from "./abis/MorphoBlue";
 
+const configs = Object.values(chainConfigs).map((config) => chainConfig(config.chain.id));
+
+const networks = Object.fromEntries(
+  configs.map((config) => [
+    config.chain.name,
+    {
+      chainId: config.chain.id,
+      transport: http(config.rpcUrl),
+    },
+  ]),
+);
+
 export default createConfig({
-  networks: {
-    mainnet: { chainId: 1, transport: http(process.env.PONDER_RPC_URL_1) },
-    base: { chainId: 8453, transport: http(process.env.PONDER_RPC_URL_8453) },
-  },
+  networks,
   contracts: {
     Morpho: {
       abi: morphoBlueAbi,
-      network: {
-        mainnet: {
-          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-          startBlock: 18883124,
-        },
-        base: {
-          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-          startBlock: 13977148,
-        },
-      },
+      network: Object.fromEntries(
+        configs.map((config) => [
+          config.chain.name,
+          {
+            address: config.morpho.address,
+            startBlock: config.morpho.startBlock,
+          },
+        ]),
+      ) as Record<
+        keyof typeof networks,
+        {
+          readonly address: `0x${string}`;
+          readonly startBlock: number;
+        }
+      >,
     },
     MetaMorpho: {
       abi: metaMorphoAbi,
-      network: {
-        mainnet: {
-          address: factory({
-            address: [
-              "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
-              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
-            ],
-            event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
-            parameter: "metaMorpho",
-          }),
-          startBlock: 18925584,
-        },
-        base: {
-          address: factory({
-            address: [
-              "0xFf62A7c278C62eD665133147129245053Bbf5918",
-              "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
-            ],
-            event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
-            parameter: "metaMorpho",
-          }),
-          startBlock: 13978134,
-        },
-      },
+      network: Object.fromEntries(
+        configs.map((config) => [
+          config.chain.name,
+          {
+            address: factory({
+              address: config.metaMorphoFactories.addresses,
+              event: getAbiItem({ abi: metaMorphoFactoryAbi, name: "CreateMetaMorpho" }),
+              parameter: "metaMorpho",
+            }),
+            startBlock: config.metaMorphoFactories.startBlock,
+          },
+        ]),
+      ) as Record<
+        keyof typeof networks,
+        {
+          readonly address: Factory<
+            Extract<
+              (typeof metaMorphoFactoryAbi)[number],
+              { type: "event"; name: "CreateMetaMorpho" }
+            >
+          >;
+          readonly startBlock: number;
+        }
+      >,
     },
     AdaptiveCurveIRM: {
       abi: adaptiveCurveIrmAbi,
-      network: {
-        mainnet: {
-          address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-          startBlock: 18883124,
-        },
-        base: {
-          address: "0x46415998764C29aB2a25CbeA6254146D50D22687",
-          startBlock: 13977152,
-        },
-      },
+      network: Object.fromEntries(
+        configs.map((config) => [
+          config.chain.name,
+          {
+            address: config.adaptiveCurveIrm.address,
+            startBlock: config.adaptiveCurveIrm.startBlock,
+          },
+        ]),
+      ) as Record<
+        keyof typeof networks,
+        {
+          readonly address: `0x${string}`;
+          readonly startBlock: number;
+        }
+      >,
     },
   },
 });
+
+interface Factory<event extends AbiEvent = AbiEvent> {
+  address: `0x${string}` | readonly `0x${string}`[];
+  event: event;
+  parameter: Exclude<event["inputs"][number]["name"], undefined>;
+}
