@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { and, client, eq, graphql } from "ponder";
 import { db, publicClients } from "ponder:api";
 import schema from "ponder:schema";
-import type { Address, Hex } from "viem";
+import { zeroAddress, type Address, type Hex } from "viem";
 
 import { oracleAbi } from "../../abis/Oracle";
 
@@ -36,11 +36,11 @@ app.post("/chain/:id/liquidatable-positions", async (c) => {
     marketIds.map((marketId) => getLiquidatablePositions(Number(chainId), marketId)),
   );
 
-  return c.json(liquidatablePositions.flat());
+  return c.json({ positions: liquidatablePositions.flat() });
 });
 
 async function getLiquidatablePositions(chainId: number, marketId: Hex) {
-  const [market, positions] = await Promise.all([
+  const [markets, positions] = await Promise.all([
     db
       .select()
       .from(schema.market)
@@ -54,15 +54,17 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
       ),
   ]);
 
-  if (!market[0]) return [];
+  const market = markets[0];
+
+  if (!market || market.oracle === zeroAddress) return [];
 
   if (!Object.keys(publicClients).includes(String(chainId))) return [];
 
-  const { oracle, lltv, loanToken, collateralToken, irm } = market[0];
+  const { oracle, lltv, loanToken, collateralToken, irm } = market;
 
   const { totalBorrowAssets, totalBorrowShares } = accrueInterest(
-    market[0],
-    market[0].rateAtTarget,
+    market,
+    market.rateAtTarget,
     BigInt(Math.round(Date.now() / 1000)),
   );
 
@@ -74,32 +76,38 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
     functionName: "price",
   });
 
-  return {
-    positions: positions
-      .map((position) => {
-        const { seizableCollateral, repayableAssets } = liquidationValues(
-          position.collateral,
-          position.borrowShares,
-          totalBorrowShares,
-          totalBorrowAssets,
-          lltv,
-          collateralPrice,
-        );
-        return {
-          position,
-          marketParams: {
-            loanToken,
-            collateralToken,
-            irm,
-            oracle,
-            lltv,
-          },
-          seizableCollateral,
-          repayableAssets,
-        };
-      })
-      .filter((position) => position.seizableCollateral !== 0n && position.repayableAssets !== 0n),
-  };
+  return positions
+    .map((position) => {
+      const { seizableCollateral, repayableAssets } = liquidationValues(
+        position.collateral,
+        position.borrowShares,
+        totalBorrowShares,
+        totalBorrowAssets,
+        lltv,
+        collateralPrice,
+      );
+      return {
+        position: {
+          ...position,
+          supplyShares: `${position.supplyShares}`,
+          borrowShares: `${position.borrowShares}`,
+          collateral: `${position.collateral}`,
+        },
+        marketParams: {
+          loanToken,
+          collateralToken,
+          irm,
+          oracle,
+          lltv: `${lltv}`,
+        },
+        seizableCollateral: `${seizableCollateral}`,
+        repayableAssets: `${repayableAssets}`,
+      };
+    })
+    .filter(
+      (position) =>
+        BigInt(position.seizableCollateral) !== 0n && BigInt(position.repayableAssets) !== 0n,
+    );
 }
 
 export default app;
