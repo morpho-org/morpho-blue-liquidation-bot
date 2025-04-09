@@ -35,5 +35,18 @@ export async function fetchLiquidatablePositions(
 
   const data = (await response.json()) as { positions: LiquidatablePosition[] };
 
-  return data.positions;
+  return data.positions.map((position) => ({
+    position: {
+      ...position.position,
+      supplyShares: BigInt(position.position.supplyShares),
+      borrowShares: BigInt(position.position.borrowShares),
+      collateral: BigInt(position.position.collateral),
+    },
+    marketParams: {
+      ...position.marketParams,
+      lltv: BigInt(position.marketParams.lltv),
+    },
+    seizableCollateral: BigInt(position.seizableCollateral),
+    repayableAssets: BigInt(position.repayableAssets),
+  }));
 }
