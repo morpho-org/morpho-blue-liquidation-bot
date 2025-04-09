@@ -180,8 +180,8 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
-      expect(seizableCollateral).toBe(0);
-      expect(repayableAssets).toBe(0);
+      expect(seizableCollateral).toBe(0n);
+      expect(repayableAssets).toBe(0n);
     },
   );
 
@@ -279,7 +279,7 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
-      expect(seizableCollateral).toBe(Number(collateralAmount / 2n));
+      expect(seizableCollateral).toBe(collateralAmount / 2n);
 
       await client.deal({
         erc20: marketParams.loanToken,
