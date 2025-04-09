@@ -82,13 +82,16 @@ describe("uexecute liquidation", () => {
               chainId: mainnet.id,
               marketId: wbtcUSDC,
               user: borrower.address,
-              supplyShares: position[0],
-              borrowShares: position[1],
-              collateral: position[2],
+              supplyShares: `${position[0]}`,
+              borrowShares: `${position[1]}`,
+              collateral: `${position[2]}`,
             },
-            marketParams,
-            seizableCollateral: position[2],
-            // not adding repayableAssets as it's not used for now
+            marketParams: {
+              ...marketParams,
+              lltv: `${marketParams.lltv}`,
+            },
+            seizableCollateral: `${position[2]}`,
+            repayableAssets: `${position[2]}`, // random value as it's not used for now
           },
         ],
       });
