@@ -1,5 +1,6 @@
 import { createConfig, factory } from "ponder";
 import { getAbiItem, http } from "viem";
+import { mainnet } from "viem/chains";
 
 import { adaptiveCurveIrmAbi } from "../abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "../abis/MetaMorpho";
@@ -8,7 +9,10 @@ import { morphoBlueAbi } from "../abis/MorphoBlue";
 
 export default createConfig({
   networks: {
-    mainnet: { chainId: 1, transport: http(process.env.PONDER_RPC_URL_1) },
+    mainnet: {
+      chainId: 1,
+      transport: http(process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0]),
+    },
   },
   contracts: {
     Morpho: {
