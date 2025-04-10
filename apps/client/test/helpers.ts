@@ -1,7 +1,7 @@
 import { type Address, encodePacked, fromHex, type Hex, keccak256, maxUint128, toHex } from "viem";
 import { BORROW_SHARES_AND_COLLATERAL_OFFSET, MORPHO, POSITION_SLOT } from "./constants";
 import { getStorageAt } from "viem/actions";
-import type { AnvilTestClient } from "../../test/src/client";
+import type { AnvilTestClient } from "@morpho-org/test";
 
 export async function overwriteCollateral(
   client: AnvilTestClient,
