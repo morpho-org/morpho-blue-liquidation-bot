@@ -1,5 +1,5 @@
-import type { AnvilTestClient } from "../../test/src/client";
-import { createViemTest } from "../../test/src/vitest";
+import type { AnvilTestClient } from "@morpho-org/test";
+import { createViemTest } from "@morpho-org/test/vitest";
 import { type Chain, mainnet } from "viem/chains";
 import { ExecutorEncoder, executorAbi, bytecode } from "executooor-viem";
 import dotenv from "dotenv";

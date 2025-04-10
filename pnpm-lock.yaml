@@ -79,6 +79,9 @@ importers:
         specifier: ^1.3.3
         version: 1.3.3(evm-maths@7.0.1)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
     devDependencies:
+      '@morpho-org/test':
+        specifier: ^2.1.1
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
       nock:
         specifier: ^14.0.2
         version: 14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -94,15 +97,18 @@ importers:
       '@morpho-blue-liquidation-bot/config':
         specifier: workspace:*
         version: link:../config
+      '@morpho-org/morpho-test':
+        specifier: ^2.2.1
+        version: 2.2.1(@morpho-org/blue-sdk@2.3.2(@morpho-org/morpho-ts@2.2.0))(@morpho-org/morpho-ts@2.2.0)(@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0)))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@morpho-org/test':
+        specifier: ^2.1.1
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
       '@ponder/client':
         specifier: ^0.9.27
         version: 0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
-      concurrently:
-        specifier: ^9.1.2
-        version: 9.1.2
 
   apps/test:
     dependencies:
@@ -738,6 +744,37 @@ packages:
   '@metamask/utils@9.3.0':
     resolution: {integrity: sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==}
     engines: {node: '>=16.0.0'}
+
+  '@morpho-org/blue-sdk@2.3.2':
+    resolution: {integrity: sha512-zpbo+1K5AO4vwY9HJUnjpdLaA4nXJeETID5/1gRKqsvQfxRl/pmEa3hHYMsX6Pn+Zj8efuZPzgzm0QfRzTcT/Q==}
+    peerDependencies:
+      '@morpho-org/morpho-ts': ^2.1.0
+
+  '@morpho-org/morpho-test@2.2.1':
+    resolution: {integrity: sha512-9ZVsxDLy8xCEspsrql7tdy29HRMuabFmKHvzzS7LDuqdJUTMmdGLn8tl6GJGuJmTHr6wz3z4MwzH/X6qejNI/g==}
+    peerDependencies:
+      '@morpho-org/blue-sdk': ^2.3.1
+      '@morpho-org/morpho-ts': ^2.0.2
+      '@morpho-org/test': ^2.0.6
+      viem: 2.23.2
+
+  '@morpho-org/morpho-ts@2.2.0':
+    resolution: {integrity: sha512-fsOBVvSLMlsyAI10pbgaXUnkN09DEUN0xw/W+5nWVrYO9/UGP1vDrdn99JH1B0tWZa7NqAWYc5RX9jLZGGTMNg==}
+
+  '@morpho-org/test@2.1.1':
+    resolution: {integrity: sha512-bVjJH2KIfNZ0aFCJyXtbzGaXM4i/ZbN35eR1MtMAzMj8wI7neCzn5wsrWUIvOGuLkNcWeKybFHZlkG1Z7OJkzg==}
+    peerDependencies:
+      '@playwright/test': ^1.48.1
+      ethers: ^6.13.0
+      viem: 2.23.2
+      vitest: '>=2.0.0 <4.0.0'
+    peerDependenciesMeta:
+      '@playwright/test':
+        optional: true
+      ethers:
+        optional: true
+      vitest:
+        optional: true
 
   '@motionone/animation@10.18.0':
     resolution: {integrity: sha512-9z2p5GFGCm0gBsZbi8rVMOAJCtw1WqBTIPw3ozk06gDvZInBPIsQcHgYogEJ4yuHJ+akuW8g1SEIOpTOvYs8hw==}
@@ -4368,6 +4405,31 @@ snapshots:
       uuid: 9.0.1
     transitivePeerDependencies:
       - supports-color
+
+  '@morpho-org/blue-sdk@2.3.2(@morpho-org/morpho-ts@2.2.0)':
+    dependencies:
+      '@morpho-org/morpho-ts': 2.2.0
+      '@noble/hashes': 1.7.1
+
+  '@morpho-org/morpho-test@2.2.1(@morpho-org/blue-sdk@2.3.2(@morpho-org/morpho-ts@2.2.0))(@morpho-org/morpho-ts@2.2.0)(@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0)))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+    dependencies:
+      '@morpho-org/blue-sdk': 2.3.2(@morpho-org/morpho-ts@2.2.0)
+      '@morpho-org/morpho-ts': 2.2.0
+      '@morpho-org/test': 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
+      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+
+  '@morpho-org/morpho-ts@2.2.0': {}
+
+  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))':
+    dependencies:
+      lodash.kebabcase: 4.1.1
+      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem-deal: 2.0.4(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      viem-tracer: 1.5.5(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+    optionalDependencies:
+      '@playwright/test': 1.51.1
+      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      vitest: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0)
 
   '@motionone/animation@10.18.0':
     dependencies:
