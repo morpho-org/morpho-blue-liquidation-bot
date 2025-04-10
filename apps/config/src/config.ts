@@ -1,7 +1,7 @@
 import { base, mainnet } from "viem/chains";
-import type { Config } from "./types";
+import type { Config, EnvVariables } from "./types";
 
-export const chainConfigs: Record<number, Config> = {
+export const chainConfigs: Record<number, Config & EnvVariables> = {
   [mainnet.id]: {
     chain: mainnet,
     morpho: {
@@ -19,6 +19,15 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 18925584,
     },
+    vaultWhitelist: [
+      "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
+      "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
+      "0xBEEf050ecd6a16c4e7bfFbB52Ebba7846C4b8cD4",
+    ],
+    additionalMarketsWhitelist: [],
+    rpcUrl: process.env.MAINNET_RPC_URL ?? mainnet.rpcUrls.default.http[0],
+    executorAddress: process.env.EXECUTOR_ADDRESS_MAINNET,
+    liquidationPrivateKey: process.env.LIQUIDATION_PRIVATE_KEY_MAINNET,
   },
   [base.id]: {
     chain: base,
@@ -37,5 +46,10 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 13978134,
     },
+    vaultWhitelist: [],
+    additionalMarketsWhitelist: [],
+    rpcUrl: process.env.BASE_RPC_URL ?? base.rpcUrls.default.http[0],
+    executorAddress: process.env.EXECUTOR_ADDRESS_BASE,
+    liquidationPrivateKey: process.env.LIQUIDATION_PRIVATE_KEY_BASE,
   },
 };
