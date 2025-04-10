@@ -1,9 +1,9 @@
 import { erc20Abi, maxUint256, parseUnits } from "viem";
 import { describe, expect } from "vitest";
+import { testAccount } from "@morpho-org/test";
 
 import { MORPHO, wbtcUSDC } from "../../../client/test/constants.js";
 import { overwriteCollateral } from "../../../client/test/helpers.js";
-import { testAccount } from "../../../test/src/fixtures/index.js";
 import { adaptiveCurveIrmAbi } from "../../abis/AdaptiveCurveIrm";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
 import { oracleAbi } from "../../abis/Oracle";
