@@ -39,7 +39,9 @@ This command will start the bot, which will start liquidating once the configure
 The bot can be configured to run on any EVM-compatible chain. The chain configuration is done in the `apps/config/config.ts` file.
 For each chain, Here are the parameters that needs to be configured:
 
-### Indexer parameters (addresses and start blocks)
+### Morpho Stack parameters (addresses and start blocks)
+
+**If you don't plan on supporting a new chain, you can ignore this file.**
 
 Morpho Blue:
 
@@ -56,13 +58,6 @@ Meta Morpho Factories:
 - `metaMorphoFactories.addresses`: The addresses of the MetaMorpho factories.
 - `metaMorphoFactories.startBlock`: The block number of the oldest MetaMorpho factory deployment.
 
-### Markets Whitelist
-
-The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
-
-- `vaultWhitelist`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
-- `additionalMarketsWhitelist`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
-
 ### Secrets
 
 For each chain, the following secrets must be set:
@@ -71,11 +66,18 @@ For each chain, the following secrets must be set:
 - `executorAddress`: The address of the executor contract. The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
 - `liquidationPrivateKey`: The private key of the EOA that will be used to execute the liquidations.
 
+**Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
+
+- `vaultWhitelist`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
+- `additionalMarketsWhitelist`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
+
 The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), with the following keys:
 
 - `RPC_URL_<chainId>`
 - `EXECUTOR_ADDRESS_<chainId>`
 - `LIQUIDATION_PRIVATE_KEY_<chainId>`
+- `VAULT_WHITELIST_<chainId>`
+- `ADDITIONAL_MARKETS_WHITELIST_<chainId>`
 
 Example for mainnet (chainId 1):
 
@@ -83,6 +85,8 @@ Example for mainnet (chainId 1):
 RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/<your-alchemy-api-key>
 EXECUTOR_ADDRESS_1=0x1234567890123456789012345678901234567890
 LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012345678901234
+VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458
+ADDITIONAL_MARKETS_WHITELIST_1=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 ```
 
 ## Liquidity Venues
