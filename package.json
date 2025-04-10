@@ -8,7 +8,9 @@
     "prepare": "husky",
     "test:liquidity-venues": "vitest liquidityVenues",
     "test:execution": "vitest execution",
-    "test:helpers": "vitest helpers"
+    "test:helpers": "vitest helpers",
+    "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
+    "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env"
   },
   "lint-staged": {
     "*.ts": [
@@ -17,6 +19,7 @@
   },
   "dependencies": {
     "ponder": "^0.9.19",
+    "tsx": "^4.19.3",
     "viem": "^2.23.2"
   },
   "devDependencies": {

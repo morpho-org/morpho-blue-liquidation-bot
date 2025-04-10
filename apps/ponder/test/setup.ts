@@ -1,4 +1,4 @@
-import { createViemTest } from "../../test/src/vitest";
+import { createViemTest } from "@morpho-org/test/vitest";
 import { mainnet } from "viem/chains";
 
 import dotenv from "dotenv";

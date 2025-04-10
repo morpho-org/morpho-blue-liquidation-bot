@@ -3,8 +3,9 @@ import { describe, expect } from "vitest";
 import { erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
+import { testAccount } from "@morpho-org/test";
+
 import { test } from "../../setup.js";
-import { testAccount } from "../../../../test/src/fixtures/index.js";
 import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3, Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";

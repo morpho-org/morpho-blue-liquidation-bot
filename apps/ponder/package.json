@@ -13,13 +13,12 @@
     "test": "tsx test/script.ts"
   },
   "dependencies": {
-    "hono": "^4.5.0",
-    "tsx": "^4.19.3"
+    "hono": "^4.5.0"
   },
   "devDependencies": {
     "@morpho-blue-liquidation-bot/config": "workspace:*",
+    "@morpho-org/test": "^2.1.1",
     "@ponder/client": "^0.9.27",
-    "@types/node": "^22.13.14",
-    "concurrently": "^9.1.2"
+    "@types/node": "^22.13.14"
   }
 }
