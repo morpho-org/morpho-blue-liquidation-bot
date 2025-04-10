@@ -14,7 +14,8 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 - Node.js >= 18
 - [pnpm](https://pnpm.io/) (this repo uses `pnpm` as package manager)
 - Valid RPC URL (via Alchemy, Infura, etc.)
-- A private key with enough funds to pay for gas
+- The private key of the EOA with enough funds to pay for gas
+- An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment))
 
 ## Installation
 
@@ -23,16 +24,6 @@ git clone https://github.com/morpho-blue-liquidation-bot-org/morpho-blue-liquida
 cd morpho-blue-liquidation-bot
 pnpm install
 ```
-
-## Run the bot
-
-Once the bot is installed and configured (see [Chain Configuration](#chain-configuration) and [Liquidity Venues](#liquidity-venues)), you can run it by executing the following command:
-
-```bash
-pnpm liquidate
-```
-
-This command will start the bot, which will start liquidating once the configured chains are fully indexed.
 
 ## Chain Configuration
 
@@ -63,8 +54,8 @@ Meta Morpho Factories:
 For each chain, the following secrets must be set:
 
 - `rpcUrl`: The RPC URL of the chain that will be used by the bot.
-- `executorAddress`: The address of the executor contract. The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
 - `liquidationPrivateKey`: The private key of the EOA that will be used to execute the liquidations.
+- `executorAddress`: The address of the executor contract. The bot uses an executor contract to execute liquidations. (see [Executor Contract Deployment](#executor-contract-deployment)).
 
 **Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
 
@@ -88,6 +79,19 @@ LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012
 VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458
 ADDITIONAL_MARKETS_WHITELIST_1=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 ```
+
+## Executor Contract Deployment
+
+The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
+These contract are gated, so you need to deploy your own.
+
+To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on, and run the following command:
+
+```bash
+pnpm deploy:executor
+```
+
+This will deploy your own executor contract on every chain you configured, and will log the addresses in the console.
 
 ## Liquidity Venues
 
@@ -115,3 +119,13 @@ This folder should contain up to 3 files:
 
 After creating the new venue, you'll need to add it to the `liquidityVenues` array in the `apps/client/src/index.ts` file.
 Be careful with the order of the array, as it will be the order in which the venues will be used by the bot.
+
+## Run the bot
+
+Once the bot is installed and configured (see [Chain Configuration](#chain-configuration) and [Liquidity Venues](#liquidity-venues)), you can run it by executing the following command:
+
+```bash
+pnpm liquidate
+```
+
+This command will start the bot, which will start liquidating once the configured chains are fully indexed.

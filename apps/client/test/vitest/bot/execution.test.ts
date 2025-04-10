@@ -12,7 +12,7 @@ import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { MORPHO, wbtcUSDC } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
 
-describe("uexecute liquidation", () => {
+describe("execute liquidation", () => {
   const erc4626 = new Erc4626();
   const uniswapV3 = new UniswapV3();
 
