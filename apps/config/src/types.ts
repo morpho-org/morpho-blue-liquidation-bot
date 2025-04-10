@@ -3,11 +3,13 @@ import type { Address, Chain, Hex } from "viem";
 export type ChainConfig = Config & {
   chainId: number;
   rpcUrl: string;
+  vaultWhitelist: Address[];
+  additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
   liquidationPrivateKey: Hex;
 };
 
-export type Config = {
+export interface Config {
   chain: Chain;
   morpho: {
     address: Address;
@@ -21,12 +23,4 @@ export type Config = {
     addresses: Address[];
     startBlock: number;
   };
-  vaultWhitelist: Address[];
-  additionalMarketsWhitelist: Hex[];
-};
-
-export type EnvVariables = {
-  rpcUrl: string | undefined;
-  executorAddress: string | undefined;
-  liquidationPrivateKey: string | undefined;
-};
+}
