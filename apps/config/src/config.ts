@@ -19,12 +19,6 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 18925584,
     },
-    vaultWhitelist: [
-      "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
-      "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
-      "0xBEEf050ecd6a16c4e7bfFbB52Ebba7846C4b8cD4",
-    ],
-    additionalMarketsWhitelist: [],
   },
   [base.id]: {
     chain: base,
@@ -43,7 +37,5 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 13978134,
     },
-    vaultWhitelist: [],
-    additionalMarketsWhitelist: [],
   },
 };
