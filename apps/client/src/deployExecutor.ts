@@ -48,7 +48,7 @@ export const deploy = async (client: WalletClient, account: Address) => {
 
   const tx = await waitForTransactionReceipt(client, { hash });
 
-  console.log(`Executor deployed on ${client.chain} at ${tx.contractAddress}`);
+  console.log(`Executor deployed on ${client.chain?.id} at ${tx.contractAddress}`);
 
   return tx.contractAddress;
 };
