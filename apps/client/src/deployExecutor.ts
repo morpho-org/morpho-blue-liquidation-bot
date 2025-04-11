@@ -1,9 +1,8 @@
-import { type Address, createWalletClient, type Hex, http, type WalletClient } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
-import { privateKeyToAccount } from "viem/accounts";
 import { bytecode, executorAbi } from "executooor-viem";
+import { type Address, createWalletClient, type Hex, http, type WalletClient } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { waitForTransactionReceipt } from "viem/actions";
 import dotenv from "dotenv";
-
 import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
 async function run() {
