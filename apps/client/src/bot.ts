@@ -1,10 +1,12 @@
 import {
   encodeFunctionData,
+  getAddress,
   maxUint256,
   type Account,
   type Address,
   type Chain,
   type Client,
+  type Hex,
   type Transport,
 } from "viem";
 import { estimateGas, writeContract } from "viem/actions";
@@ -18,6 +20,7 @@ export class LiquidationBot {
   private client: Client<Transport, Chain, Account>;
   private morphoAddress: Address;
   private vaultWhitelist: Address[];
+  private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
   private liquidationVenues: LiquidityVenue[];
 
@@ -26,12 +29,14 @@ export class LiquidationBot {
     client: Client<Transport, Chain, Account>,
     morphoAddress: Address,
     vaultWhitelist: Address[],
+    additionalMarketsWhitelist: Hex[],
     executorAddress: Address,
     liquidationVenues: LiquidityVenue[],
   ) {
     this.chainId = chainId;
     this.client = client;
     this.vaultWhitelist = vaultWhitelist;
+    this.additionalMarketsWhitelist = additionalMarketsWhitelist;
     this.morphoAddress = morphoAddress;
     this.executorAddress = executorAddress;
     this.liquidationVenues = liquidationVenues;
@@ -40,7 +45,7 @@ export class LiquidationBot {
   async run() {
     const { client } = this;
     const { vaultWhitelist } = this;
-    const whitelistedMarkets = [
+    const whitelistedMarketsFromVaults = [
       ...new Set(
         (
           await Promise.all(
@@ -48,6 +53,11 @@ export class LiquidationBot {
           )
         ).flat(),
       ),
+    ];
+
+    const whitelistedMarkets = [
+      ...whitelistedMarketsFromVaults,
+      ...this.additionalMarketsWhitelist,
     ];
 
     const liquidatablePositions = await fetchLiquidatablePositions(
@@ -62,8 +72,8 @@ export class LiquidationBot {
         const { marketParams } = liquidatablePosition;
 
         let toConvert = {
-          src: marketParams.collateralToken,
-          dst: marketParams.loanToken,
+          src: getAddress(marketParams.collateralToken),
+          dst: getAddress(marketParams.loanToken),
           srcAmount: liquidatablePosition.seizableCollateral,
         };
 
@@ -78,6 +88,8 @@ export class LiquidationBot {
           if (toConvert.src === toConvert.dst || toConvert.srcAmount === 0n) break;
         }
 
+        if (toConvert.src !== toConvert.dst) return;
+
         encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
 
         encoder.morphoBlueLiquidate(
@@ -91,31 +103,39 @@ export class LiquidationBot {
 
         const calls = encoder.flush();
 
-        /// TX SIMULATION
+        try {
+          /// TX SIMULATION
 
-        const populatedTx = {
-          to: encoder.address,
-          data: encodeFunctionData({
+          const populatedTx = {
+            to: encoder.address,
+            data: encodeFunctionData({
+              abi: executorAbi,
+              functionName: "exec_606BaXt",
+              args: [calls],
+            }),
+            value: 0n, // TODO: find a way to get encoder value
+          };
+
+          const gasLimit = await estimateGas(client, populatedTx);
+
+          // TX EXECUTION
+
+          await writeContract(client, {
+            address: encoder.address,
             abi: executorAbi,
             functionName: "exec_606BaXt",
             args: [calls],
-          }),
-          value: 0n, // TODO: find a way to get encoder value
-        };
+          });
 
-        const gasLimit = await estimateGas(client, populatedTx);
-
-        // TODO: maybe try/catch the simulation, and execute the tx if it succeeds
-        // TODO: add a way to price loanToken and ETH to check profit
-
-        // TX EXECUTION
-
-        await writeContract(client, {
-          address: encoder.address,
-          abi: executorAbi,
-          functionName: "exec_606BaXt",
-          args: [calls],
-        });
+          console.log(
+            `Liquidated ${liquidatablePosition.position.user} on ${liquidatablePosition.position.marketId}`,
+          );
+        } catch (error) {
+          console.log(
+            `Failed to liquidate ${liquidatablePosition.position.user} on ${liquidatablePosition.position.marketId}`,
+          );
+          console.error("liquidation error", error);
+        }
       }),
     );
   }
