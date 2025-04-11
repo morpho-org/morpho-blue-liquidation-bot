@@ -51,13 +51,13 @@ jobs:
       - name: Run indexer helpers tests
         run: pnpm test:helpers
         env:
-          PONDER_RPC_URL_1: ${{ secrets.PONDER_RPC_URL_1 }}
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
       - name: Run indexer tests
         run: pnpm test
         working-directory: apps/ponder
         env:
-          PONDER_RPC_URL_1: ${{ secrets.PONDER_RPC_URL_1 }}
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
       - name: Save Ponder cache
         uses: actions/cache/save@v3
