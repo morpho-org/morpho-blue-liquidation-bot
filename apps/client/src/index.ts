@@ -4,7 +4,7 @@ import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot } from "./bot";
 
-import { UniswapV3 } from "./liquidityVenues/uniswap";
+import { UniswapV3 } from "./liquidityVenues/uniswapV3";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";

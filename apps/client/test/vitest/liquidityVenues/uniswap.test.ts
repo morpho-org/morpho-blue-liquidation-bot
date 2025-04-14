@@ -2,11 +2,11 @@ import { encodeFunctionData, erc20Abi, maxUint256, parseUnits, zeroAddress } fro
 import { describe, expect } from "vitest";
 import { test } from "../../setup.js";
 import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
-import { DEFAULT_ROUTER_ADDRESS } from "../../../src/liquidityVenues/uniswap/config.js";
+import { DEFAULT_ROUTER_ADDRESS } from "@morpho-blue-liquidation-bot/config";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
 import { USDC, wstETH, WBTC } from "../../constants.js";
-import { swapRouterAbi } from "../../../src/liquidityVenues/uniswap/abis.js";
+import { swapRouterAbi } from "../../../src/liquidityVenues/uniswapV3/abis.js";
 
 describe("uniswapV3 liquidity venue", () => {
   const liquidityVenue = new UniswapV3();

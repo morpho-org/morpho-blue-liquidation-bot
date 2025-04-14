@@ -11,7 +11,7 @@ import {
   DEFAULT_FACTORY_ADDRESS,
   DEFAULT_ROUTER_ADDRESS,
   specificAddresses,
-} from "./config";
+} from "@morpho-blue-liquidation-bot/config";
 
 export class UniswapV3 implements LiquidityVenue {
   private pools: Record<Address, Record<Address, { address: Address; fee: number }[]>> = {};
