@@ -1,12 +1,13 @@
-import { encodeFunctionData, erc20Abi, maxUint256, parseUnits, zeroAddress } from "viem";
-import { describe, expect } from "vitest";
-import { test } from "../../setup.js";
-import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
-import { DEFAULT_ROUTER_ADDRESS } from "@morpho-blue-liquidation-bot/config";
+import { encodeAbiParameters, encodeFunctionData, erc20Abi, parseUnits, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
+import { describe, expect } from "vitest";
+import { executorAbi } from "executooor-viem";
+import { MIN_SQRT_RATIO } from "@morpho-blue-liquidation-bot/config";
+import { test } from "../../setup.js";
 import { USDC, wstETH, WBTC } from "../../constants.js";
-import { swapRouterAbi } from "../../../src/liquidityVenues/uniswapV3/abis.js";
+import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
+import { uniswapV3PoolAbi } from "../../../src/liquidityVenues/uniswapV3/abis.js";
 
 describe("uniswapV3 liquidity venue", () => {
   const liquidityVenue = new UniswapV3();
@@ -29,26 +30,43 @@ describe("uniswapV3 liquidity venue", () => {
   test.sequential("should test convert encoding", async ({ encoder }) => {
     const amount = parseUnits("1", 8);
 
-    encoder.erc20Approve(WBTC, DEFAULT_ROUTER_ADDRESS, amount);
-    encoder.pushCall(
-      DEFAULT_ROUTER_ADDRESS,
-      0n,
+    const encodedContext =
+      `0x${0n.toString(16).padStart(24, "0") + zeroAddress.substring(2)}` as const;
+    const callbacks = [
       encodeFunctionData({
-        abi: swapRouterAbi,
-        functionName: "exactInputSingle",
+        abi: executorAbi,
+        functionName: "call_g0oyU7o",
         args: [
-          {
-            tokenIn: WBTC,
-            tokenOut: USDC,
-            fee: 3000,
-            recipient: encoder.address,
-            deadline: maxUint256,
-            amountIn: amount,
-            amountOutMinimum: 0n,
-            sqrtPriceLimitX96: 0n,
-          },
+          WBTC,
+          0n,
+          encodedContext,
+          encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "transfer",
+            args: ["0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35", amount],
+          }),
         ],
       }),
+    ];
+
+    encoder.pushCall(
+      "0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35",
+      0n,
+      encodeFunctionData({
+        abi: uniswapV3PoolAbi,
+        functionName: "swap",
+        args: [
+          encoder.address,
+          true,
+          amount,
+          MIN_SQRT_RATIO + 1n,
+          encodeAbiParameters([{ type: "bytes[]" }, { type: "bytes" }], [callbacks, "0x"]),
+        ],
+      }),
+      {
+        sender: "0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35",
+        dataIndex: 2n,
+      },
     );
 
     const expectedCalls = encoder.flush();

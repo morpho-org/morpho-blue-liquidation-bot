@@ -86,7 +86,7 @@ Liquidity venues are explained [below](#liquidity-venues).
 
 Some liquidity venues require chain-specific configuration. This is done in the `apps/config/src/liquidityVenues/` folder.
 
-For example, the `uniswapV3` venue has some differents factory and router addresses for some chains (although most of the time they are set to the default ones). If you want to support a chain where the default addresses are not working, you have to set the correct addresses in the `specificAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
+For example, the `uniswapV3` venue has some differents factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
 
 ## Executor Contract Deployment
 
