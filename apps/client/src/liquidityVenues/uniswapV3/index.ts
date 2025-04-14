@@ -112,7 +112,7 @@ export class UniswapV3 implements LiquidityVenue {
         srcAmount: 0n,
       };
     } catch (error) {
-      console.log(`Error converting ${src} to ${dst}`);
+      console.log(`Error swapping ${src} to ${dst} on UniswapV3`);
       console.error(error);
       return toConvert;
     }
