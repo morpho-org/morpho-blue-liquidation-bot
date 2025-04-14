@@ -86,6 +86,14 @@ VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7
 ADDITIONAL_MARKETS_WHITELIST_1=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 ```
 
+### Liquidity Venues Configuration
+
+Liquidity venues are explained [below](#liquidity-venues).
+
+Some liquidity venues require chain-specific configuration. This is done in the `apps/config/src/liquidityVenues/` folder.
+
+For example, the `uniswapV3` venue has some differents factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
@@ -113,15 +121,18 @@ For now, we implemented the following ones:
 
 Liquidity venues can be combined to create more complex strategies. For example, you can combine the `ERC4626` and `UniswapV3` venues to liquidate a position from a 4626 vault by first withdrawing from the vault and then swapping the underlying token for the desired token.
 
-### Add your own venue
+## Add your own venue
 
 To add your own venue, you need to create a new folder in the `apps/client/src/liquidityVenues` folder.
-This folder should contain up to 3 files:
+This folder should contain up to 2 files:
 
 - `index.ts`: In this file you will implement the new liquidity venue class that needs to implements the `LiquidityVenue` interface (located in `apps/client/src/liquidityVenues/liquidityVenue.ts`).
   This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
-- `config.ts` (optional): Should contain all the configurable parameters (e.g. addresses) for the venue (if any).
 - `abi.ts` (optional): Should contain all the ABIs of the contracts involved in the venue (if any).
+
+**Configuration (if any) is handled in the `apps/config` app:**
+
+If your venue requires chain-specific configuration, you need to add create a new file in the `apps/config/src/liquidityVenues` folder, named like the venue (e.g. `uniswapV3.ts`).
 
 After creating the new venue, you'll need to add it to the `liquidityVenues` array in the `apps/client/src/index.ts` file.
 Be careful with the order of the array, as it will be the order in which the venues will be used by the bot.
