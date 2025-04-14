@@ -4,18 +4,24 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 
 ## Features
 
-- Automatically detects liquidatable positions and executes the liquidations
-- Multi-chain compatible
-- Configurable liquidity venues
-- Minimal setup and dependencies (RPC-only, no extra infra required)
+- Automatically detects liquidatable positions and executes the liquidations.
+- Multi-chain compatible.
+- Configurable liquidity venues.
+- Minimal setup and dependencies (RPC-only, no extra infra required).
+
+### ⚠️ Disclaimer
+
+This bot is provided as-is, without any warranty. The **Morpho Association is not responsible** for any potential loss of funds resulting from the use of this bot, including (but not limited to) gas fees, failed transactions, or liquidations on malicious or misconfigured markets (although the market whitelisting mechanism is designed to protect against unsafe liquidations).
+
+Use at your own risk.
 
 ## Requirements
 
 - Node.js >= 18
 - [pnpm](https://pnpm.io/) (this repo uses `pnpm` as package manager)
-- Valid RPC URL (via Alchemy, Infura, etc.)
-- The private key of the EOA with enough funds to pay for gas
-- An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment))
+- A valid RPC URL (via Alchemy, Infura, etc)
+- The private key of an EOA with enough funds to pay for gas.
+- An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment)).
 
 ## Installation
 
