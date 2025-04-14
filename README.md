@@ -33,8 +33,8 @@ pnpm install
 
 ## Chain Configuration
 
-The bot can be configured to run on any EVM-compatible where the Morpho stack has been deployed. The chain configuration is done in the `apps/config/config.ts` file.
-For each chain, Here are the parameters that needs to be configured:
+The bot can be configured to run on any EVM-compatible chain where the Morpho stack has been deployed. The chain configuration is done in the `apps/config/config.ts` file.
+For each chain, here are the parameters that needs to be configured:
 
 ### Morpho Stack parameters (addresses and start blocks)
 
@@ -92,12 +92,12 @@ Liquidity venues are explained [below](#liquidity-venues).
 
 Some liquidity venues require chain-specific configuration. This is done in the `apps/config/src/liquidityVenues/` folder.
 
-For example, the `uniswapV3` venue has some differents factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
+For example, the `uniswapV3` venue has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
 
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
-These contract are gated, so you need to deploy your own.
+These contract are gated(they can only be called by the owner of the contract), so you need to deploy your own.
 
 To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on, and run the following command:
 
@@ -106,6 +106,8 @@ pnpm deploy:executor
 ```
 
 This will deploy your own executor contract on every chain you configured, and will log the addresses in the console.
+
+You can also deploy your executor contract through [this interface](https://rubilmax.github.io/executooor/).
 
 ## Liquidity Venues
 
