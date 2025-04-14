@@ -97,7 +97,7 @@ describe("execute liquidation", () => {
         ],
       });
 
-    const bot = new LiquidationBot(mainnet.id, client, MORPHO, [], encoder.address, [
+    const bot = new LiquidationBot(mainnet.id, client, MORPHO, [], [], encoder.address, [
       erc4626,
       uniswapV3,
     ]);

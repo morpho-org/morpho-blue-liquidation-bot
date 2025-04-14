@@ -18,15 +18,16 @@ export const launchBot = (config: ChainConfig) => {
 
   // LIQUIDITY VENUES
   const liquidityVenues = [];
-  liquidityVenues.push(new UniswapV3());
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
+  liquidityVenues.push(new UniswapV3());
 
   const bot = new LiquidationBot(
     config.chainId,
     client,
     config.morpho.address,
     config.vaultWhitelist,
+    config.additionalMarketsWhitelist,
     config.executorAddress,
     liquidityVenues,
   );
