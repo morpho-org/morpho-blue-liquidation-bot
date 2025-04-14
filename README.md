@@ -33,12 +33,12 @@ pnpm install
 
 ## Chain Configuration
 
-The bot can be configured to run on any EVM-compatible chain. The chain configuration is done in the `apps/config/config.ts` file.
+The bot can be configured to run on any EVM-compatible where the Morpho stack has been deployed. The chain configuration is done in the `apps/config/config.ts` file.
 For each chain, Here are the parameters that needs to be configured:
 
 ### Morpho Stack parameters (addresses and start blocks)
 
-**If you don't plan on supporting a new chain, you can ignore this file.**
+**If you don't plan on supporting a new chain, you can ignore this section.**
 
 Morpho Blue:
 
@@ -123,6 +123,8 @@ Liquidity venues can be combined to create more complex strategies. For example,
 
 ## Add your own venue
 
+**If you don't plan on supporting a new liquidity venue, you can ignore this section.**
+
 To add your own venue, you need to create a new folder in the `apps/client/src/liquidityVenues` folder.
 This folder should contain up to 2 files:
 
@@ -130,19 +132,25 @@ This folder should contain up to 2 files:
   This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
 - `abi.ts` (optional): Should contain all the ABIs of the contracts involved in the venue (if any).
 
-**Configuration (if any) is handled in the `apps/config` app:**
+### Configuration
 
 If your venue requires chain-specific configuration, you need to add create a new file in the `apps/config/src/liquidityVenues` folder, named like the venue (e.g. `uniswapV3.ts`).
 
-After creating the new venue, you'll need to add it to the `liquidityVenues` array in the `apps/client/src/index.ts` file.
+However, some venues don't need any configuration (ex: erc4626).
+
+## Order the liquidity venues
+
+The liquidity venues must be imported into the `apps/client/src/index.ts` file and pushed into the `liquidityVenues` array.
 Be careful with the order of the array, as it will be the order in which the venues will be used by the bot.
 
 ## Run the bot
 
-Once the bot is installed and configured (see [Chain Configuration](#chain-configuration) and [Liquidity Venues](#liquidity-venues)), you can run it by executing the following command:
+Once the bot is installed and configured, you can run it by executing the following command:
 
 ```bash
 pnpm liquidate
 ```
 
 This command will start the bot, which will start liquidating once the configured chains are fully indexed.
+
+⚠⏱️ The indexing process can take some time depending on the chain's number of blocks.
