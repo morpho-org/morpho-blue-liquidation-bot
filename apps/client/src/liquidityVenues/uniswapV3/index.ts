@@ -29,7 +29,7 @@ export class UniswapV3 implements LiquidityVenue {
 
     const pools = this.getCachedPools(src, dst) ?? (await this.fetchPools(encoder, src, dst));
 
-    return pools !== undefined && pools.length > 0;
+    return pools.length > 0;
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
@@ -152,7 +152,7 @@ export class UniswapV3 implements LiquidityVenue {
         `Error fetching UniswapV3 pools for src: ${src} and dst: ${dst}. Check if the factory address is correct.`,
       );
       console.error(error);
-      return undefined;
+      return [];
     }
   }
 }
