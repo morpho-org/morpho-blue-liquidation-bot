@@ -4,18 +4,24 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 
 ## Features
 
-- Automatically detects liquidatable positions and executes the liquidations
-- Multi-chain compatible
-- Configurable liquidity venues
-- Minimal setup and dependencies (RPC-only, no extra infra required)
+- Automatically detects liquidatable positions and executes the liquidations.
+- Multi-chain compatible.
+- Configurable liquidity venues.
+- Minimal setup and dependencies (RPC-only, no extra infra required).
+
+### ⚠️ Disclaimer
+
+This bot is provided as-is, without any warranty. The **Morpho Association is not responsible** for any potential loss of funds resulting from the use of this bot, including (but not limited to) gas fees, failed transactions, or liquidations on malicious or misconfigured markets (although the market whitelisting mechanism is designed to protect against unsafe liquidations).
+
+Use at your own risk.
 
 ## Requirements
 
 - Node.js >= 18
 - [pnpm](https://pnpm.io/) (this repo uses `pnpm` as package manager)
-- Valid RPC URL (via Alchemy, Infura, etc.)
-- The private key of the EOA with enough funds to pay for gas
-- An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment))
+- A valid RPC URL (via Alchemy, Infura, etc)
+- The private key of an EOA with enough funds to pay for gas.
+- An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment)).
 
 ## Installation
 
@@ -27,12 +33,12 @@ pnpm install
 
 ## Chain Configuration
 
-The bot can be configured to run on any EVM-compatible chain. The chain configuration is done in the `apps/config/config.ts` file.
-For each chain, Here are the parameters that needs to be configured:
+The bot can be configured to run on any EVM-compatible chain where the Morpho stack has been deployed. The chain configuration is done in the `apps/config/config.ts` file.
+For each chain, here are the parameters that needs to be configured:
 
 ### Morpho Stack parameters (addresses and start blocks)
 
-**If you don't plan on supporting a new chain, you can ignore this file.**
+**If you don't plan on supporting a new chain, you can ignore this section.**
 
 Morpho Blue:
 
@@ -86,12 +92,12 @@ Liquidity venues are explained [below](#liquidity-venues).
 
 Some liquidity venues require chain-specific configuration. This is done in the `apps/config/src/liquidityVenues/` folder.
 
-For example, the `uniswapV3` venue has some differents factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
+For example, the `uniswapV3` venue has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
 
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
-These contract are gated, so you need to deploy your own.
+These contract are gated(they can only be called by the owner of the contract), so you need to deploy your own.
 
 To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on, and run the following command:
 
@@ -100,6 +106,8 @@ pnpm deploy:executor
 ```
 
 This will deploy your own executor contract on every chain you configured, and will log the addresses in the console.
+
+You can also deploy your executor contract through [this interface](https://rubilmax.github.io/executooor/).
 
 ## Liquidity Venues
 
@@ -117,6 +125,8 @@ Liquidity venues can be combined to create more complex strategies. For example,
 
 ## Add your own venue
 
+**If you don't plan on supporting a new liquidity venue, you can ignore this section.**
+
 To add your own venue, you need to create a new folder in the `apps/client/src/liquidityVenues` folder.
 This folder should contain up to 2 files:
 
@@ -124,19 +134,25 @@ This folder should contain up to 2 files:
   This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
 - `abi.ts` (optional): Should contain all the ABIs of the contracts involved in the venue (if any).
 
-**Configuration (if any) is handled in the `apps/config` app:**
+### Configuration
 
 If your venue requires chain-specific configuration, you need to add create a new file in the `apps/config/src/liquidityVenues` folder, named like the venue (e.g. `uniswapV3.ts`).
 
-After creating the new venue, you'll need to add it to the `liquidityVenues` array in the `apps/client/src/index.ts` file.
+However, some venues don't need any configuration (ex: erc4626).
+
+## Order the liquidity venues
+
+The liquidity venues must be imported into the `apps/client/src/index.ts` file and pushed into the `liquidityVenues` array.
 Be careful with the order of the array, as it will be the order in which the venues will be used by the bot.
 
 ## Run the bot
 
-Once the bot is installed and configured (see [Chain Configuration](#chain-configuration) and [Liquidity Venues](#liquidity-venues)), you can run it by executing the following command:
+Once the bot is installed and configured, you can run it by executing the following command:
 
 ```bash
 pnpm liquidate
 ```
 
 This command will start the bot, which will start liquidating once the configured chains are fully indexed.
+
+⚠⏱️ The indexing process can take some time depending on the chain's number of blocks.
