@@ -17,8 +17,9 @@ Use at your own risk.
 
 ## Requirements
 
-- Node.js >= 18
+- Node.js >= 20
 - [pnpm](https://pnpm.io/) (this repo uses `pnpm` as package manager)
+- [Docker](https://www.docker.com/) (optional, only needed if you want to run the database locally)
 - A valid RPC URL (via Alchemy, Infura, etc)
 - The private key of an EOA with enough funds to pay for gas.
 - An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment)).
@@ -57,16 +58,22 @@ Meta Morpho Factories:
 
 ### Secrets
 
+**Database secrets (optional):**
+
+-`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the bot. If not set, the bot will launch a docker container with a local postgres database.
+
+**Chain secrets:**
+
 For each chain, the following secrets must be set:
 
-- `rpcUrl`: The RPC URL of the chain that will be used by the bot.
-- `liquidationPrivateKey`: The private key of the EOA that will be used to execute the liquidations.
-- `executorAddress`: The address of the executor contract. The bot uses an executor contract to execute liquidations. (see [Executor Contract Deployment](#executor-contract-deployment)).
+- `RPC_URL`: The RPC URL of the chain that will be used by the bot.
+- `LIQUIDATION_PRIVATE_KEY`: The private key of the EOA that will be used to execute the liquidations.
+- `EXECUTOR_ADDRESS`: The address of the executor contract. The bot uses an executor contract to execute liquidations. (see [Executor Contract Deployment](#executor-contract-deployment)).
 
 **Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
 
-- `vaultWhitelist`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
-- `additionalMarketsWhitelist`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
+- `VAULT_WHITELIST`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
+- `ADDITIONAL_MARKETS_WHITELIST`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
 
 The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), with the following keys:
 

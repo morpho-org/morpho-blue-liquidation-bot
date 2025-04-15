@@ -22,6 +22,10 @@ async function waitForIndexing() {
 async function run() {
   const configs = Object.keys(chainConfigs).map((config) => chainConfig(Number(config)));
 
+  if (process.env.POSTGRES_DATABASE_URL === undefined) {
+    spawn("docker", ["compose", "up", "-d"]);
+  }
+
   const ponder = spawn(
     "pnpm",
     ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
