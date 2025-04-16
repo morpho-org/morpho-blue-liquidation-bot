@@ -24,6 +24,8 @@ async function run() {
 
   if (process.env.POSTGRES_DATABASE_URL === undefined) {
     spawn("docker", ["compose", "up", "-d"]);
+    console.log("Waiting for postgres to be ready...");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 
   const ponder = spawn(
