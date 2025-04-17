@@ -2,6 +2,10 @@
 
 A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** protocol. This bot is entirely based on **RPC calls** and is designed to be **easy to configure**, **customizable**, and **ready to deploy** on any EVM-compatible chain.
 
+## Visual Architecture
+
+![Architecture](./img/liquidation-bot-architecture.png)
+
 ## Features
 
 - Automatically detects liquidatable positions and executes the liquidations.
@@ -163,3 +167,7 @@ pnpm liquidate
 This command will start the bot, which will start liquidating once the configured chains are fully indexed.
 
 ⚠⏱️ The indexing process can take some time depending on the chain's number of blocks.
+
+## Liquidation Process
+
+![Process](./img/liquidation-process-high-level.png)
