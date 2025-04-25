@@ -94,7 +94,7 @@ RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/<your-alchemy-api-key>
 EXECUTOR_ADDRESS_1=0x1234567890123456789012345678901234567890
 LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012345678901234
 VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458
-ADDITIONAL_MARKETS_WHITELIST_1=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+ADDITIONAL_MARKETS_WHITELIST_1=0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20
 ```
 
 ### Liquidity Venues Configuration
@@ -107,10 +107,10 @@ For example, the `uniswapV3` venue has different factory addresses for some chai
 
 ## Executor Contract Deployment
 
-The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
-These contract are gated(they can only be called by the owner of the contract), so you need to deploy your own.
+The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).
+These contracts are gated (they can only be called by the owner of the contract), so you need to deploy your own.
 
-To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on, and run the following command:
+To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on (after configuring them in `apps/config/config.ts`), and run the following command:
 
 ```bash
 pnpm deploy:executor
@@ -166,7 +166,7 @@ pnpm liquidate
 
 This command will start the bot, which will start liquidating once the configured chains are fully indexed.
 
-⚠⏱️ The indexing process can take some time depending on the chain's number of blocks.
+⚠⏱️ The indexing process can take some time depending on the chains numbers of blocks.
 
 ## Liquidation Process
 
