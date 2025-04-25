@@ -41,12 +41,12 @@ jobs:
       - name: Run liquidity venue tests
         run: pnpm test:liquidity-venues
         env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
       - name: Run liquidation execution tests
         run: pnpm test:execution
         env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
       - name: Run indexer helpers tests
         run: pnpm test:helpers
