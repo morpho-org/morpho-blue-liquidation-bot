@@ -31,7 +31,7 @@ Use at your own risk.
 ## Installation
 
 ```bash
-git clone https://github.com/morpho-blue-liquidation-bot-org/morpho-blue-liquidation-bot.git
+git clone https://github.com/morpho-org/morpho-blue-liquidation-bot.git
 cd morpho-blue-liquidation-bot
 pnpm install
 ```
