@@ -168,6 +168,22 @@ This command will start the bot, which will start liquidating once the configure
 
 ⚠⏱️ The indexing process can take some time depending on the chains numbers of blocks.
 
+### Claim Profit
+
+Liquidations profits are held by the Executor Contract.
+
+Running this script allows you to manually transfer the accumulated tokens from the Executor Contract to a specified recipient address.
+
+```bash
+pnpm skim --chainId 1 --token 0x... --recipient 0x...
+```
+
+The script accepts the following arguments:
+
+- chainId (required): The ID of the chain where the liquidation bot is operating (e.g., 1 for Ethereum Mainnet) and you want to claim the tokens.
+- token (required): The address of the token held by the Executor Contract that you want to claim.
+- recipient (optional): The address to which the tokens should be sent. If not specified, the default recipient will be the EOA running the bot.
+
 ## Liquidation Process
 
 ![Process](./img/liquidation-process-high-level.png)
