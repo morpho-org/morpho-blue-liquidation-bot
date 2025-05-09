@@ -9,7 +9,7 @@ import { test } from "../../setup.js";
 import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3, Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
-import { MORPHO, wbtcUSDC } from "../../constants.js";
+import { MORPHO, wbtcUSDC, WETH } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
 
 describe("execute liquidation", () => {
@@ -97,10 +97,16 @@ describe("execute liquidation", () => {
         ],
       });
 
-    const bot = new LiquidationBot(mainnet.id, client, MORPHO, [], [], encoder.address, [
-      erc4626,
-      uniswapV3,
-    ]);
+    const bot = new LiquidationBot({
+      chainId: mainnet.id,
+      client,
+      morphoAddress: MORPHO,
+      wNative: WETH,
+      vaultWhitelist: [],
+      additionalMarketsWhitelist: [],
+      executorAddress: encoder.address,
+      liquidityVenues: [erc4626, uniswapV3],
+    });
 
     await bot.run();
 
