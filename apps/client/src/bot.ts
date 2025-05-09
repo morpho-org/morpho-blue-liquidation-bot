@@ -132,6 +132,8 @@ export class LiquidationBot {
             traceAssetChanges: true,
           });
 
+          if (results[0].status !== "success") return;
+
           if (this.pricers) {
             const loanAssetChange = assetChanges.find(
               (asset) => asset.token.address === marketParams.loanToken,
