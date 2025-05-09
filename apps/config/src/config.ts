@@ -19,6 +19,7 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 18925584,
     },
+    wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     options: {
       vaultWhitelist: [
         "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
@@ -47,6 +48,7 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 13978134,
     },
+    wNative: "0x4200000000000000000000000000000000000006",
     options: {
       vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
       additionalMarketsWhitelist: [],

@@ -38,8 +38,3 @@ export type LiquidatablePosition = {
   seizableCollateral: bigint;
   repayableAssets: bigint;
 };
-
-export type Asset = {
-  address: Address;
-  decimals: number;
-};

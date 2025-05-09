@@ -1,5 +1,6 @@
 import {
   encodeFunctionData,
+  erc20Abi,
   getAddress,
   maxUint256,
   type Account,
@@ -9,37 +10,46 @@ import {
   type Hex,
   type Transport,
 } from "viem";
-import { estimateGas, writeContract } from "viem/actions";
+import { readContract, simulateCalls, writeContract } from "viem/actions";
 import { executorAbi, ExecutorEncoder } from "executooor-viem";
 
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
+import type { Pricer } from "./pricers/pricer.js";
+
+export type LiquidationBotInputs = {
+  chainId: number;
+  client: Client<Transport, Chain, Account>;
+  morphoAddress: Address;
+  wNative: Address;
+  vaultWhitelist: Address[];
+  additionalMarketsWhitelist: Hex[];
+  executorAddress: Address;
+  liquidityVenues: LiquidityVenue[];
+  pricers?: Pricer[];
+};
 
 export class LiquidationBot {
   private chainId: number;
   private client: Client<Transport, Chain, Account>;
   private morphoAddress: Address;
+  private wNative: Address;
   private vaultWhitelist: Address[];
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
-  private liquidationVenues: LiquidityVenue[];
+  private liquidityVenues: LiquidityVenue[];
+  private pricers?: Pricer[];
 
-  constructor(
-    chainId: number,
-    client: Client<Transport, Chain, Account>,
-    morphoAddress: Address,
-    vaultWhitelist: Address[],
-    additionalMarketsWhitelist: Hex[],
-    executorAddress: Address,
-    liquidationVenues: LiquidityVenue[],
-  ) {
-    this.chainId = chainId;
-    this.client = client;
-    this.vaultWhitelist = vaultWhitelist;
-    this.additionalMarketsWhitelist = additionalMarketsWhitelist;
-    this.morphoAddress = morphoAddress;
-    this.executorAddress = executorAddress;
-    this.liquidationVenues = liquidationVenues;
+  constructor(inputs: LiquidationBotInputs) {
+    this.chainId = inputs.chainId;
+    this.client = inputs.client;
+    this.vaultWhitelist = inputs.vaultWhitelist;
+    this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
+    this.morphoAddress = inputs.morphoAddress;
+    this.wNative = inputs.wNative;
+    this.executorAddress = inputs.executorAddress;
+    this.liquidityVenues = inputs.liquidityVenues;
+    this.pricers = inputs.pricers;
   }
 
   async run() {
@@ -81,7 +91,7 @@ export class LiquidationBot {
 
         /// LIQUIDITY VENUES
 
-        for (const venue of this.liquidationVenues) {
+        for (const venue of this.liquidityVenues) {
           if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
             toConvert = await venue.convert(encoder, toConvert);
 
@@ -116,7 +126,32 @@ export class LiquidationBot {
             value: 0n, // TODO: find a way to get encoder value
           };
 
-          const gasLimit = await estimateGas(client, populatedTx);
+          const { results, assetChanges } = await simulateCalls(client, {
+            account: client.account.address,
+            calls: [populatedTx],
+            traceAssetChanges: true,
+          });
+
+          if (this.pricers) {
+            const loanAssetChange = assetChanges.find(
+              (asset) => asset.token.address === marketParams.loanToken,
+            );
+
+            if (loanAssetChange === undefined || loanAssetChange.value.diff <= 0n) return;
+
+            const loanAssetProfit = loanAssetChange.value.diff;
+
+            const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
+              this.price(marketParams.loanToken, loanAssetProfit, this.pricers),
+              this.price(this.wNative, results[0].gasUsed, this.pricers),
+            ]);
+
+            if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined) return;
+
+            const profitUsd = loanAssetProfitUsd - gasUsedUsd;
+
+            if (profitUsd <= 0) return;
+          }
 
           // TX EXECUTION
 
@@ -138,5 +173,27 @@ export class LiquidationBot {
         }
       }),
     );
+  }
+
+  private async price(asset: Address, amount: bigint, pricers: Pricer[]) {
+    let price = undefined;
+
+    for (const pricer of pricers) {
+      if (await pricer.supportsChain(this.chainId)) {
+        price = await pricer.price(this.client, this.chainId, asset);
+
+        if (price !== undefined) break;
+      }
+    }
+
+    if (price === undefined) return undefined;
+
+    const decimals = await readContract(this.client, {
+      address: asset,
+      abi: erc20Abi,
+      functionName: "decimals",
+    });
+
+    return (Number(amount) / 10 ** decimals) * price;
   }
 }

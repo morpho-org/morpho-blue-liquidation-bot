@@ -24,6 +24,7 @@ export interface Config {
     addresses: Address[];
     startBlock: number;
   };
+  wNative: Address;
   options: Options;
 }
 

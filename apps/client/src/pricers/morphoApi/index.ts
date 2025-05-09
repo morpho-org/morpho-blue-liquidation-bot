@@ -1,6 +1,4 @@
-import type { Client } from "viem";
-
-import type { Asset } from "../../utils/types";
+import type { Address, Client } from "viem";
 import type { Pricer } from "../pricer";
 
 export class MorphoApi implements Pricer {
@@ -32,27 +30,24 @@ export class MorphoApi implements Pricer {
     return this.supportedChains.includes(chainId);
   }
 
-  async toUsd(client: Client, asset: Asset, amount: bigint) {
+  async price(client: Client, chainId: number, asset: Address) {
     const response = await fetch(this.API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // biome-ignore lint/style/noNonNullAssertion: never null
-      body: JSON.stringify({ query: this.query(client.chain!.id, asset) }),
+      body: JSON.stringify({ query: this.query(chainId, asset) }),
     });
     const data = (await response.json()) as { data: { assets: { items: { priceUsd: number }[] } } };
     const items = data.data.assets.items;
 
     const priceUsd = items[0]?.priceUsd ?? null;
 
-    if (priceUsd === null) return undefined;
-
-    return priceUsd * (Number(amount) / 10 ** asset.decimals);
+    return priceUsd ?? undefined;
   }
 
-  private query(chainId: number, asset: Asset) {
+  private query(chainId: number, asset: Address) {
     return `
     query {
-        assets(where: { address_in: ["${asset.address}"], chainId_in: [${chainId}]} ) {
+        assets(where: { address_in: ["${asset}"], chainId_in: [${chainId}]} ) {
             items {
                 priceUsd
             }

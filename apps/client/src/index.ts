@@ -2,7 +2,10 @@ import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
-import { LiquidationBot } from "./bot";
+import { LiquidationBot, type LiquidationBotInputs } from "./bot";
+
+import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
+import type { Pricer } from "./pricers/pricer";
 
 import { UniswapV3 } from "./liquidityVenues/uniswapV3";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
@@ -17,20 +20,31 @@ export const launchBot = (config: ChainConfig) => {
   });
 
   // LIQUIDITY VENUES
-  const liquidityVenues = [];
+  const liquidityVenues: LiquidityVenue[] = [];
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
   liquidityVenues.push(new UniswapV3());
 
-  const bot = new LiquidationBot(
-    config.chainId,
+  // PRICERS
+  const pricers: Pricer[] = [];
+
+  if (config.checkProfit && pricers.length === 0) {
+    throw new Error(`No pricers configured for chain ${config.chainId}`);
+  }
+
+  const inputs: LiquidationBotInputs = {
+    chainId: config.chainId,
     client,
-    config.morpho.address,
-    config.vaultWhitelist,
-    config.additionalMarketsWhitelist,
-    config.executorAddress,
+    morphoAddress: config.morpho.address,
+    wNative: config.wNative,
+    vaultWhitelist: config.vaultWhitelist,
+    additionalMarketsWhitelist: config.additionalMarketsWhitelist,
+    executorAddress: config.executorAddress,
     liquidityVenues,
-  );
+    pricers: config.checkProfit ? pricers : undefined,
+  };
+
+  const bot = new LiquidationBot(inputs);
 
   watchBlocks(client, {
     onBlock: () => {

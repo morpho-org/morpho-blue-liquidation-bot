@@ -1,6 +1,4 @@
-import type { Client, MaybePromise } from "viem";
-
-import type { Asset } from "../utils/types";
+import type { Address, Client, MaybePromise } from "viem";
 
 /**
  * Pricers are used to convert an amount from a source token to a destination token.
@@ -14,5 +12,5 @@ export interface Pricer {
   /**
    * Convert the amount from src to dst.
    */
-  toUsd(client: Client, asset: Asset, amount: bigint): MaybePromise<number | undefined>;
+  price(client: Client, chainId: number, asset: Address): MaybePromise<number | undefined>;
 }
