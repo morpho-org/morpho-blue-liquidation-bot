@@ -2,6 +2,10 @@
 
 A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** protocol. This bot is entirely based on **RPC calls** and is designed to be **easy to configure**, **customizable**, and **ready to deploy** on any EVM-compatible chain.
 
+## Visual Architecture
+
+![Architecture](./img/liquidation-bot-architecture.png)
+
 ## Features
 
 - Automatically detects liquidatable positions and executes the liquidations.
@@ -27,7 +31,7 @@ Use at your own risk.
 ## Installation
 
 ```bash
-git clone https://github.com/morpho-blue-liquidation-bot-org/morpho-blue-liquidation-bot.git
+git clone https://github.com/morpho-org/morpho-blue-liquidation-bot.git
 cd morpho-blue-liquidation-bot
 pnpm install
 ```
@@ -109,10 +113,10 @@ For example, the `uniswapV3` venue has different factory addresses for some chai
 
 ## Executor Contract Deployment
 
-The bot uses an executor contract to execute liquidations. ([Link to the executor repository](https://github.com/Rubilmax/executooor)).
-These contract are gated(they can only be called by the owner of the contract), so you need to deploy your own.
+The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).
+These contracts are gated (they can only be called by the owner of the contract), so you need to deploy your own.
 
-To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on, and run the following command:
+To do so, you just need to set the `rpcUrl` and `liquidationPrivateKey` in the `.env` for every chain you want to run the bot on (after configuring them in `apps/config/config.ts`), and run the following command:
 
 ```bash
 pnpm deploy:executor
@@ -168,4 +172,49 @@ pnpm liquidate
 
 This command will start the bot, which will start liquidating once the configured chains are fully indexed.
 
-⚠⏱️ The indexing process can take some time depending on the chain's number of blocks.
+⚠⏱️ The indexing process can take some time depending on the chains numbers of blocks.
+
+### Claim Profit
+
+Liquidations profits are held by the Executor Contract.
+
+Running this script allows you to manually transfer the accumulated tokens from the Executor Contract to a specified recipient address.
+
+```bash
+pnpm skim --chainId 1 --token 0x... --recipient 0x...
+```
+
+The script accepts the following arguments:
+
+- chainId (required): The ID of the chain where the liquidation bot is operating (e.g., 1 for Ethereum Mainnet) and you want to claim the tokens.
+- token (required): The address of the token held by the Executor Contract that you want to claim.
+- recipient (optional): The address to which the tokens should be sent. If not specified, the default recipient will be the EOA running the bot.
+
+## Liquidation Process
+
+![Process](./img/liquidation-process-high-level.png)
+
+## Config Changes
+
+Unfortunately, Ponder doesn't allow the same schema to be used with different configs.
+In this project, the config changes only if you add, remove, or modify a chain.
+
+So, if you try to run the bot with a set of chains that's different from the one used in your initial run, indexing will fail.
+There are two ways to handle this:
+
+### Reset the postgres database
+
+This is the easiest and most direct solution, but you will lose the indexed data for the previous chains.
+
+If you're using Docker to run the local Postgres database, you can simply stop and remove the container and its volume:
+
+```bash
+docker compose down -v
+```
+
+### Use a new database
+
+This way you can have different containers storing different indexing data for different sets of chains.
+
+- If you're using Docker to run the local Postgres database, just change the port both in the postgres url given to ponder (line 93 in `apps/ponder/ponder.config.ts`, the current port being `5432`) and in `docker-compose.yml` (make sure to set the same port, and to remember the port used by each config).
+- If you are using an external postgres database, you just need to change the `POSTGRES_DATABASE_URL`.
