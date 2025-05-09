@@ -7,6 +7,7 @@ export type ChainConfig = Config & {
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
   liquidationPrivateKey: Hex;
+  checkProfit: boolean;
 };
 
 export interface Config {
@@ -23,4 +24,11 @@ export interface Config {
     addresses: Address[];
     startBlock: number;
   };
+  options: Options;
+}
+
+export interface Options {
+  vaultWhitelist: Address[];
+  additionalMarketsWhitelist: Hex[];
+  checkProfit: boolean;
 }

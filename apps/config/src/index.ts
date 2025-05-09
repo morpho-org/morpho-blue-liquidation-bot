@@ -11,13 +11,14 @@ export function chainConfig(chainId: number): ChainConfig {
     throw new Error(`No config found for chainId ${chainId}`);
   }
 
-  const {
-    rpcUrl,
-    vaultWhitelist,
-    additionalMarketsWhitelist,
-    executorAddress,
-    liquidationPrivateKey,
-  } = getSecrets(chainId, config.chain);
+  const { vaultWhitelist, additionalMarketsWhitelist, checkProfit } = config.options;
+  if (vaultWhitelist.length === 0 && additionalMarketsWhitelist.length === 0) {
+    throw new Error(
+      `Vault whitelist and additional markets whitelist both empty for chainId ${chainId}`,
+    );
+  }
+
+  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
   return {
     ...config,
     chainId,
@@ -26,6 +27,7 @@ export function chainConfig(chainId: number): ChainConfig {
     liquidationPrivateKey,
     vaultWhitelist,
     additionalMarketsWhitelist,
+    checkProfit,
   };
 }
 
@@ -33,9 +35,6 @@ export function getSecrets(chainId: number, chain?: Chain) {
   const defaultRpcUrl = chain?.rpcUrls.default.http[0];
 
   const rpcUrl = process.env[`RPC_URL_${chainId}`] ?? defaultRpcUrl;
-  const vaultWhitelist = process.env[`VAULT_WHITELIST_${chainId}`]?.split(",") ?? [];
-  const additionalMarketsWhitelist =
-    process.env[`ADDITIONAL_MARKETS_WHITELIST_${chainId}`]?.split(",") ?? [];
   const executorAddress = process.env[`EXECUTOR_ADDRESS_${chainId}`];
   const liquidationPrivateKey = process.env[`LIQUIDATION_PRIVATE_KEY_${chainId}`];
 
@@ -50,8 +49,6 @@ export function getSecrets(chainId: number, chain?: Chain) {
   }
   return {
     rpcUrl,
-    vaultWhitelist: vaultWhitelist as Address[],
-    additionalMarketsWhitelist: additionalMarketsWhitelist as Hex[],
     executorAddress: executorAddress as Address,
     liquidationPrivateKey: liquidationPrivateKey as Hex,
   };

@@ -39,8 +39,6 @@ For each chain, here are the parameters that needs to be configured:
 
 ### Morpho Stack parameters (addresses and start blocks)
 
-**If you don't plan on supporting a new chain, you can ignore this section.**
-
 Morpho Blue:
 
 - `morpho.address`: The address of the Morpho contract.
@@ -56,6 +54,23 @@ Meta Morpho Factories:
 - `metaMorphoFactories.addresses`: The addresses of the MetaMorpho factories.
 - `metaMorphoFactories.startBlock`: The block number of the oldest MetaMorpho factory deployment.
 
+You may find the addresses in [Morpho documentation](https://docs.morpho.org/overview/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
+
+### Options
+
+**Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
+
+- `options.vaultWhitelist`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
+- `options.additionalMarketsWhitelist`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
+
+⚠️: These whitelists can't both be empty at the same time.
+
+**Profit Check**: If set, this parameter makes sure to only execute profitable liquidate (including gas costs). This requires to use pricers supported on the configured chains.
+
+- `options.checkProfit`: true if you want to check liquidations profit. False otherwise.
+
+⚠️: If set to true, each confirgured chain should support at least one of the pricers used by the bot.
+
 ### Secrets
 
 **Database secrets (optional):**
@@ -70,18 +85,11 @@ For each chain, the following secrets must be set:
 - `LIQUIDATION_PRIVATE_KEY`: The private key of the EOA that will be used to execute the liquidations.
 - `EXECUTOR_ADDRESS`: The address of the executor contract. The bot uses an executor contract to execute liquidations. (see [Executor Contract Deployment](#executor-contract-deployment)).
 
-**Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
-
-- `VAULT_WHITELIST`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
-- `ADDITIONAL_MARKETS_WHITELIST`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
-
 The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), with the following keys:
 
 - `RPC_URL_<chainId>`
 - `EXECUTOR_ADDRESS_<chainId>`
 - `LIQUIDATION_PRIVATE_KEY_<chainId>`
-- `VAULT_WHITELIST_<chainId>`
-- `ADDITIONAL_MARKETS_WHITELIST_<chainId>`
 
 Example for mainnet (chainId 1):
 
@@ -89,8 +97,6 @@ Example for mainnet (chainId 1):
 RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/<your-alchemy-api-key>
 EXECUTOR_ADDRESS_1=0x1234567890123456789012345678901234567890
 LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012345678901234
-VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458
-ADDITIONAL_MARKETS_WHITELIST_1=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 ```
 
 ### Liquidity Venues Configuration
