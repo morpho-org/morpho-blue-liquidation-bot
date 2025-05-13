@@ -1,4 +1,4 @@
-import type { Address, Client } from "viem";
+import type { Account, Address, Chain, Client, Transport } from "viem";
 import type { Pricer } from "../pricer";
 
 export class MorphoApi implements Pricer {
@@ -30,11 +30,15 @@ export class MorphoApi implements Pricer {
     return this.supportedChains.includes(chainId);
   }
 
-  async price(client: Client, chainId: number, asset: Address) {
+  async supportsAsset(client: Client<Transport, Chain, Account>, asset: Address) {
+    return await this.supportsChain(client.chain.id);
+  }
+
+  async price(client: Client<Transport, Chain, Account>, asset: Address) {
     const response = await fetch(this.API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: this.query(chainId, asset) }),
+      body: JSON.stringify({ query: this.query(client.chain.id, asset) }),
     });
 
     const data = (await response.json()) as {

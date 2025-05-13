@@ -5,9 +5,9 @@ import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import type { AnvilTestClient } from "@morpho-org/test";
 
-import { test } from "../../setup.js";
+import { encoderTest } from "../../setup.js";
 import { LiquidationBot } from "../../../src/bot.js";
-import { UniswapV3, Erc4626 } from "../../../src/liquidityVenues/index.js";
+import { UniswapV3Venue, Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { MorphoApi } from "../../../src/pricers/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { MORPHO, wbtcUSDC, WETH, borrower } from "../../constants.js";
@@ -16,9 +16,9 @@ import type { MarketParams } from "../../../src/utils/types.js";
 
 describe("execute liquidation", () => {
   const erc4626 = new Erc4626();
-  const uniswapV3 = new UniswapV3();
+  const uniswapV3 = new UniswapV3Venue();
 
-  test.sequential("should execute liquidation", async ({ encoder }) => {
+  encoderTest.sequential("should execute liquidation", async ({ encoder }) => {
     const pricer = new MorphoApi();
 
     const { client } = encoder;
@@ -76,63 +76,66 @@ describe("execute liquidation", () => {
     expect(positionPostLiquidation[2]).toBe(0n);
   });
 
-  test.sequential("should not execute liquidation because no profit", async ({ encoder }) => {
-    const pricer = new MorphoApi();
+  encoderTest.sequential(
+    "should not execute liquidation because no profit",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
 
-    const { client } = encoder;
-    const collateralAmount = parseUnits("0.0001", 8);
-    const borrowAmount = parseUnits("5", 6);
+      const { client } = encoder;
+      const collateralAmount = parseUnits("0.0001", 8);
+      const borrowAmount = parseUnits("5", 6);
 
-    const _marketParams = await readContract(encoder.client, {
-      address: MORPHO,
-      abi: morphoBlueAbi,
-      functionName: "idToMarketParams",
-      args: [wbtcUSDC],
-    });
+      const _marketParams = await readContract(encoder.client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "idToMarketParams",
+        args: [wbtcUSDC],
+      });
 
-    const marketParams = {
-      loanToken: _marketParams[0],
-      collateralToken: _marketParams[1],
-      oracle: _marketParams[2],
-      irm: _marketParams[3],
-      lltv: _marketParams[4],
-    };
+      const marketParams = {
+        loanToken: _marketParams[0],
+        collateralToken: _marketParams[1],
+        oracle: _marketParams[2],
+        irm: _marketParams[3],
+        lltv: _marketParams[4],
+      };
 
-    await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
 
-    const bot = new LiquidationBot({
-      chainId: mainnet.id,
-      client,
-      morphoAddress: MORPHO,
-      wNative: WETH,
-      vaultWhitelist: [],
-      additionalMarketsWhitelist: [],
-      executorAddress: encoder.address,
-      liquidityVenues: [erc4626, uniswapV3],
-      pricers: [pricer],
-    });
+      const bot = new LiquidationBot({
+        chainId: mainnet.id,
+        client,
+        morphoAddress: MORPHO,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [],
+        executorAddress: encoder.address,
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+      });
 
-    await bot.run();
+      await bot.run();
 
-    const positionPostLiquidation = await readContract(client, {
-      address: MORPHO,
-      abi: morphoBlueAbi,
-      functionName: "position",
-      args: [wbtcUSDC, borrower.address],
-    });
+      const positionPostLiquidation = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
 
-    const executorBalance = await readContract(client, {
-      address: marketParams.loanToken,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [encoder.address],
-    });
+      const executorBalance = await readContract(client, {
+        address: marketParams.loanToken,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [encoder.address],
+      });
 
-    expect(executorBalance).toBe(0n);
-    expect(positionPostLiquidation[1]).toBeGreaterThan(0n);
-    // We overiden collateral slot to make the position liquidatable
-    expect(positionPostLiquidation[2]).toBe(collateralAmount / 2n);
-  });
+      expect(executorBalance).toBe(0n);
+      expect(positionPostLiquidation[1]).toBeGreaterThan(0n);
+      // We overiden collateral slot to make the position liquidatable
+      expect(positionPostLiquidation[2]).toBe(collateralAmount / 2n);
+    },
+  );
 });
 
 async function setupPosition(

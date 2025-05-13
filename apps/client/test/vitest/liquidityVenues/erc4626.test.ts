@@ -1,6 +1,6 @@
 import { erc20Abi, erc4626Abi, parseUnits } from "viem";
 import { describe, expect } from "vitest";
-import { test } from "../../setup.js";
+import { encoderTest } from "../../setup.js";
 import { Erc4626 } from "../../../src/liquidityVenues/index.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
@@ -9,7 +9,7 @@ import { steakUSDC, WBTC, USDC } from "../../constants.js";
 describe("erc4626 liquidity venue", () => {
   const liquidityVenue = new Erc4626();
 
-  test.sequential("should test supportsRoute", async ({ encoder }) => {
+  encoderTest.sequential("should test supportsRoute", async ({ encoder }) => {
     expect(await liquidityVenue.supportsRoute(encoder, WBTC, USDC)).toBe(false);
     expect(await liquidityVenue.supportsRoute(encoder, steakUSDC, steakUSDC)).toBe(false);
     expect(await liquidityVenue.supportsRoute(encoder, USDC, steakUSDC)).toBe(false);
@@ -24,7 +24,7 @@ describe("erc4626 liquidity venue", () => {
     ).toBe(false);
   });
 
-  test.sequential("should test convert encoding", async ({ encoder }) => {
+  encoderTest.sequential("should test convert encoding", async ({ encoder }) => {
     const amount = parseUnits("10000", 18);
 
     encoder.erc4626Redeem(steakUSDC, amount, encoder.address, encoder.address);
@@ -52,7 +52,7 @@ describe("erc4626 liquidity venue", () => {
     });
   });
 
-  test.sequential("should test convert encoding execution", async ({ encoder }) => {
+  encoderTest.sequential("should test convert encoding execution", async ({ encoder }) => {
     const amount = parseUnits("10000", 18);
 
     await encoder.client.deal({
