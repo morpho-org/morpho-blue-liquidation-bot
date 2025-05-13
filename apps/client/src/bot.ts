@@ -130,15 +130,34 @@ export class LiquidationBot {
 
           const { results } = await simulateCalls(client, {
             account: client.account.address,
-            calls: [populatedTx],
+            calls: [
+              {
+                to: marketParams.loanToken,
+                abi: erc20Abi,
+                functionName: "balanceOf",
+                args: [executorAddress],
+              },
+              populatedTx,
+              {
+                to: marketParams.loanToken,
+                abi: erc20Abi,
+                functionName: "balanceOf",
+                args: [executorAddress],
+              },
+            ],
           });
 
-          if (results[0].status !== "success") return;
+          if (results[1].status !== "success") return;
 
-          console.log(results[0]);
-          console.log(results[0].logs);
           if (
-            !(await this.checkProfit(marketParams.loanToken, results[0].logs, results[0].gasUsed))
+            !(await this.checkProfit(
+              marketParams.loanToken,
+              {
+                beforeTx: results[0].result,
+                afterTx: results[2].result,
+              },
+              results[0].gasUsed,
+            ))
           )
             return;
 
@@ -177,22 +196,34 @@ export class LiquidationBot {
 
     if (price === undefined) return undefined;
 
-    const decimals = await readContract(this.client, {
-      address: asset,
-      abi: erc20Abi,
-      functionName: "decimals",
-    });
+    const decimals =
+      asset === this.wNative
+        ? 18
+        : await readContract(this.client, {
+            address: asset,
+            abi: erc20Abi,
+            functionName: "decimals",
+          });
 
     return (Number(amount) / 10 ** decimals) * price;
   }
 
-  private async checkProfit(loanAsset: Address, logs: Log[] | undefined, gasUsed: bigint) {
+  private async checkProfit(
+    loanAsset: Address,
+    loanAssetBalance: {
+      beforeTx: bigint | undefined;
+      afterTx: bigint | undefined;
+    },
+    gasUsed: bigint,
+  ) {
     if (this.pricers === undefined) return true;
-    if (logs === undefined) return false;
 
-    const loanAssetProfit = this.getloanAssetProfit(logs, loanAsset);
+    if (loanAssetBalance.beforeTx === undefined || loanAssetBalance.afterTx === undefined)
+      return false;
 
-    if (loanAssetProfit === undefined || loanAssetProfit <= 0n) return false;
+    const loanAssetProfit = loanAssetBalance.afterTx - loanAssetBalance.beforeTx;
+
+    if (loanAssetProfit <= 0n) return false;
 
     const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
       this.price(loanAsset, loanAssetProfit, this.pricers),
@@ -204,39 +235,5 @@ export class LiquidationBot {
     const profitUsd = loanAssetProfitUsd - gasUsedUsd;
 
     return profitUsd > 0;
-  }
-
-  private getloanAssetProfit(logs: Log[], loanAsset: Address) {
-    const loanTransfers = logs.filter((log) => {
-      return (
-        getAddress(log.address) === loanAsset &&
-        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-      );
-    });
-
-    const loanTransfersFromExecutor = loanTransfers.filter((log) => {
-      // biome-ignore lint/style/noNonNullAssertion: never undefined
-      return `0x${log.topics[1]!.slice(-40)}` === this.executorAddress;
-    });
-
-    const loanTransfersToExecutor = loanTransfers.filter((log) => {
-      // biome-ignore lint/style/noNonNullAssertion: never undefined
-      return `0x${log.topics[2]!.slice(-40)}` === this.executorAddress;
-    });
-
-    if (loanTransfersFromExecutor.length === 0 || loanTransfersToExecutor.length === 0) return;
-
-    return (
-      fromHex(
-        // biome-ignore lint/style/noNonNullAssertion: never null
-        loanTransfersToExecutor[loanTransfersToExecutor.length - 1]!.data,
-        "bigint",
-      ) -
-      fromHex(
-        // biome-ignore lint/style/noNonNullAssertion: never null
-        loanTransfersFromExecutor[loanTransfersFromExecutor.length - 1]!.data,
-        "bigint",
-      )
-    );
   }
 }
