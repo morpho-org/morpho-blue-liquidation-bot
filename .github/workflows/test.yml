@@ -43,6 +43,11 @@ jobs:
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
+      - name: Run pricers tests
+        run: pnpm test:pricers
+        env:
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
+
       - name: Run liquidation execution tests
         run: pnpm test:execution
         env:
