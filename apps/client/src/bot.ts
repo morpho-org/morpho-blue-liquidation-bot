@@ -1,7 +1,6 @@
 import {
   encodeFunctionData,
   erc20Abi,
-  fromHex,
   getAddress,
   maxUint256,
   type Account,
@@ -9,10 +8,9 @@ import {
   type Chain,
   type Client,
   type Hex,
-  type Log,
   type Transport,
 } from "viem";
-import { readContract, simulateCalls, writeContract } from "viem/actions";
+import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
 import { executorAbi, ExecutorEncoder } from "executooor-viem";
 
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
@@ -128,24 +126,27 @@ export class LiquidationBot {
             value: 0n, // TODO: find a way to get encoder value
           };
 
-          const { results } = await simulateCalls(client, {
-            account: client.account.address,
-            calls: [
-              {
-                to: marketParams.loanToken,
-                abi: erc20Abi,
-                functionName: "balanceOf",
-                args: [executorAddress],
-              },
-              populatedTx,
-              {
-                to: marketParams.loanToken,
-                abi: erc20Abi,
-                functionName: "balanceOf",
-                args: [executorAddress],
-              },
-            ],
-          });
+          const [{ results }, gasPrice] = await Promise.all([
+            simulateCalls(client, {
+              account: client.account.address,
+              calls: [
+                {
+                  to: marketParams.loanToken,
+                  abi: erc20Abi,
+                  functionName: "balanceOf",
+                  args: [executorAddress],
+                },
+                populatedTx,
+                {
+                  to: marketParams.loanToken,
+                  abi: erc20Abi,
+                  functionName: "balanceOf",
+                  args: [executorAddress],
+                },
+              ],
+            }),
+            getGasPrice(client),
+          ]);
 
           if (results[1].status !== "success") return;
 
@@ -156,7 +157,10 @@ export class LiquidationBot {
                 beforeTx: results[0].result,
                 afterTx: results[2].result,
               },
-              results[0].gasUsed,
+              {
+                used: results[1].gasUsed,
+                price: gasPrice,
+              },
             ))
           )
             return;
@@ -214,7 +218,10 @@ export class LiquidationBot {
       beforeTx: bigint | undefined;
       afterTx: bigint | undefined;
     },
-    gasUsed: bigint,
+    gas: {
+      used: bigint;
+      price: bigint;
+    },
   ) {
     if (this.pricers === undefined) return true;
 
@@ -227,7 +234,7 @@ export class LiquidationBot {
 
     const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
       this.price(loanAsset, loanAssetProfit, this.pricers),
-      this.price(this.wNative, gasUsed, this.pricers),
+      this.price(this.wNative, gas.used * gas.price, this.pricers),
     ]);
 
     if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined) return false;

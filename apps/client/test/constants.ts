@@ -1,3 +1,4 @@
+import { testAccount } from "@morpho-org/test";
 import type { Address, Hex } from "viem";
 
 /// Token Addresses Mainnet
@@ -24,3 +25,7 @@ export const MORPHO = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
 
 export const POSITION_SLOT = 2n;
 export const BORROW_SHARES_AND_COLLATERAL_OFFSET = 1n;
+
+/// helpers
+
+export const borrower = testAccount(1);

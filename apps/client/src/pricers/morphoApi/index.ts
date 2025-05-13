@@ -36,19 +36,24 @@ export class MorphoApi implements Pricer {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: this.query(chainId, asset) }),
     });
-    const data = (await response.json()) as { data: { assets: { items: { priceUsd: number }[] } } };
+
+    const data = (await response.json()) as {
+      data: { assets: { items: { address: Address; priceUsd: number }[] } };
+    };
+
     const items = data.data.assets.items;
 
-    const priceUsd = items[0]?.priceUsd ?? null;
+    const priceUsd = items.find((item) => item.address === asset)?.priceUsd ?? null;
 
     return priceUsd ?? undefined;
   }
 
-  private query(chainId: number, asset: Address) {
+  public query(chainId: number, asset: Address) {
     return `
     query {
         assets(where: { address_in: ["${asset}"], chainId_in: [${chainId}]} ) {
             items {
+                address
                 priceUsd
             }
         }
