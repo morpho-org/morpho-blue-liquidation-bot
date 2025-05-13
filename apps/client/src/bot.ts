@@ -1,6 +1,7 @@
 import {
   encodeFunctionData,
   erc20Abi,
+  fromHex,
   getAddress,
   maxUint256,
   type Account,
@@ -8,6 +9,7 @@ import {
   type Chain,
   type Client,
   type Hex,
+  type Log,
   type Transport,
 } from "viem";
 import { readContract, simulateCalls, writeContract } from "viem/actions";
@@ -126,34 +128,19 @@ export class LiquidationBot {
             value: 0n, // TODO: find a way to get encoder value
           };
 
-          const { results, assetChanges } = await simulateCalls(client, {
+          const { results } = await simulateCalls(client, {
             account: client.account.address,
             calls: [populatedTx],
-            traceAssetChanges: true,
           });
 
           if (results[0].status !== "success") return;
 
-          if (this.pricers) {
-            const loanAssetChange = assetChanges.find(
-              (asset) => asset.token.address === marketParams.loanToken,
-            );
-
-            if (loanAssetChange === undefined || loanAssetChange.value.diff <= 0n) return;
-
-            const loanAssetProfit = loanAssetChange.value.diff;
-
-            const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
-              this.price(marketParams.loanToken, loanAssetProfit, this.pricers),
-              this.price(this.wNative, results[0].gasUsed, this.pricers),
-            ]);
-
-            if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined) return;
-
-            const profitUsd = loanAssetProfitUsd - gasUsedUsd;
-
-            if (profitUsd <= 0) return;
-          }
+          console.log(results[0]);
+          console.log(results[0].logs);
+          if (
+            !(await this.checkProfit(marketParams.loanToken, results[0].logs, results[0].gasUsed))
+          )
+            return;
 
           // TX EXECUTION
 
@@ -197,5 +184,59 @@ export class LiquidationBot {
     });
 
     return (Number(amount) / 10 ** decimals) * price;
+  }
+
+  private async checkProfit(loanAsset: Address, logs: Log[] | undefined, gasUsed: bigint) {
+    if (this.pricers === undefined) return true;
+    if (logs === undefined) return false;
+
+    const loanAssetProfit = this.getloanAssetProfit(logs, loanAsset);
+
+    if (loanAssetProfit === undefined || loanAssetProfit <= 0n) return false;
+
+    const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
+      this.price(loanAsset, loanAssetProfit, this.pricers),
+      this.price(this.wNative, gasUsed, this.pricers),
+    ]);
+
+    if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined) return false;
+
+    const profitUsd = loanAssetProfitUsd - gasUsedUsd;
+
+    return profitUsd > 0;
+  }
+
+  private getloanAssetProfit(logs: Log[], loanAsset: Address) {
+    const loanTransfers = logs.filter((log) => {
+      return (
+        getAddress(log.address) === loanAsset &&
+        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+      );
+    });
+
+    const loanTransfersFromExecutor = loanTransfers.filter((log) => {
+      // biome-ignore lint/style/noNonNullAssertion: never undefined
+      return `0x${log.topics[1]!.slice(-40)}` === this.executorAddress;
+    });
+
+    const loanTransfersToExecutor = loanTransfers.filter((log) => {
+      // biome-ignore lint/style/noNonNullAssertion: never undefined
+      return `0x${log.topics[2]!.slice(-40)}` === this.executorAddress;
+    });
+
+    if (loanTransfersFromExecutor.length === 0 || loanTransfersToExecutor.length === 0) return;
+
+    return (
+      fromHex(
+        // biome-ignore lint/style/noNonNullAssertion: never null
+        loanTransfersToExecutor[loanTransfersToExecutor.length - 1]!.data,
+        "bigint",
+      ) -
+      fromHex(
+        // biome-ignore lint/style/noNonNullAssertion: never null
+        loanTransfersFromExecutor[loanTransfersFromExecutor.length - 1]!.data,
+        "bigint",
+      )
+    );
   }
 }
