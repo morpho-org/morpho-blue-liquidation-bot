@@ -5,6 +5,7 @@ import {
   type Client,
   type Transport,
   erc20Abi,
+  formatUnits,
   fromHex,
   zeroAddress,
 } from "viem";
@@ -92,8 +93,12 @@ export class UniswapV3Pricer implements Pricer {
       ]);
 
       const sqrtPriceX96 = slot0[0];
-      const price =
-        Number((sqrtPriceX96 / 2n ** 96n) ** 2n) / 10 ** (token1Decimals - token0Decimals);
+      const price = Number(
+        formatUnits(
+          (sqrtPriceX96 / 2n ** 96n) ** 2n * 10n ** BigInt(token0Decimals),
+          token1Decimals,
+        ),
+      );
 
       return token0 === asset ? price : 1 / price;
     } catch (error) {
