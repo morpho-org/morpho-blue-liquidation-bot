@@ -26,20 +26,7 @@ export class DefiLlamaPricer implements Pricer {
   private priceCache = new Map<CoinKey, CachedPrice>();
   private readonly cacheTimeoutMs: number = 10_000; // 10 seconds
 
-  supportsChain(): boolean {
-    return true;
-  }
-
-  async supportsAsset(client: Client<Transport, Chain, Account>, asset: Address): Promise<boolean> {
-    try {
-      const price = await this.fetchPrice(client, asset);
-      return price !== undefined;
-    } catch {
-      return false;
-    }
-  }
-
-  async price(client: Client<Transport, Chain, Account>, asset: Address): Promise<number> {
+  async price(client: Client<Transport, Chain, Account>, asset: Address) {
     const cacheKey = this.getCoinKey(client, asset);
     const cachedResult = this.priceCache.get(cacheKey);
 
@@ -48,9 +35,6 @@ export class DefiLlamaPricer implements Pricer {
     }
 
     const price = await this.fetchPrice(client, asset);
-    if (price === undefined) {
-      throw new Error(`No price found for asset ${asset} on ${client.chain.name}`);
-    }
 
     return price;
   }

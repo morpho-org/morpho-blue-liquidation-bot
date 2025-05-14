@@ -25,33 +25,20 @@ export class UniswapV3Pricer implements Pricer {
   private pools: Record<Address, Record<Address, Address[]>> = {};
   private decimals: Record<Address, number> = {};
 
-  supportsChain(chainId: number) {
-    return USD_REFERENCE[chainId] !== undefined;
-  }
-
-  async supportsAsset(client: Client<Transport, Chain, Account>, asset: Address) {
-    // biome-ignore lint/style/noNonNullAssertion: checked before
-    const usdReference = USD_REFERENCE[client.chain.id]!;
-    if (asset === usdReference) return true;
-
-    const pools =
-      this.getCachedPools(asset, usdReference) ??
-      (await this.fetchPools(client, usdReference, asset));
-
-    return pools.length > 0;
-  }
-
   async price(client: Client<Transport, Chain, Account>, asset: Address) {
-    // biome-ignore lint/style/noNonNullAssertion: checked before
-    const usdReference = USD_REFERENCE[client.chain.id]!;
+    const usdReference = USD_REFERENCE[client.chain.id];
+
+    if (usdReference === undefined) return;
 
     /// TODO: allow multiple USD references
 
     if (asset === usdReference) return 1;
 
-    const pools = this.getCachedPools(asset, usdReference);
+    const pools =
+      this.getCachedPools(asset, usdReference) ??
+      (await this.fetchPools(client, usdReference, asset));
 
-    if (pools === undefined) {
+    if (pools.length === 0) {
       return;
     }
 

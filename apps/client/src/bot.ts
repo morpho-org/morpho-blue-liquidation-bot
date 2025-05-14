@@ -191,12 +191,8 @@ export class LiquidationBot {
     let price = undefined;
 
     for (const pricer of pricers) {
-      if (await pricer.supportsChain(this.chainId)) {
-        if (await pricer.supportsAsset(this.client, asset)) {
-          price = await pricer.price(this.client, asset);
-          if (price !== undefined) break;
-        }
-      }
+      price = await pricer.price(this.client, asset);
+      if (price !== undefined) break;
     }
 
     if (price === undefined) return undefined;

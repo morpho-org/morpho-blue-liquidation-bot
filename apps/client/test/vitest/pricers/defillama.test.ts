@@ -11,14 +11,8 @@ describe("defillama pricer", () => {
     pricer = new DefiLlamaPricer();
   });
 
-  test("should test supportsAsset", async ({ client }) => {
-    expect(await pricer.supportsAsset(client, WETH)).toBe(true);
-    expect(await pricer.supportsAsset(client, WBTC)).toBe(true);
-    expect(await pricer.supportsAsset(client, USDC)).toBe(true);
-    expect(await pricer.supportsAsset(client, USDC_BASE)).toBe(false);
-  });
-
   test("should test price", async ({ client }) => {
+    expect(await pricer.price(client, USDC_BASE)).toBe(undefined);
     expect(Math.floor(Math.log10(await pricer.price(client, WETH)))).toBeCloseTo(3);
     expect(Math.log10(await pricer.price(client, WBTC))).toBeGreaterThan(4);
     expect(await pricer.price(client, USDC)).toBeCloseTo(1, 3);
