@@ -7,6 +7,7 @@ import { adaptiveCurveIrmAbi } from "./abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "./abis/MetaMorpho";
 import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
 import { morphoBlueAbi } from "./abis/MorphoBlue";
+import { preLiquidationFactoryAbi } from "./abis/PreLiquidationFactory";
 
 const configs = Object.values(chainConfigs).map((config) => chainConfig(config.chain.id));
 
@@ -76,6 +77,24 @@ export default createConfig({
           {
             address: config.adaptiveCurveIrm.address,
             startBlock: config.adaptiveCurveIrm.startBlock,
+          },
+        ]),
+      ) as Record<
+        keyof typeof networks,
+        {
+          readonly address: `0x${string}`;
+          readonly startBlock: number;
+        }
+      >,
+    },
+    PreLiquidationFactory: {
+      abi: preLiquidationFactoryAbi,
+      network: Object.fromEntries(
+        configs.map((config) => [
+          config.chain.name,
+          {
+            address: config.preLiquidationFactory.address,
+            startBlock: config.preLiquidationFactory.startBlock,
           },
         ]),
       ) as Record<

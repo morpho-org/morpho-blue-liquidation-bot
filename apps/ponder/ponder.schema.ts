@@ -74,3 +74,44 @@ export const vault = onchainTable(
     pk: primaryKey({ columns: [table.chainId, table.address] }),
   }),
 );
+
+export const preLiquidation = onchainTable(
+  "preLiquidation",
+  (t) => ({
+    chainId: t.integer().notNull(),
+    marketId: t.hex().notNull(),
+    address: t.hex().notNull(),
+
+    preLltv: t.bigint().notNull(),
+    preLCF1: t.bigint().notNull(),
+    preLCF2: t.bigint().notNull(),
+    preLIF1: t.bigint().notNull(),
+    preLIF2: t.bigint().notNull(),
+    preLiquidationOracle: t.hex().notNull(),
+  }),
+  (table) => ({
+    // Composite primary key uniquely identifies a preLiquidation across chains
+    pk: primaryKey({ columns: [table.chainId, table.marketId, table.address] }),
+    // Index speeds up relational queries
+    marketIdx: index().on(table.chainId, table.marketId),
+  }),
+);
+
+export const authorization = onchainTable(
+  "authorization",
+  (t) => ({
+    chainId: t.integer().notNull(),
+    authorizer: t.hex().notNull(),
+    authorized: t.hex().notNull(),
+
+    isAuthorized: t.boolean().notNull(),
+  }),
+  (table) => ({
+    // Composite primary key uniquely identifies an authorization across chains
+    pk: primaryKey({ columns: [table.chainId, table.authorizer, table.authorized] }),
+  }),
+);
+
+export const authorizationRelations = relations(position, ({ many }) => ({
+  authorizer: many(position),
+}));

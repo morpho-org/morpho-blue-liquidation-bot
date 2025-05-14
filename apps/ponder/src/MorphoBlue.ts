@@ -1,5 +1,5 @@
 import { ponder } from "ponder:registry";
-import { market, position } from "ponder:schema";
+import { market, position, authorization } from "ponder:schema";
 import { zeroFloorSub } from "./utils";
 
 ponder.on("Morpho:CreateMarket", async ({ event, context }) => {
@@ -186,4 +186,18 @@ ponder.on("Morpho:Liquidate", async ({ event, context }) => {
         borrowShares: row.borrowShares - event.args.repaidShares - event.args.badDebtShares,
       })),
   ]);
+});
+
+ponder.on("Morpho:SetAuthorization", async ({ event, context }) => {
+  await context.db
+    .insert(authorization)
+    .values({
+      chainId: context.network.chainId,
+      authorizer: event.args.authorizer,
+      authorized: event.args.authorized,
+      isAuthorized: event.args.newIsAuthorized,
+    })
+    .onConflictDoUpdate((row) => ({
+      isAuthorized: event.args.newIsAuthorized,
+    }));
 });
