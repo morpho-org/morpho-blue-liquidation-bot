@@ -1,4 +1,4 @@
-import type { Address, Client, MaybePromise } from "viem";
+import type { Account, Address, Chain, Client, MaybePromise, Transport } from "viem";
 
 /**
  * Pricers are used to convert an amount from a source token to a destination token.
@@ -9,8 +9,17 @@ export interface Pricer {
    * Check if the pricer supports the chain.
    */
   supportsChain(chainId: number): MaybePromise<boolean>;
+
   /**
-   * Convert the amount from src to dst.
+   * Check if the pricer supports the asset.
    */
-  price(client: Client, chainId: number, asset: Address): MaybePromise<number | undefined>;
+  supportsAsset(client: Client<Transport, Chain, Account>, asset: Address): MaybePromise<boolean>;
+
+  /**
+   * Get the price of the asset in USD.
+   */
+  price(
+    client: Client<Transport, Chain, Account>,
+    asset: Address,
+  ): MaybePromise<number | undefined>;
 }

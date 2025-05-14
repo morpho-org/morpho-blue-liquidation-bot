@@ -145,11 +145,10 @@ Liquidity venues can be combined to create more complex strategies. For example,
 **If you don't plan on supporting a new liquidity venue, you can ignore this section.**
 
 To add your own venue, you need to create a new folder in the `apps/client/src/liquidityVenues` folder.
-This folder should contain up to 2 files:
+This folder should contain up to 1 file `index.ts`. In this file you will implement the new liquidity venue class that needs to implements the `LiquidityVenue` interface (located in `apps/client/src/liquidityVenues/liquidityVenue.ts`).
+This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
 
-- `index.ts`: In this file you will implement the new liquidity venue class that needs to implements the `LiquidityVenue` interface (located in `apps/client/src/liquidityVenues/liquidityVenue.ts`).
-  This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
-- `abi.ts` (optional): Should contain all the ABIs of the contracts involved in the venue (if any).
+- If your venue needs any abi, you may add it to a new file named after the venue in the `apps/client/src/abis` folder.
 
 ### Configuration
 

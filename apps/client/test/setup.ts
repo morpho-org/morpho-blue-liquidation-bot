@@ -10,7 +10,7 @@ export interface ExecutorEncoderTestContext<chain extends Chain = Chain> {
   encoder: ExecutorEncoder<AnvilTestClient<chain>>;
 }
 
-export const test = createViemTest(mainnet, {
+export const encoderTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
   forkBlockNumber: 21_000_000,
   timeout: 100_000,
@@ -24,4 +24,9 @@ export const test = createViemTest(mainnet, {
 
     await use(new ExecutorEncoder(receipt.contractAddress, client));
   },
+});
+
+export const test = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
+  forkBlockNumber: 21_000_000,
 });

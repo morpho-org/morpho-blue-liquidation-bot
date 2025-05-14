@@ -4,15 +4,15 @@ import { readContract } from "viem/actions";
 import { describe, expect } from "vitest";
 import { executorAbi } from "executooor-viem";
 import { MIN_SQRT_RATIO } from "@morpho-blue-liquidation-bot/config";
-import { test } from "../../setup.js";
+import { encoderTest } from "../../setup.js";
 import { USDC, wstETH, WBTC } from "../../constants.js";
-import { UniswapV3 } from "../../../src/liquidityVenues/index.js";
-import { uniswapV3PoolAbi } from "../../../src/liquidityVenues/uniswapV3/abis.js";
+import { UniswapV3Venue } from "../../../src/liquidityVenues/index.js";
+import { uniswapV3PoolAbi } from "../../../src/abis/uniswapV3.js";
 
 describe("uniswapV3 liquidity venue", () => {
-  const liquidityVenue = new UniswapV3();
+  const liquidityVenue = new UniswapV3Venue();
 
-  test.sequential("should test supportsRoute", async ({ encoder }) => {
+  encoderTest.sequential("should test supportsRoute", async ({ encoder }) => {
     expect(await liquidityVenue.supportsRoute(encoder, wstETH, USDC)).toBe(true);
     expect(await liquidityVenue.supportsRoute(encoder, USDC, zeroAddress)).toBe(false);
     expect(await liquidityVenue.supportsRoute(encoder, wstETH, zeroAddress)).toBe(false);
@@ -27,7 +27,7 @@ describe("uniswapV3 liquidity venue", () => {
     ).toBe(false);
   });
 
-  test.sequential("should test convert encoding", async ({ encoder }) => {
+  encoderTest.sequential("should test convert encoding", async ({ encoder }) => {
     const amount = parseUnits("1", 8);
 
     const encodedContext =
@@ -88,7 +88,7 @@ describe("uniswapV3 liquidity venue", () => {
     });
   });
 
-  test.sequential("should test convert encoding execution", async ({ encoder }) => {
+  encoderTest.sequential("should test convert encoding execution", async ({ encoder }) => {
     const amount = parseUnits("1", 8);
 
     await encoder.client.deal({

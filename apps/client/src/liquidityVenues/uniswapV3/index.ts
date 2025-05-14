@@ -12,7 +12,7 @@ import { readContract } from "viem/actions";
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
-import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
+import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
 import {
   FEE_TIERS,
   DEFAULT_FACTORY_ADDRESS,
@@ -21,7 +21,7 @@ import {
   MIN_SQRT_RATIO,
 } from "@morpho-blue-liquidation-bot/config";
 
-export class UniswapV3 implements LiquidityVenue {
+export class UniswapV3Venue implements LiquidityVenue {
   private pools: Record<Address, Record<Address, Address[]>> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
