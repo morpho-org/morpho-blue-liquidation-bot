@@ -13,21 +13,26 @@ export class MorphoApi implements Pricer {
 
     if (!this.supportedChains.includes(client.chain.id)) return;
 
-    const response = await fetch(this.API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: this.query(client.chain.id, asset) }),
-    });
+    try {
+      const response = await fetch(this.API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: this.query(client.chain.id, asset) }),
+      });
 
-    const data = (await response.json()) as {
-      data: { assets: { items: { address: Address; priceUsd: number }[] } };
-    };
+      const data = (await response.json()) as {
+        data: { assets: { items: { address: Address; priceUsd: number }[] } };
+      };
 
-    const items = data.data.assets.items;
+      const items = data.data.assets.items;
 
-    const priceUsd = items.find((item) => item.address === asset)?.priceUsd ?? null;
+      const priceUsd = items.find((item) => item.address === asset)?.priceUsd ?? null;
 
-    return priceUsd ?? undefined;
+      return priceUsd ?? undefined;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
   }
 
   private async initialize() {
@@ -39,15 +44,19 @@ export class MorphoApi implements Pricer {
       }
       `;
 
-    const response = await fetch(this.API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: initilizationQuery }),
-    });
+    try {
+      const response = await fetch(this.API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: initilizationQuery }),
+      });
 
-    const data = (await response.json()) as { data: { chains: { id: number }[] } };
-    this.supportedChains = data.data.chains.map((chain) => chain.id);
-    this.initialized = true;
+      const data = (await response.json()) as { data: { chains: { id: number }[] } };
+      this.supportedChains = data.data.chains.map((chain) => chain.id);
+      this.initialized = true;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private query(chainId: number, asset: Address) {
