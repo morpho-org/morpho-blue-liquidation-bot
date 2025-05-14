@@ -12,6 +12,7 @@ describe("defillama pricer", () => {
   });
 
   test("should test price", async ({ client }) => {
+    expect(await pricer.price(client, USDC_BASE)).toBe(undefined);
     expect(Math.floor(Math.log10(await pricer.price(client, WETH)))).toBeCloseTo(3);
     expect(Math.log10(await pricer.price(client, WBTC))).toBeGreaterThan(4);
     expect(await pricer.price(client, USDC)).toBeCloseTo(1, 3);
