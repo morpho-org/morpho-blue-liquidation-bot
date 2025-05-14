@@ -6,16 +6,6 @@ import type { Account, Address, Chain, Client, MaybePromise, Transport } from "v
  */
 export interface Pricer {
   /**
-   * Check if the pricer supports the chain.
-   */
-  supportsChain(chainId: number): MaybePromise<boolean>;
-
-  /**
-   * Check if the pricer supports the asset.
-   */
-  supportsAsset(client: Client<Transport, Chain, Account>, asset: Address): MaybePromise<boolean>;
-
-  /**
    * Get the price of the asset in USD.
    */
   price(
