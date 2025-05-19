@@ -32,9 +32,26 @@ export type Position = {
   collateral: bigint;
 };
 
+export interface PreLiquidationParams {
+  preLltv: bigint;
+  preLCF1: bigint;
+  preLCF2: bigint;
+  preLIF1: bigint;
+  preLIF2: bigint;
+  preLiquidationOracle: Address;
+}
+
 export type LiquidatablePosition = {
   position: Position;
   marketParams: MarketParams;
   seizableCollateral: bigint;
   repayableAssets: bigint;
+};
+
+export type PreLiquidatablePosition = LiquidatablePosition & {
+  preLiquidation: {
+    address: Address;
+    params: PreLiquidationParams;
+    price: bigint;
+  };
 };

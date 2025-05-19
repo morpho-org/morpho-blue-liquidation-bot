@@ -6,7 +6,8 @@ import { zeroAddress, type Address, type Hex } from "viem";
 
 import { oracleAbi } from "../../abis/Oracle";
 
-import { accrueInterest, liquidationValues } from "./helpers";
+import { accrueInterest, getLiquidationData, getPreLiquidationData } from "./helpers";
+import type { LiquidatablePosition, PreLiquidatablePosition } from "./types";
 
 const app = new Hono();
 
@@ -32,11 +33,19 @@ app.post("/chain/:id/liquidatable-positions", async (c) => {
   const { id: chainId } = c.req.param();
   const { marketIds }: { marketIds: Hex[] } = await c.req.json();
 
-  const liquidatablePositions = await Promise.all(
+  const eligiblePositions = await Promise.all(
     marketIds.map((marketId) => getLiquidatablePositions(Number(chainId), marketId)),
   );
 
-  return c.json({ positions: liquidatablePositions.flat() });
+  const liquidatablePositions: LiquidatablePosition[] = [];
+  const preLiquidatablePositions: PreLiquidatablePosition[] = [];
+
+  for (const positions of eligiblePositions) {
+    liquidatablePositions.push(...positions.liquidatablePositions);
+    preLiquidatablePositions.push(...positions.preLiquidatablePositions);
+  }
+
+  return c.json({ liquidatablePositions, preLiquidatablePositions });
 });
 
 async function getLiquidatablePositions(chainId: number, marketId: Hex) {
@@ -56,9 +65,11 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
 
   const market = markets[0];
 
-  if (!market || market.oracle === zeroAddress) return [];
+  if (!market || market.oracle === zeroAddress)
+    return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
-  if (!Object.keys(publicClients).includes(String(chainId))) return [];
+  if (!Object.keys(publicClients).includes(String(chainId)))
+    return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
   const { oracle, lltv, loanToken, collateralToken, irm } = market;
 
@@ -77,9 +88,46 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
     functionName: "price",
   });
 
-  return positions
-    .map((position) => {
-      const { seizableCollateral, repayableAssets } = liquidationValues(
+  const preLiquidations = await db
+    .select()
+    .from(schema.preLiquidation)
+    .where(
+      and(
+        eq(schema.preLiquidation.chainId, Number(chainId)),
+        eq(schema.preLiquidation.marketId, marketId),
+      ),
+    );
+
+  const preLiquidationsData = await Promise.all(
+    preLiquidations.map(async (preLiquidation) => ({
+      address: preLiquidation.address,
+      params: {
+        preLltv: preLiquidation.preLltv,
+        preLCF1: preLiquidation.preLCF1,
+        preLCF2: preLiquidation.preLCF2,
+        preLIF1: preLiquidation.preLIF1,
+        preLIF2: preLiquidation.preLIF2,
+        preLiquidationOracle: preLiquidation.preLiquidationOracle,
+      },
+      price:
+        // To avoid extra calls to the oracle
+        preLiquidation.preLiquidationOracle === market.oracle
+          ? collateralPrice
+          : // biome-ignore lint/style/noNonNullAssertion: Never null
+            await publicClients[chainId as unknown as keyof typeof publicClients]!.readContract({
+              address: preLiquidation.preLiquidationOracle,
+              abi: oracleAbi,
+              functionName: "price",
+            }),
+    })),
+  );
+
+  const liquidatablePositions: LiquidatablePosition[] = [];
+  const preLiquidatablePositions: PreLiquidatablePosition[] = [];
+
+  await Promise.all(
+    positions.map(async (position) => {
+      const liquidationData = getLiquidationData(
         position.collateral,
         position.borrowShares,
         totalBorrowShares,
@@ -87,28 +135,109 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         lltv,
         collateralPrice,
       );
-      return {
-        position: {
-          ...position,
-          supplyShares: `${position.supplyShares}`,
-          borrowShares: `${position.borrowShares}`,
-          collateral: `${position.collateral}`,
-        },
-        marketParams: {
-          loanToken,
-          collateralToken,
-          irm,
-          oracle,
-          lltv: `${lltv}`,
-        },
-        seizableCollateral: `${seizableCollateral}`,
-        repayableAssets: `${repayableAssets}`,
-      };
-    })
-    .filter(
-      (position) =>
-        BigInt(position.seizableCollateral) !== 0n && BigInt(position.repayableAssets) !== 0n,
-    );
+
+      if (liquidationData.seizableCollateral !== 0n && liquidationData.repayableAssets !== 0n) {
+        liquidatablePositions.push({
+          position: {
+            ...position,
+            supplyShares: `${position.supplyShares}`,
+            borrowShares: `${position.borrowShares}`,
+            collateral: `${position.collateral}`,
+          },
+          marketParams: {
+            loanToken,
+            collateralToken,
+            irm,
+            oracle,
+            lltv: `${lltv}`,
+          },
+          seizableCollateral: `${liquidationData.seizableCollateral}`,
+          repayableAssets: `${liquidationData.repayableAssets}`,
+        });
+        return;
+      }
+
+      const enabledPreLiquidations = await Promise.all(
+        preLiquidationsData.filter(async (preLiquidation) => {
+          const authorization = await db
+            .select()
+            .from(schema.authorization)
+            .where(
+              and(
+                eq(schema.authorization.chainId, Number(chainId)),
+                eq(schema.authorization.authorizer, position.user),
+                eq(schema.authorization.authorized, preLiquidation.address),
+              ),
+            );
+
+          return authorization[0]?.isAuthorized ?? false;
+        }),
+      );
+
+      const preLiquidations = enabledPreLiquidations
+        .map((preLiquidation) => {
+          const preLiquidationData = getPreLiquidationData(
+            position.collateral,
+            position.borrowShares,
+            totalBorrowShares,
+            totalBorrowAssets,
+            lltv,
+            preLiquidation.params,
+            preLiquidation.price,
+          );
+
+          return {
+            preLiquidation,
+            ...preLiquidationData,
+          };
+        })
+        .filter(
+          (preLiquidation) =>
+            preLiquidation.seizableCollateral !== 0n && preLiquidation.repayableAssets !== 0n,
+        );
+
+      if (preLiquidations.length > 0) {
+        const biggestPreLiquidation = preLiquidations.reduce((a, b) =>
+          a.seizableCollateral > b.seizableCollateral ? a : b,
+        );
+
+        preLiquidatablePositions.push({
+          position: {
+            ...position,
+            supplyShares: `${position.supplyShares}`,
+            borrowShares: `${position.borrowShares}`,
+            collateral: `${position.collateral}`,
+          },
+          marketParams: {
+            loanToken,
+            collateralToken,
+            irm,
+            oracle,
+            lltv: `${lltv}`,
+          },
+          seizableCollateral: `${biggestPreLiquidation.seizableCollateral}`,
+          repayableAssets: `${biggestPreLiquidation.repayableAssets}`,
+          preLiquidation: {
+            ...biggestPreLiquidation.preLiquidation,
+            params: {
+              ...biggestPreLiquidation.preLiquidation.params,
+              preLltv: `${biggestPreLiquidation.preLiquidation.params.preLltv}`,
+              preLCF1: `${biggestPreLiquidation.preLiquidation.params.preLCF1}`,
+              preLCF2: `${biggestPreLiquidation.preLiquidation.params.preLCF2}`,
+              preLIF1: `${biggestPreLiquidation.preLiquidation.params.preLIF1}`,
+              preLIF2: `${biggestPreLiquidation.preLiquidation.params.preLIF2}`,
+            },
+            price: `${biggestPreLiquidation.preLiquidation.price}`,
+          },
+        });
+      }
+    }),
+  );
+
+  return {
+    liquidatablePositions,
+    preLiquidatablePositions,
+  };
 }
 
 // E.g https://localhost:42069/chain/57073/market/0x37bc0ae459a3e417b93607dfc1120b2ee51eb294bf53cbf8fa7451d2fcf4ef97/top-positions
@@ -184,7 +313,7 @@ app.get("/chain/:id/market/:marketId/top-positions", async (c) => {
     // Calculate liquidation metrics if applicable
     let liquidationData = {};
     if (borrowedAssets > 0n && collateralPrice > 0n) {
-      const { seizableCollateral, repayableAssets } = liquidationValues(
+      const { seizableCollateral, repayableAssets } = getLiquidationData(
         position.collateral,
         position.borrowShares,
         totalBorrowShares,

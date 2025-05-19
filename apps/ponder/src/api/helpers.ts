@@ -1,6 +1,6 @@
 import { parseUnits } from "viem";
 
-import type { MarketState } from "./types";
+import type { MarketState, PreLiquidationParams } from "./types";
 
 const YEAR = 60n * 60n * 24n * 365n;
 const WAD = parseUnits("1", 18);
@@ -94,7 +94,7 @@ const liquidationIncentiveFactor = (lltv: bigint): bigint => {
   );
 };
 
-export function liquidationValues(
+export function getLiquidationData(
   collateral: bigint,
   borrowShares: bigint,
   totalBorrowShares: bigint,
@@ -129,6 +129,45 @@ export function liquidationValues(
     return { seizableCollateral, repayableAssets };
   }
   return { seizableCollateral: 0n, repayableAssets: 0n };
+}
+
+export function getPreLiquidationData(
+  collateral: bigint,
+  borrowShares: bigint,
+  totalBorrowShares: bigint,
+  totalBorrowAssets: bigint,
+  lltv: bigint,
+  preLiquidationParams: PreLiquidationParams,
+  collateralPrice: bigint,
+) {
+  const preLltv = preLiquidationParams.preLltv;
+  const borrowed = toAssetsUp(borrowShares, totalBorrowAssets, totalBorrowShares);
+  const collateralValue = mulDivDown(collateral, collateralPrice, ORACLE_PRICE_SCALE);
+  if (borrowed > wMulDown(collateralValue, lltv) || borrowed < wMulDown(collateralValue, preLltv))
+    return {
+      seizableCollateral: 0n,
+      repayableAssets: 0n,
+    };
+
+  const ltv = wDivUp(borrowed, collateralValue);
+  const quotient = wDivDown(ltv - preLltv, lltv - preLltv);
+  const preLIF =
+    preLiquidationParams.preLIF1 +
+    wMulDown(quotient, preLiquidationParams.preLIF2 - preLiquidationParams.preLIF1);
+  const preLCF =
+    preLiquidationParams.preLCF1 +
+    wMulDown(quotient, preLiquidationParams.preLCF2 - preLiquidationParams.preLCF1);
+
+  const repayableShares = wMulDown(borrowShares, preLCF);
+
+  const repayableAssets = wMulDown(
+    toAssetsDown(repayableShares, totalBorrowAssets, totalBorrowShares),
+    preLIF,
+  );
+
+  const seizableCollateral = mulDivDown(repayableAssets, ORACLE_PRICE_SCALE, collateralPrice);
+
+  return { seizableCollateral, repayableAssets };
 }
 
 const wTaylorCompounded = (x: bigint, n: bigint): bigint => {

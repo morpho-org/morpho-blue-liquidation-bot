@@ -185,7 +185,7 @@ async function setupPosition(
   nock("http://localhost:42069")
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
     .reply(200, {
-      positions: [
+      liquidatablePositions: [
         {
           position: {
             chainId: mainnet.id,
@@ -203,6 +203,7 @@ async function setupPosition(
           repayableAssets: `${position[2]}`, // random value as it's not used for now
         },
       ],
+      preLiquidatablePositions: [],
     });
   nock("https://blue-api.morpho.org")
     .post("/graphql")

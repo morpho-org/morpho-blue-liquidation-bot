@@ -11,11 +11,13 @@ import {
   type Transport,
 } from "viem";
 import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
-import { executorAbi, ExecutorEncoder } from "executooor-viem";
+import { executorAbi } from "executooor-viem";
 
+import type { LiquidatablePosition, MarketParams, PreLiquidatablePosition } from "./utils/types.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
+import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 
 export type LiquidationBotInputs = {
   chainId: number;
@@ -70,7 +72,7 @@ export class LiquidationBot {
       ...this.additionalMarketsWhitelist,
     ];
 
-    const liquidatablePositions = await fetchLiquidatablePositions(
+    const { liquidatablePositions, preLiquidatablePositions } = await fetchLiquidatablePositions(
       this.chainId,
       whitelistedMarkets,
     );
@@ -87,7 +89,7 @@ export class LiquidationBot {
           srcAmount: liquidatablePosition.seizableCollateral,
         };
 
-        const encoder = new ExecutorEncoder(executorAddress, client);
+        const encoder = new LiquidationEncoder(executorAddress, client);
 
         /// LIQUIDITY VENUES
 
@@ -185,6 +187,178 @@ export class LiquidationBot {
         }
       }),
     );
+  }
+
+  private async liquidate(positions: LiquidatablePosition[]) {
+    const { client, executorAddress } = this;
+
+    await Promise.all(
+      positions.map(async (position) => {
+        const { marketParams } = position;
+
+        const encoder = new LiquidationEncoder(executorAddress, client);
+
+        if (
+          !(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder))
+        )
+          return;
+
+        encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
+
+        encoder.morphoBlueLiquidate(
+          this.morphoAddress,
+          marketParams,
+          position.position.user,
+          position.seizableCollateral,
+          0n,
+          encoder.flush(),
+        );
+
+        const calls = encoder.flush();
+
+        try {
+          const success = await this.handleTx(encoder, calls, marketParams);
+
+          if (success)
+            console.log(`Liquidated ${position.position.user} on ${position.position.marketId}`);
+        } catch (error) {
+          console.log(
+            `Failed to liquidate ${position.position.user} on ${position.position.marketId}`,
+          );
+          console.error("liquidation error", error);
+        }
+      }),
+    );
+  }
+
+  private async preLiquidate(positions: PreLiquidatablePosition[]) {
+    const { client, executorAddress } = this;
+
+    await Promise.all(
+      positions.map(async (position) => {
+        const { marketParams } = position;
+
+        const encoder = new LiquidationEncoder(executorAddress, client);
+
+        if (
+          !(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder))
+        )
+          return;
+
+        encoder.erc20Approve(marketParams.loanToken, position.preLiquidation.address, maxUint256);
+
+        encoder.preLiquidate(
+          position.preLiquidation.address,
+          position.position.user,
+          position.seizableCollateral,
+          0n,
+          encoder.flush(),
+        );
+
+        const calls = encoder.flush();
+
+        try {
+          const success = await this.handleTx(encoder, calls, marketParams);
+
+          if (success)
+            console.log(
+              `Pre-liquidated ${position.position.user} on ${position.position.marketId}`,
+            );
+        } catch (error) {
+          console.log(
+            `Failed to pre-liquidate ${position.position.user} on ${position.position.marketId}`,
+          );
+          console.error("liquidation error", error);
+        }
+      }),
+    );
+  }
+
+  private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: MarketParams) {
+    const { client, executorAddress } = this;
+
+    /// TX SIMULATION
+
+    const populatedTx = {
+      to: encoder.address,
+      data: encodeFunctionData({
+        abi: executorAbi,
+        functionName: "exec_606BaXt",
+        args: [calls],
+      }),
+      value: 0n, // TODO: find a way to get encoder value
+    };
+
+    const [{ results }, gasPrice] = await Promise.all([
+      simulateCalls(client, {
+        account: client.account.address,
+        calls: [
+          {
+            to: marketParams.loanToken,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [executorAddress],
+          },
+          populatedTx,
+          {
+            to: marketParams.loanToken,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [executorAddress],
+          },
+        ],
+      }),
+      getGasPrice(client),
+    ]);
+
+    if (results[1].status !== "success") return;
+
+    if (
+      !(await this.checkProfit(
+        marketParams.loanToken,
+        {
+          beforeTx: results[0].result,
+          afterTx: results[2].result,
+        },
+        {
+          used: results[1].gasUsed,
+          price: gasPrice,
+        },
+      ))
+    )
+      return false;
+
+    // TX EXECUTION
+
+    await writeContract(client, {
+      address: encoder.address,
+      abi: executorAbi,
+      functionName: "exec_606BaXt",
+      args: [calls],
+    });
+
+    return true;
+  }
+
+  private async convertCollateralToLoan(
+    marketParams: MarketParams,
+    seizableCollateral: bigint,
+    encoder: LiquidationEncoder,
+  ) {
+    let toConvert = {
+      src: getAddress(marketParams.collateralToken),
+      dst: getAddress(marketParams.loanToken),
+      srcAmount: seizableCollateral,
+    };
+
+    for (const venue of this.liquidityVenues) {
+      if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
+        toConvert = await venue.convert(encoder, toConvert);
+
+      if (toConvert.src === toConvert.dst) return true;
+    }
+
+    return false;
   }
 
   private async price(asset: Address, amount: bigint, pricers: Pricer[]) {

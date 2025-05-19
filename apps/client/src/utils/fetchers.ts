@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { LiquidatablePosition } from "./types";
+import type { LiquidatablePosition, PreLiquidatablePosition } from "./types";
 
 export async function fetchWhiteListedMarketsForVault(
   chainId: number,
@@ -21,7 +21,10 @@ export async function fetchWhiteListedMarketsForVault(
 export async function fetchLiquidatablePositions(
   chainId: number,
   marketIds: Hex[],
-): Promise<LiquidatablePosition[]> {
+): Promise<{
+  liquidatablePositions: LiquidatablePosition[];
+  preLiquidatablePositions: PreLiquidatablePosition[];
+}> {
   const url = `http://localhost:42069/chain/${chainId}/liquidatable-positions`;
 
   const response = await fetch(url, {
@@ -33,9 +36,19 @@ export async function fetchLiquidatablePositions(
     throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
 
-  const data = (await response.json()) as { positions: LiquidatablePosition[] };
+  const data = (await response.json()) as {
+    liquidatablePositions: LiquidatablePosition[];
+    preLiquidatablePositions: PreLiquidatablePosition[];
+  };
 
-  return data.positions.map((position) => ({
+  return {
+    liquidatablePositions: data.liquidatablePositions.map(formatLiquidatablePosition),
+    preLiquidatablePositions: data.preLiquidatablePositions.map(formatPreLiquidatablePosition),
+  };
+}
+
+function formatLiquidatablePosition(position: LiquidatablePosition) {
+  return {
     position: {
       ...position.position,
       supplyShares: BigInt(position.position.supplyShares),
@@ -48,5 +61,23 @@ export async function fetchLiquidatablePositions(
     },
     seizableCollateral: BigInt(position.seizableCollateral),
     repayableAssets: BigInt(position.repayableAssets),
-  }));
+  };
+}
+
+function formatPreLiquidatablePosition(position: PreLiquidatablePosition) {
+  return {
+    ...formatLiquidatablePosition(position),
+    preLiquidation: {
+      ...position.preLiquidation,
+      price: BigInt(position.preLiquidation.price),
+      params: {
+        ...position.preLiquidation.params,
+        preLltv: BigInt(position.preLiquidation.params.preLltv),
+        preLCF1: BigInt(position.preLiquidation.params.preLCF1),
+        preLCF2: BigInt(position.preLiquidation.params.preLCF2),
+        preLIF1: BigInt(position.preLiquidation.params.preLIF1),
+        preLIF2: BigInt(position.preLiquidation.params.preLIF2),
+      },
+    },
+  };
 }
