@@ -32,6 +32,7 @@ export const market = onchainTable(
 
 export const marketRelations = relations(market, ({ many }) => ({
   positions: many(position),
+  preLiquidations: many(preLiquidation),
 }));
 
 export const position = onchainTable(
@@ -97,6 +98,13 @@ export const preLiquidation = onchainTable(
   }),
 );
 
+export const preLiquidationRelations = relations(preLiquidation, ({ one }) => ({
+  market: one(market, {
+    fields: [preLiquidation.chainId, preLiquidation.marketId],
+    references: [market.chainId, market.id],
+  }),
+}));
+
 export const authorization = onchainTable(
   "authorization",
   (t) => ({
@@ -111,7 +119,3 @@ export const authorization = onchainTable(
     pk: primaryKey({ columns: [table.chainId, table.authorizer, table.authorized] }),
   }),
 );
-
-export const authorizationRelations = relations(position, ({ many }) => ({
-  authorizer: many(position),
-}));

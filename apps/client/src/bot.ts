@@ -55,7 +55,6 @@ export class LiquidationBot {
   }
 
   async run() {
-    const { client } = this;
     const { vaultWhitelist } = this;
     const whitelistedMarketsFromVaults = [
       ...new Set(
@@ -77,116 +76,10 @@ export class LiquidationBot {
       whitelistedMarkets,
     );
 
-    const executorAddress = this.executorAddress;
-
-    await Promise.all(
-      liquidatablePositions.map(async (liquidatablePosition) => {
-        const { marketParams } = liquidatablePosition;
-
-        let toConvert = {
-          src: getAddress(marketParams.collateralToken),
-          dst: getAddress(marketParams.loanToken),
-          srcAmount: liquidatablePosition.seizableCollateral,
-        };
-
-        const encoder = new LiquidationEncoder(executorAddress, client);
-
-        /// LIQUIDITY VENUES
-
-        for (const venue of this.liquidityVenues) {
-          if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
-            toConvert = await venue.convert(encoder, toConvert);
-
-          if (toConvert.src === toConvert.dst || toConvert.srcAmount === 0n) break;
-        }
-
-        if (toConvert.src !== toConvert.dst) return;
-
-        encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
-
-        encoder.morphoBlueLiquidate(
-          this.morphoAddress,
-          marketParams,
-          liquidatablePosition.position.user,
-          liquidatablePosition.seizableCollateral,
-          0n,
-          encoder.flush(),
-        );
-
-        const calls = encoder.flush();
-
-        try {
-          /// TX SIMULATION
-
-          const populatedTx = {
-            to: encoder.address,
-            data: encodeFunctionData({
-              abi: executorAbi,
-              functionName: "exec_606BaXt",
-              args: [calls],
-            }),
-            value: 0n, // TODO: find a way to get encoder value
-          };
-
-          const [{ results }, gasPrice] = await Promise.all([
-            simulateCalls(client, {
-              account: client.account.address,
-              calls: [
-                {
-                  to: marketParams.loanToken,
-                  abi: erc20Abi,
-                  functionName: "balanceOf",
-                  args: [executorAddress],
-                },
-                populatedTx,
-                {
-                  to: marketParams.loanToken,
-                  abi: erc20Abi,
-                  functionName: "balanceOf",
-                  args: [executorAddress],
-                },
-              ],
-            }),
-            getGasPrice(client),
-          ]);
-
-          if (results[1].status !== "success") return;
-
-          if (
-            !(await this.checkProfit(
-              marketParams.loanToken,
-              {
-                beforeTx: results[0].result,
-                afterTx: results[2].result,
-              },
-              {
-                used: results[1].gasUsed,
-                price: gasPrice,
-              },
-            ))
-          )
-            return;
-
-          // TX EXECUTION
-
-          await writeContract(client, {
-            address: encoder.address,
-            abi: executorAbi,
-            functionName: "exec_606BaXt",
-            args: [calls],
-          });
-
-          console.log(
-            `Liquidated ${liquidatablePosition.position.user} on ${liquidatablePosition.position.marketId}`,
-          );
-        } catch (error) {
-          console.log(
-            `Failed to liquidate ${liquidatablePosition.position.user} on ${liquidatablePosition.position.marketId}`,
-          );
-          console.error("liquidation error", error);
-        }
-      }),
-    );
+    await Promise.all([
+      this.liquidate(liquidatablePositions),
+      this.preLiquidate(preLiquidatablePositions),
+    ]);
   }
 
   private async liquidate(positions: LiquidatablePosition[]) {
