@@ -7,7 +7,7 @@ import { overwriteCollateral } from "../../../client/test/helpers.js";
 import { adaptiveCurveIrmAbi } from "../../abis/AdaptiveCurveIrm";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
 import { oracleAbi } from "../../abis/Oracle";
-import { accrueInterest, borrowRate, liquidationValues, wMulDown } from "../../src/api/helpers";
+import { accrueInterest, borrowRate, getLiquidationData, wMulDown } from "../../src/api/helpers";
 import { helpersTest } from "../setup";
 
 describe("Helpers", () => {
@@ -171,7 +171,7 @@ describe("Helpers", () => {
         fee: _marketState[5],
       };
 
-      const { seizableCollateral, repayableAssets } = liquidationValues(
+      const { seizableCollateral, repayableAssets } = getLiquidationData(
         position.collateral,
         position.borrowShares,
         marketState.totalBorrowShares,
@@ -270,7 +270,7 @@ describe("Helpers", () => {
         fee: _marketState[5],
       };
 
-      const { seizableCollateral, repayableAssets } = liquidationValues(
+      const { seizableCollateral, repayableAssets } = getLiquidationData(
         position.collateral,
         position.borrowShares,
         marketState.totalBorrowShares,
@@ -411,7 +411,7 @@ describe("Helpers", () => {
         fee: _marketState[5],
       };
 
-      const { seizableCollateral, repayableAssets } = liquidationValues(
+      const { seizableCollateral, repayableAssets } = getLiquidationData(
         position.collateral,
         position.borrowShares,
         marketState.totalBorrowShares,
