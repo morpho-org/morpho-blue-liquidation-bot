@@ -1,3 +1,4 @@
+import { UniswapV3Pricer } from "./pricers/uniswapV3/index";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
@@ -7,7 +8,7 @@ import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
 import type { Pricer } from "./pricers/pricer";
 
-import { UniswapV3 } from "./liquidityVenues/uniswapV3";
+import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
@@ -23,7 +24,7 @@ export const launchBot = (config: ChainConfig) => {
   const liquidityVenues: LiquidityVenue[] = [];
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
-  liquidityVenues.push(new UniswapV3());
+  liquidityVenues.push(new UniswapV3Venue());
 
   // PRICERS
   const pricers: Pricer[] = [];

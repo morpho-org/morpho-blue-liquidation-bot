@@ -74,4 +74,23 @@ describe("Indexing", () => {
       expect(randomPosition.collateral).toEqual(onchainPosition[2]);
     }
   });
+
+  indexingTest.sequential("should test authorizations indexing", async ({ client }) => {
+    const authorizations = await ponderClient.db.select().from(schema.authorization).limit(100);
+    const count = authorizations.length;
+
+    for (let i = 0; i < 10; i++) {
+      const randomIndex = Math.floor(Math.random() * count);
+      const randomAuthorization = authorizations[randomIndex]!;
+
+      const onchainAuthorization = await client.readContract({
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "isAuthorized",
+        args: [randomAuthorization.authorizer, randomAuthorization.authorized],
+      });
+
+      expect(randomAuthorization.isAuthorized).toEqual(onchainAuthorization);
+    }
+  });
 });
