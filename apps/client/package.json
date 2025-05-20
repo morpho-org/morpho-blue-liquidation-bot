@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@morpho-blue-liquidation-bot/config": "workspace:*",
-    "@ponder/client": "^0.9.27",
+    "@ponder/client": "^0.11.1",
     "executooor-viem": "^1.3.3",
     "yargs": "^17.7.2"
   },

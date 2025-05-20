@@ -6,7 +6,7 @@ ponder.on("AdaptiveCurveIRM:BorrowRateUpdate", async ({ event, context }) => {
   await context.db
     .update(market, {
       // primary key
-      chainId: context.network.chainId,
+      chainId: context.chain.id,
       id: event.args.id,
     })
     .set({
