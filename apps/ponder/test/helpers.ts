@@ -31,9 +31,9 @@ function formatMarketParams(
 
 export function formatPosition(positionArray: readonly [bigint, bigint, bigint]) {
   return {
-    collateral: positionArray[0],
+    supplyShares: positionArray[0],
     borrowShares: positionArray[1],
-    supplyShares: positionArray[2],
+    collateral: positionArray[2],
   };
 }
 

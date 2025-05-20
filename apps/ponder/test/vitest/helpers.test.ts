@@ -243,34 +243,6 @@ describe("Helpers", () => {
         parseUnits("5000", 6),
       );
 
-      await client.deal({
-        erc20: marketParams.collateralToken,
-        account: borrower.address,
-        amount: collateralAmount,
-      });
-
-      await client.approve({
-        account: borrower,
-        address: marketParams.collateralToken,
-        args: [MORPHO, maxUint256],
-      });
-
-      await client.writeContract({
-        account: borrower,
-        address: MORPHO,
-        abi: morphoBlueAbi,
-        functionName: "supplyCollateral",
-        args: [marketParams, collateralAmount, borrower.address, "0x"],
-      });
-
-      await client.writeContract({
-        account: borrower,
-        address: MORPHO,
-        abi: morphoBlueAbi,
-        functionName: "borrow",
-        args: [marketParams, parseUnits("5000", 6), 0n, borrower.address, borrower.address],
-      });
-
       const newCollateralAmount = wMulDown(collateralAmount, parseUnits("0.8", 18));
 
       await overwriteCollateral(client, wbtcUSDC, borrower.address, newCollateralAmount);
@@ -295,12 +267,7 @@ describe("Helpers", () => {
         }),
       ]);
 
-      const position = {
-        supplyShares: _position[0],
-        borrowShares: _position[1],
-        collateral: _position[2],
-      };
-
+      const position = formatPosition(_position);
       const marketState = formatMarketState(_marketState);
 
       const { seizableCollateral, repayableAssets } = getLiquidationData(
