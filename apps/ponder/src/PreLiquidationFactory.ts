@@ -5,7 +5,7 @@ ponder.on("PreLiquidationFactory:CreatePreLiquidation", async ({ event, context 
   // `CreatePreLiquidation` can only fire once for a given `{ chainId, id, preLiquidationParams}`,
   // so we can insert without any `onConflict` handling.
   await context.db.insert(preLiquidation).values({
-    chainId: context.network.chainId,
+    chainId: context.chain.id,
     marketId: event.args.id,
     address: event.args.preLiquidation,
 

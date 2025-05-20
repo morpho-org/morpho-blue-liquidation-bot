@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       ponder:
-        specifier: ^0.10.13
-        version: 0.10.13(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        specifier: ^0.11.1
+        version: 0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -73,8 +73,8 @@ importers:
         specifier: workspace:*
         version: link:../config
       '@ponder/client':
-        specifier: ^0.9.27
-        version: 0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
+        specifier: ^0.11.1
+        version: 0.11.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
       executooor-viem:
         specifier: ^1.3.3
         version: 1.3.3(evm-maths@7.0.1)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
@@ -107,8 +107,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
       '@ponder/client':
-        specifier: ^0.9.27
-        version: 0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
+        specifier: ^0.11.1
+        version: 0.11.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
@@ -683,16 +683,16 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@ponder/client@0.9.28':
-    resolution: {integrity: sha512-8+KZTu/U/ehRv9KUS7i2ixj2PThKmTPwr+8Rg/UBZTNSH3wSN4G4BE3BleGqXuQV8KNsSKTAFsYHye5O2BsUDQ==}
+  '@ponder/client@0.11.3':
+    resolution: {integrity: sha512-I50rNwWvb9x5xwBZCwOi3cK9qz2AjXkQB5tcars72t77+7fVEWBAzlEyIoXQ2DUWJZUGfvAtTAI7jxUjO8ppGQ==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
       typescript:
         optional: true
 
-  '@ponder/utils@0.2.3':
-    resolution: {integrity: sha512-QdlRXrn48nRM/QxNHRffO3PnIFvUf9qHE+rXSut44r74E4iiq9UrIPMhSMyCbJN68yU4QyTupZ/qpqE5PNAo8A==}
+  '@ponder/utils@0.2.7':
+    resolution: {integrity: sha512-7BcDd8y6Dmi+Bys4D0m+BULH9ug2XZ5Lsa4CwGSsJrY4OIQJerib6TENzTFHGR65XBV1gu9xLct9pMz7RpvAKg==}
     peerDependencies:
       typescript: '>=5.0.4'
       viem: 2.23.2
@@ -1302,92 +1302,6 @@ packages:
   dotenv@16.4.7:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
-
-  drizzle-orm@0.39.3:
-    resolution: {integrity: sha512-EZ8ZpYvDIvKU9C56JYLOmUskazhad+uXZCTCRN4OnRMsL+xAJ05dv1eCpAG5xzhsm1hqiuC5kAZUCS924u2DTw==}
-    peerDependencies:
-      '@aws-sdk/client-rds-data': '>=3'
-      '@cloudflare/workers-types': '>=4'
-      '@electric-sql/pglite': '>=0.2.0'
-      '@libsql/client': '>=0.10.0'
-      '@libsql/client-wasm': '>=0.10.0'
-      '@neondatabase/serverless': '>=0.10.0'
-      '@op-engineering/op-sqlite': '>=2'
-      '@opentelemetry/api': ^1.4.1
-      '@planetscale/database': '>=1'
-      '@prisma/client': '*'
-      '@tidbcloud/serverless': '*'
-      '@types/better-sqlite3': '*'
-      '@types/pg': '*'
-      '@types/sql.js': '*'
-      '@vercel/postgres': '>=0.8.0'
-      '@xata.io/client': '*'
-      better-sqlite3: '>=7'
-      bun-types: '*'
-      expo-sqlite: '>=14.0.0'
-      knex: '*'
-      kysely: '*'
-      mysql2: '>=2'
-      pg: '>=8'
-      postgres: '>=3'
-      prisma: '*'
-      sql.js: '>=1'
-      sqlite3: '>=5'
-    peerDependenciesMeta:
-      '@aws-sdk/client-rds-data':
-        optional: true
-      '@cloudflare/workers-types':
-        optional: true
-      '@electric-sql/pglite':
-        optional: true
-      '@libsql/client':
-        optional: true
-      '@libsql/client-wasm':
-        optional: true
-      '@neondatabase/serverless':
-        optional: true
-      '@op-engineering/op-sqlite':
-        optional: true
-      '@opentelemetry/api':
-        optional: true
-      '@planetscale/database':
-        optional: true
-      '@prisma/client':
-        optional: true
-      '@tidbcloud/serverless':
-        optional: true
-      '@types/better-sqlite3':
-        optional: true
-      '@types/pg':
-        optional: true
-      '@types/sql.js':
-        optional: true
-      '@vercel/postgres':
-        optional: true
-      '@xata.io/client':
-        optional: true
-      better-sqlite3:
-        optional: true
-      bun-types:
-        optional: true
-      expo-sqlite:
-        optional: true
-      knex:
-        optional: true
-      kysely:
-        optional: true
-      mysql2:
-        optional: true
-      pg:
-        optional: true
-      postgres:
-        optional: true
-      prisma:
-        optional: true
-      sql.js:
-        optional: true
-      sqlite3:
-        optional: true
 
   drizzle-orm@0.41.0:
     resolution: {integrity: sha512-7A4ZxhHk9gdlXmTdPj/lREtP+3u8KvZ4yEN6MYVxBzZGex5Wtdc+CWSbu7btgF6TB0N+MNPrvW7RKBbxJchs/Q==}
@@ -2281,8 +2195,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  ponder@0.10.13:
-    resolution: {integrity: sha512-kE9whazBCMV7xcOE3Ay99e1oGPAv/QH7wkFNWQ2zpuIVc0rxyzW9HbV/Y+EQdr+6WUkEdzhbZJup0VGO5J30QQ==}
+  ponder@0.11.3:
+    resolution: {integrity: sha512-DA+Tv5BUVCVxocM+3z2wStI1v1Z9SUe/TlRKS9qVcwaPavX5P/gjrCc6OGIH2SRyOvCQtO/hvdUtOzyrIRYYXA==}
     engines: {node: '>=18.14'}
     hasBin: true
     peerDependencies:
@@ -3384,9 +3298,9 @@ snapshots:
       playwright: 1.51.1
     optional: true
 
-  '@ponder/client@0.9.28(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)':
+  '@ponder/client@0.11.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)':
     dependencies:
-      drizzle-orm: 0.39.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)
+      drizzle-orm: 0.41.0(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)
       eventsource: 3.0.6
       superjson: 2.2.2
     optionalDependencies:
@@ -3411,6 +3325,7 @@ snapshots:
       - better-sqlite3
       - bun-types
       - expo-sqlite
+      - gel
       - knex
       - kysely
       - mysql2
@@ -3420,7 +3335,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@ponder/utils@0.2.3(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@ponder/utils@0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
     dependencies:
       viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -3992,13 +3907,6 @@ snapshots:
       type-fest: 3.13.1
 
   dotenv@16.4.7: {}
-
-  drizzle-orm@0.39.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1):
-    optionalDependencies:
-      '@electric-sql/pglite': 0.2.13
-      '@opentelemetry/api': 1.9.0
-      kysely: 0.26.3
-      pg: 8.14.1
 
   drizzle-orm@0.41.0(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1):
     optionalDependencies:
@@ -4883,7 +4791,7 @@ snapshots:
       fsevents: 2.3.2
     optional: true
 
-  ponder@0.10.13(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  ponder@0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       '@babel/code-frame': 7.26.2
       '@commander-js/extra-typings': 12.1.0(commander@12.1.0)
@@ -4892,7 +4800,7 @@ snapshots:
       '@escape.tech/graphql-armor-max-depth': 2.4.0
       '@escape.tech/graphql-armor-max-tokens': 2.5.0
       '@hono/node-server': 1.13.3(hono@4.7.5)
-      '@ponder/utils': 0.2.3(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@ponder/utils': 0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       abitype: 0.10.3(typescript@5.8.2)
       ansi-escapes: 7.0.0
       commander: 12.1.0
