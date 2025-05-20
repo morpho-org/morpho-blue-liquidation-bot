@@ -29,3 +29,16 @@ export const BORROW_SHARES_AND_COLLATERAL_OFFSET = 1n;
 /// helpers
 
 export const borrower = testAccount(1);
+
+/// pre-liquidation addresses
+
+export const wbtcUSDCPreLiquidationAddress =
+  "0xA28EE7eC4756b4c3340c30a8c8CB8Bd708E1DcDc" as Address;
+export const wbtcUSDCPreLiquidationParams = {
+  preLltv: 832603694978499652n,
+  preLCF1: 2001493508968667n,
+  preLCF2: 245311807032632372n,
+  preLIF1: 1043841336116910229n,
+  preLIF2: 1043841336116910229n,
+  preLiquidationOracle: "0xDddd770BADd886dF3864029e4B377B5F6a2B6b83" as Address,
+};

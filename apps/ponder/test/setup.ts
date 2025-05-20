@@ -14,3 +14,8 @@ export const helpersTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
   forkBlockNumber: 21_000_000,
 });
+
+export const preLiquidationTest = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
+  forkBlockNumber: 22_274_328,
+});

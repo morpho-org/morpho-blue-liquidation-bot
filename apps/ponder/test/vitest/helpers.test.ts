@@ -1,14 +1,26 @@
-import { erc20Abi, maxUint256, parseUnits } from "viem";
+import { erc20Abi, parseUnits } from "viem";
 import { describe, expect } from "vitest";
 import { testAccount } from "@morpho-org/test";
 
-import { MORPHO, wbtcUSDC } from "../../../client/test/constants.js";
+import {
+  MORPHO,
+  wbtcUSDC,
+  wbtcUSDCPreLiquidationAddress,
+  wbtcUSDCPreLiquidationParams,
+} from "../../../client/test/constants.js";
 import { overwriteCollateral } from "../../../client/test/helpers.js";
 import { adaptiveCurveIrmAbi } from "../../abis/AdaptiveCurveIrm";
+import { preLiquidationAbi } from "../../../client/src/abis/PreLiquidation";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
 import { oracleAbi } from "../../abis/Oracle";
-import { accrueInterest, borrowRate, getLiquidationData, wMulDown } from "../../src/api/helpers";
-import { helpersTest } from "../setup";
+import {
+  accrueInterest,
+  borrowRate,
+  getLiquidationData,
+  getPreLiquidationData,
+  wMulDown,
+} from "../../src/api/helpers";
+import { helpersTest, preLiquidationTest } from "../setup";
 import { formatMarketState, formatPosition } from "../helpers.js";
 import { setupBorrow } from "../helpers.js";
 
@@ -133,8 +145,23 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
+      const {
+        seizableCollateral: seizableCollateralPreLiquidation,
+        repayableAssets: repayableAssetsPreLiquidation,
+      } = getPreLiquidationData(
+        position.collateral,
+        position.borrowShares,
+        marketState.totalBorrowShares,
+        marketState.totalBorrowAssets,
+        marketParams.lltv,
+        wbtcUSDCPreLiquidationParams,
+        collateralPrice,
+      );
+
       expect(seizableCollateral).toBe(0n);
       expect(repayableAssets).toBe(0n);
+      expect(seizableCollateralPreLiquidation).toBe(0n);
+      expect(repayableAssetsPreLiquidation).toBe(0n);
     },
   );
 
@@ -185,7 +212,22 @@ describe("Helpers", () => {
         collateralPrice,
       );
 
+      const {
+        seizableCollateral: seizableCollateralPreLiquidation,
+        repayableAssets: repayableAssetsPreLiquidation,
+      } = getPreLiquidationData(
+        position.collateral,
+        position.borrowShares,
+        marketState.totalBorrowShares,
+        marketState.totalBorrowAssets,
+        marketParams.lltv,
+        wbtcUSDCPreLiquidationParams,
+        collateralPrice,
+      );
+
       expect(seizableCollateral).toBe(collateralAmount / 2n);
+      expect(seizableCollateralPreLiquidation).toBe(0n);
+      expect(repayableAssetsPreLiquidation).toBe(0n);
 
       await client.deal({
         erc20: marketParams.loanToken,
@@ -320,6 +362,92 @@ describe("Helpers", () => {
       expect(positionPostLiquidation[2]).toBe(newCollateralAmount - BigInt(seizableCollateral));
 
       expect(loanTokenLiquidatorBalance).toBe(0n);
+    },
+  );
+
+  preLiquidationTest.sequential(
+    "should test pre liquidation values for pre-liquidatable position",
+    async ({ client }) => {
+      const collateralAmount = parseUnits("0.1", 8);
+      const loanAmount = parseUnits("7268", 6);
+
+      const marketParams = await setupBorrow(
+        client,
+        wbtcUSDC,
+        borrower,
+        collateralAmount,
+        loanAmount,
+      );
+
+      await client.writeContract({
+        account: borrower,
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "setAuthorization",
+        args: [wbtcUSDCPreLiquidationAddress, true],
+      });
+
+      const [_position, _marketState, collateralPrice] = await Promise.all([
+        client.readContract({
+          address: MORPHO,
+          abi: morphoBlueAbi,
+          functionName: "position",
+          args: [wbtcUSDC, borrower.address],
+        }),
+        client.readContract({
+          address: MORPHO,
+          abi: morphoBlueAbi,
+          functionName: "market",
+          args: [wbtcUSDC],
+        }),
+        client.readContract({
+          address: marketParams.oracle,
+          abi: oracleAbi,
+          functionName: "price",
+        }),
+      ]);
+
+      const position = formatPosition(_position);
+      const marketState = formatMarketState(_marketState);
+
+      const { seizableCollateral, repayableAssets } = getPreLiquidationData(
+        position.collateral,
+        position.borrowShares,
+        marketState.totalBorrowShares,
+        marketState.totalBorrowAssets,
+        marketParams.lltv,
+        wbtcUSDCPreLiquidationParams,
+        collateralPrice,
+      );
+
+      await client.deal({
+        erc20: marketParams.loanToken,
+        account: client.account,
+        amount: BigInt(repayableAssets),
+      });
+
+      await client.writeContract({
+        address: marketParams.loanToken,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [wbtcUSDCPreLiquidationAddress, BigInt(repayableAssets)],
+      });
+
+      await client.writeContract({
+        address: wbtcUSDCPreLiquidationAddress,
+        abi: preLiquidationAbi,
+        functionName: "preLiquidate",
+        args: [borrower.address, BigInt(seizableCollateral), 0n, "0x"],
+      });
+
+      const positionPostLiquidation = await client.readContract({
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      expect(positionPostLiquidation[2]).toBe(position.collateral - BigInt(seizableCollateral));
     },
   );
 });
