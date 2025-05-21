@@ -1,11 +1,12 @@
-import { describe, expect } from "vitest";
 import { createClient } from "@ponder/client";
-import { indexingTest } from "../setup";
-import * as schema from "../../ponder.schema.js";
+import { zeroAddress } from "viem";
+import { describe, expect } from "vitest";
+
+import { MORPHO } from "../../../client/test/constants.js";
 import { metaMorphoAbi } from "../../abis/MetaMorpho.js";
 import { morphoBlueAbi } from "../../abis/MorphoBlue.js";
-import { zeroAddress } from "viem";
-import { MORPHO } from "../../../client/test/constants.js";
+import * as schema from "../../ponder.schema.js";
+import { indexingTest } from "../setup";
 
 describe("Indexing", () => {
   const ponderClient = createClient("http://localhost:42069/sql", { schema });

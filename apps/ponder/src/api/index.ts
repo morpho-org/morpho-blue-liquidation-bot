@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { and, client, eq, graphql } from "ponder";
+import { and, client, desc, eq, graphql, replaceBigInts } from "ponder";
 import { db, publicClients } from "ponder:api";
 import schema from "ponder:schema";
 import { zeroAddress, type Address, type Hex } from "viem";
@@ -18,15 +18,11 @@ app.use("/sql/*", client({ db, schema }));
 app.get("/chain/:id/vault/:address", async (c) => {
   const { id: chainId, address } = c.req.param();
 
-  const vault = await db
-    .select()
-    .from(schema.vault)
-    .where(
-      and(eq(schema.vault.chainId, Number(chainId)), eq(schema.vault.address, address as Address)),
-    )
-    .limit(1);
+  const vault = await db.query.vault.findFirst({
+    where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.address, address as Address)),
+  });
 
-  return c.json(vault[0]?.withdrawQueue);
+  return c.json(vault?.withdrawQueue);
 });
 
 app.post("/chain/:id/liquidatable-positions", async (c) => {
@@ -49,26 +45,12 @@ app.post("/chain/:id/liquidatable-positions", async (c) => {
 });
 
 async function getLiquidatablePositions(chainId: number, marketId: Hex) {
-  const [markets, positions] = await Promise.all([
-    db
-      .select()
-      .from(schema.market)
-      .where(and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId)))
-      .limit(1),
-    db
-      .select()
-      .from(schema.position)
-      .where(
-        and(eq(schema.position.chainId, Number(chainId)), eq(schema.position.marketId, marketId)),
-      ),
-  ]);
-
-  const market = markets[0];
+  const market = await db.query.market.findFirst({
+    where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.id, marketId)),
+    with: { positions: true },
+  });
 
   if (!market || market.oracle === zeroAddress)
-    return { liquidatablePositions: [], preLiquidatablePositions: [] };
-
-  if (!Object.keys(publicClients).includes(String(chainId)))
     return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
   const { oracle, lltv, loanToken, collateralToken, irm } = market;
@@ -79,24 +61,18 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
     BigInt(Math.round(Date.now() / 1000)),
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: Never null
-  const collateralPrice = await publicClients[
-    chainId as unknown as keyof typeof publicClients
-  ]!.readContract({
+  const publicClient = publicClients[chainId];
+  if (!publicClient) return { liquidatablePositions: [], preLiquidatablePositions: [] };
+
+  const collateralPrice = await publicClient.readContract({
     address: oracle,
     abi: oracleAbi,
     functionName: "price",
   });
 
-  const preLiquidations = await db
-    .select()
-    .from(schema.preLiquidation)
-    .where(
-      and(
-        eq(schema.preLiquidation.chainId, Number(chainId)),
-        eq(schema.preLiquidation.marketId, marketId),
-      ),
-    );
+  const preLiquidations = await db.query.preLiquidation.findMany({
+    where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.marketId, marketId)),
+  });
 
   const preLiquidationsData = await Promise.all(
     preLiquidations.map(async (preLiquidation) => ({
@@ -113,8 +89,7 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         // To avoid extra calls to the oracle
         preLiquidation.preLiquidationOracle === market.oracle
           ? collateralPrice
-          : // biome-ignore lint/style/noNonNullAssertion: Never null
-            await publicClients[chainId as unknown as keyof typeof publicClients]!.readContract({
+          : await publicClient.readContract({
               address: preLiquidation.preLiquidationOracle,
               abi: oracleAbi,
               functionName: "price",
@@ -126,7 +101,7 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
   const preLiquidatablePositions: PreLiquidatablePosition[] = [];
 
   await Promise.all(
-    positions.map(async (position) => {
+    market.positions.map(async (position) => {
       const liquidationData = getLiquidationData(
         position.collateral,
         position.borrowShares,
@@ -140,23 +115,27 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         liquidatablePositions.push({
           position: {
             ...position,
-            supplyShares: `${position.supplyShares}`,
-            borrowShares: `${position.borrowShares}`,
-            collateral: `${position.collateral}`,
+            supplyShares: position.supplyShares.toString(),
+            borrowShares: position.borrowShares.toString(),
+            collateral: position.collateral.toString(),
           },
           marketParams: {
             loanToken,
             collateralToken,
             irm,
             oracle,
-            lltv: `${lltv}`,
+            lltv: lltv.toString(),
           },
-          seizableCollateral: `${liquidationData.seizableCollateral}`,
-          repayableAssets: `${liquidationData.repayableAssets}`,
+          seizableCollateral: liquidationData.seizableCollateral.toString(),
+          repayableAssets: liquidationData.repayableAssets.toString(),
         });
         return;
       }
 
+      // TODO:
+      // - JS `filter` does not accept promises; nothing is being filtered out here.
+      // - db queries are currently scaling linearly with both market count and position count,
+      //   which is far from optimal.
       const enabledPreLiquidations = await Promise.all(
         preLiquidationsData.filter(async (preLiquidation) => {
           const authorization = await db
@@ -204,31 +183,20 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
         preLiquidatablePositions.push({
           position: {
             ...position,
-            supplyShares: `${position.supplyShares}`,
-            borrowShares: `${position.borrowShares}`,
-            collateral: `${position.collateral}`,
+            supplyShares: position.supplyShares.toString(),
+            borrowShares: position.borrowShares.toString(),
+            collateral: position.collateral.toString(),
           },
           marketParams: {
             loanToken,
             collateralToken,
             irm,
             oracle,
-            lltv: `${lltv}`,
+            lltv: lltv.toString(),
           },
-          seizableCollateral: `${biggestPreLiquidation.seizableCollateral}`,
-          repayableAssets: `${biggestPreLiquidation.repayableAssets}`,
-          preLiquidation: {
-            ...biggestPreLiquidation.preLiquidation,
-            params: {
-              ...biggestPreLiquidation.preLiquidation.params,
-              preLltv: `${biggestPreLiquidation.preLiquidation.params.preLltv}`,
-              preLCF1: `${biggestPreLiquidation.preLiquidation.params.preLCF1}`,
-              preLCF2: `${biggestPreLiquidation.preLiquidation.params.preLCF2}`,
-              preLIF1: `${biggestPreLiquidation.preLiquidation.params.preLIF1}`,
-              preLIF2: `${biggestPreLiquidation.preLiquidation.params.preLIF2}`,
-            },
-            price: `${biggestPreLiquidation.preLiquidation.price}`,
-          },
+          seizableCollateral: biggestPreLiquidation.seizableCollateral.toString(),
+          repayableAssets: biggestPreLiquidation.repayableAssets.toString(),
+          preLiquidation: replaceBigInts(biggestPreLiquidation.preLiquidation, (x) => String(x)),
         });
       }
     }),
@@ -243,31 +211,19 @@ async function getLiquidatablePositions(chainId: number, marketId: Hex) {
 // E.g https://localhost:42069/chain/57073/market/0x37bc0ae459a3e417b93607dfc1120b2ee51eb294bf53cbf8fa7451d2fcf4ef97/top-positions
 app.get("/chain/:id/market/:marketId/top-positions", async (c) => {
   const { id: chainId, marketId } = c.req.param();
+  const publicClient = publicClients[chainId];
 
-  // Get the market data first
-  const markets = await db
-    .select()
-    .from(schema.market)
-    .where(and(eq(schema.market.chainId, Number(chainId)), eq(schema.market.id, marketId as Hex)))
-    .limit(1);
+  // Get the top 5 positions for this market by collateral size
+  const result = await db.query.market.findFirst({
+    where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.id, marketId as Hex)),
+    with: { positions: { orderBy: (row) => desc(row.collateral), limit: 5 } },
+  });
 
-  const market = markets[0];
-
-  if (!market) {
+  if (!publicClient || !result) {
     return c.json({ error: "Market not found" }, 404);
   }
 
-  // Get the top 10 positions for this market by collateral size
-  const positions = await db
-    .select()
-    .from(schema.position)
-    .where(
-      and(
-        eq(schema.position.chainId, Number(chainId)),
-        eq(schema.position.marketId, marketId as Hex),
-      ),
-    )
-    .limit(5); // Get top 5 positions
+  const { positions, ...market } = result;
 
   // Calculate additional information for each position if needed
   const { totalBorrowAssets, totalBorrowShares } = accrueInterest(
@@ -280,10 +236,7 @@ app.get("/chain/:id/market/:marketId/top-positions", async (c) => {
   let collateralPrice = 0n;
   if (market.oracle !== zeroAddress && Object.keys(publicClients).includes(String(chainId))) {
     try {
-      // biome-ignore lint/style/noNonNullAssertion: Never null
-      collateralPrice = await publicClients[
-        chainId as unknown as keyof typeof publicClients
-      ]!.readContract({
+      collateralPrice = await publicClient.readContract({
         address: market.oracle,
         abi: oracleAbi,
         functionName: "price",
