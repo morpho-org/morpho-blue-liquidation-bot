@@ -1,13 +1,14 @@
+import { MIN_SQRT_RATIO } from "@morpho-blue-liquidation-bot/config";
+import { executorAbi } from "executooor-viem";
 import { encodeAbiParameters, encodeFunctionData, erc20Abi, parseUnits, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
 import { describe, expect } from "vitest";
-import { executorAbi } from "executooor-viem";
-import { MIN_SQRT_RATIO } from "@morpho-blue-liquidation-bot/config";
-import { encoderTest } from "../../setup.js";
-import { USDC, wstETH, WBTC } from "../../constants.js";
-import { UniswapV3Venue } from "../../../src/liquidityVenues/index.js";
+
 import { uniswapV3PoolAbi } from "../../../src/abis/uniswapV3.js";
+import { UniswapV3Venue } from "../../../src/liquidityVenues/index.js";
+import { USDC, wstETH, WBTC } from "../../constants.js";
+import { encoderTest } from "../../setup.js";
 
 describe("uniswapV3 liquidity venue", () => {
   const liquidityVenue = new UniswapV3Venue();

@@ -48,6 +48,13 @@
   "pnpm": {
     "overrides": {
       "viem": "2.23.2"
+    },
+    "packageExtensions": {
+      "@uniswap/v4-sdk@*": {
+        "dependencies": {
+          "ethers": "5.7.2"
+        }
+      }
     }
   },
   "workspaces": [
