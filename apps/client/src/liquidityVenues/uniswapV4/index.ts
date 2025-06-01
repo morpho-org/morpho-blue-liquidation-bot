@@ -12,7 +12,6 @@ import {
   zeroAddress,
 } from "viem";
 import { getContractEvents, multicall, readContract } from "viem/actions";
-import { mainnet, unichain } from "viem/chains";
 
 import { permit2Abi } from "../../abis/permit2";
 import {
@@ -23,29 +22,7 @@ import {
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
-type Contracts = "PoolManager" | "Quoter" | "StateView" | "UniversalRouter" | "Permit2" | "WETH";
-
-const DEPLOYMENTS: Record<number, Record<Contracts, { address: Address; fromBlock: bigint }>> = {
-  [mainnet.id]: {
-    PoolManager: { address: "0x000000000004444c5dc75cB358380D2e3dE08A90", fromBlock: 21688329n },
-    Quoter: { address: "0x52F0E24D1c21C8A0cB1e5a5dD6198556BD9E1203", fromBlock: 21689090n },
-    StateView: { address: "0x7fFE42C4a5DEeA5b0feC41C94C136Cf115597227", fromBlock: 21689091n },
-    UniversalRouter: {
-      address: "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
-      fromBlock: 21689092n,
-    },
-    Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fromBlock: 15986406n },
-    WETH: { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", fromBlock: 4719568n },
-  },
-  [unichain.id]: {
-    PoolManager: { address: "0x1f98400000000000000000000000000000000004", fromBlock: 0n },
-    Quoter: { address: "0x333e3c607b141b18ff6de9f258db6e77fe7491e0", fromBlock: 6819683n },
-    StateView: { address: "0x86e8631a016f9068c3f085faf484ee3f5fdee8f2", fromBlock: 6819686n },
-    UniversalRouter: { address: "0xef740bf23acae26f6492b10de645d6b98dc8eaf3", fromBlock: 6819690n },
-    Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fromBlock: 0n },
-    WETH: { address: "0x4200000000000000000000000000000000000006", fromBlock: 0n },
-  },
-};
+import { DEPLOYMENTS } from "./deployments";
 
 export class UniswapV4Venue implements LiquidityVenue {
   supportsRoute(
@@ -63,11 +40,11 @@ export class UniswapV4Venue implements LiquidityVenue {
 
     const deployments = DEPLOYMENTS[encoder.client.chain.id];
     if (!deployments) return toConvert;
-    const { PoolManager, StateView, UniversalRouter, WETH } = deployments;
+    const { PoolManager, StateView, UniversalRouter, Native } = deployments;
 
     // Uniswap v4 operates on ETH natively
-    const shouldUnwrap = rawSrc === WETH.address;
-    const shouldWrap = rawDst === WETH.address;
+    const shouldUnwrap = rawSrc === Native.address;
+    const shouldWrap = rawDst === Native.address;
     const src = shouldUnwrap ? zeroAddress : rawSrc;
     const dst = shouldWrap ? zeroAddress : rawDst;
 
@@ -127,7 +104,7 @@ export class UniswapV4Venue implements LiquidityVenue {
     const routePlanner = new RoutePlanner();
     if (shouldUnwrap) {
       routePlanner.addCommand(CommandType.PERMIT2_TRANSFER_FROM, [
-        WETH.address,
+        Native.address,
         UniversalRouter.address,
         srcAmount,
       ]);
@@ -172,7 +149,7 @@ export class UniswapV4Venue implements LiquidityVenue {
       // `Executor` contract caps amount at `address(this).balance`, and WETH receive
       // function falls back to a deposit -- this is the only way to wrap max amount
       // since placeholders can't specify msg.value.
-      encoder.transfer(WETH.address, maxUint256);
+      encoder.transfer(Native.address, maxUint256);
     }
 
     return { ...toConvert, srcAmount: 0n };
