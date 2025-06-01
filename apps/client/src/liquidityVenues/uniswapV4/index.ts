@@ -5,6 +5,7 @@ import {
   type Address,
   encodeFunctionData,
   erc20Abi,
+  GetContractEventsReturnType,
   Hex,
   maxUint256,
   maxUint48,
@@ -25,6 +26,17 @@ import type { LiquidityVenue } from "../liquidityVenue";
 import { DEPLOYMENTS } from "./deployments";
 
 export class UniswapV4Venue implements LiquidityVenue {
+  private STALE_TIME = 60 * 60 * 1000; // 1 hour
+  private poolCreationEventsCache: Record<
+    Hex,
+    {
+      events: Awaited<
+        GetContractEventsReturnType<typeof uniswapV4PoolManagerAbi, "Initialize", true>
+      >;
+      lastUpdate: number;
+    }
+  > = {};
+
   supportsRoute(
     encoder: ExecutorEncoder,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -164,13 +176,25 @@ export class UniswapV4Venue implements LiquidityVenue {
     // Each pool's currencies are always sorted numerically.
     const [currency0, currency1] = BigInt(src) < BigInt(dst) ? [src, dst] : [dst, src];
 
-    const poolCreationEvents = await getContractEvents(encoder.client, {
-      ...poolManager,
-      abi: uniswapV4PoolManagerAbi,
-      eventName: "Initialize",
-      args: { currency0, currency1 },
-      strict: true,
-    });
+    const cache = this.poolCreationEventsCache[`${currency0}${currency1}`];
+    const cacheIsValid = cache?.lastUpdate && Date.now() - cache.lastUpdate < this.STALE_TIME;
+
+    const poolCreationEvents = cacheIsValid
+      ? cache.events
+      : await getContractEvents(encoder.client, {
+          ...poolManager,
+          abi: uniswapV4PoolManagerAbi,
+          eventName: "Initialize",
+          args: { currency0, currency1 },
+          strict: true,
+        });
+
+    if (!cacheIsValid) {
+      this.poolCreationEventsCache[`${currency0}${currency1}`] = {
+        events: poolCreationEvents,
+        lastUpdate: Date.now(),
+      };
+    }
 
     // Ignore pools with hooks, as we don't know what extra data they'd require for swaps.
     const pools = poolCreationEvents
