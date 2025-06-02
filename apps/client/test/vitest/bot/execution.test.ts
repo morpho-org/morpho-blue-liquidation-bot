@@ -74,24 +74,31 @@ describe("execute liquidation", () => {
       args: [wbtcUSDC, borrower.address],
     });
 
+    nock("https://blue-api.morpho.org")
+      .post("/graphql")
+      .reply(200, {
+        data: {
+          vaults: {
+            items: [],
+          },
+        },
+      });
+
     nock("http://localhost:42069")
       .post("/chain/1/liquidatable-positions", { marketIds: [] })
       .reply(200, {
-        positions: [
+        results: [
           {
-            position: {
-              chainId: mainnet.id,
-              marketId: wbtcUSDC,
-              user: borrower.address,
-              supplyShares: `${position[0]}`,
-              borrowShares: `${position[1]}`,
-              collateral: `${position[2]}`,
+            market: {
+              params: marketParams,
             },
-            marketParams: {
-              ...marketParams,
-              lltv: `${marketParams.lltv}`,
-            },
-            seizableCollateral: `${position[2]}`,
+            positionsLiq: [
+              {
+                user: borrower.address,
+                seizableCollateral: `${position[2]}n`,
+              },
+            ],
+            positionsPreLiq: [],
           },
         ],
       });

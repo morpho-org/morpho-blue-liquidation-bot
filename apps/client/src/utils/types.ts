@@ -1,3 +1,4 @@
+import type { IAccrualPosition, IMarket, IPreLiquidationPosition } from "@morpho-org/blue-sdk";
 import type { Address, Chain, Hex } from "viem";
 
 export type ToConvert = {
@@ -32,8 +33,11 @@ export type Position = {
   collateral: bigint;
 };
 
-export type LiquidatablePosition = {
-  position: Position;
-  marketParams: MarketParams;
-  seizableCollateral: bigint;
+export type LiquidatablePosition = IAccrualPosition & { seizableCollateral: bigint };
+export type PreLiquidatablePosition = IPreLiquidationPosition & { seizableCollateral: bigint };
+
+export type IndexerAPIResponse = {
+  market: IMarket;
+  positionsLiq: LiquidatablePosition[];
+  positionsPreLiq: PreLiquidatablePosition[];
 };
