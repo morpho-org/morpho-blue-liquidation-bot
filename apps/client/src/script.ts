@@ -4,7 +4,7 @@ import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
 
 import { launchBot } from ".";
 
-const PONDER_API_CHECK = `${process.env.DATABASE_URL ?? "http://localhost:42069"}/ready`;
+const PONDER_API_CHECK = `${process.env.PONDER_SERVICE_URL ?? "http://localhost:42069"}/ready`;
 
 async function waitForIndexing() {
   return new Promise<void>((resolve) => {

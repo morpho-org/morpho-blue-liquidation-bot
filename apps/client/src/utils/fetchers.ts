@@ -17,7 +17,7 @@ export async function fetchWhiteListedMarketsForVault(
   chainId: number,
   vaultAddress: Address,
 ): Promise<Hex[]> {
-  const url = `${process.env.DATABASE_URL ?? "http://localhost:42069"}/chain/${chainId.toFixed(0)}/vault/${vaultAddress}`;
+  const url = `${process.env.PONDER_SERVICE_URL ?? "http://localhost:42069"}/chain/${chainId.toFixed(0)}/vault/${vaultAddress}`;
 
   const response = await fetch(url, { method: "POST", body: JSON.stringify({}) });
 
@@ -37,7 +37,7 @@ export async function fetchLiquidatablePositions(
   chainId: number,
   marketIds: Hex[],
 ): Promise<LiquidatablePosition[]> {
-  const url = `${process.env.DATABASE_URL ?? "http://localhost:42069"}/chain/${chainId.toFixed(0)}/liquidatable-positions`;
+  const url = `${process.env.PONDER_SERVICE_URL ?? "http://localhost:42069"}/chain/${chainId.toFixed(0)}/liquidatable-positions`;
 
   const response = await fetch(url, { method: "POST", body: JSON.stringify({ marketIds }) });
 

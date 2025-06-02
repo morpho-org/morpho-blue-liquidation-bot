@@ -28,4 +28,15 @@ ENV RAILWAY_DEPLOYMENT_ID=$RAILWAY_DEPLOYMENT_ID
 
 # Run the start command
 # WORKDIR /app/apps/ponder
-CMD pnpm run liquidate
+CMD sh -c '\
+  printf "RPC_URL_1=%s\nRPC_URL_130=%s\nRPC_URL_137=%s\nRPC_URL_8453=%s\nEXECUTOR_ADDRESS_130=%s\nLIQUIDATION_PRIVATE_KEY_130=%s\nDATABASE_URL=%s\nRAILWAY_DEPLOYMENT_ID=%s\n" \
+    "$RPC_URL_1" \
+    "$RPC_URL_130" \
+    "$RPC_URL_137" \
+    "$RPC_URL_8453" \
+    "$EXECUTOR_ADDRESS_130" \
+    "$LIQUIDATION_PRIVATE_KEY_130" \
+    "$DATABASE_URL" \
+    "$RAILWAY_DEPLOYMENT_ID" \
+  > .env \
+  && pnpm run liquidate'
