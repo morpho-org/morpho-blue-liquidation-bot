@@ -10,7 +10,7 @@ import {
   type Hex,
   type Transport,
 } from "viem";
-import { estimateGas, writeContract } from "viem/actions";
+import { estimateGas, simulateContract, writeContract } from "viem/actions";
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
@@ -124,6 +124,14 @@ export class LiquidationBot {
           };
 
           const gasLimit = await estimateGas(client, populatedTx);
+
+          const simulationResult = await simulateContract(client, {
+            address: encoder.address,
+            abi: executorAbi,
+            functionName: "exec_606BaXt",
+            args: [calls],
+          });
+          console.log(simulationResult);
 
           // TX EXECUTION
 

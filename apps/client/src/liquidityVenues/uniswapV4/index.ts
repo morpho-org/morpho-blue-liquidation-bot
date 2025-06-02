@@ -164,7 +164,7 @@ export class UniswapV4Venue implements LiquidityVenue {
       encoder.transfer(Native.address, maxUint256);
     }
 
-    return { ...toConvert, srcAmount: 0n };
+    return { ...toConvert, src: rawDst, srcAmount: 0n };
   }
 
   private async fetchPools(

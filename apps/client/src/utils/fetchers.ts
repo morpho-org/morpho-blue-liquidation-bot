@@ -13,6 +13,15 @@ type IPreLiquidatablePosition = IPreLiquidationPosition & {
   seizableCollateral: bigint;
 };
 
+export function parseWithBigInt<T = unknown>(jsonText: string): T {
+  return JSON.parse(jsonText, (_key, value) => {
+    if (typeof value === "string" && /^-?\d+n$/.test(value)) {
+      return BigInt(value.slice(0, -1));
+    }
+    return value;
+  }) as T;
+}
+
 export async function fetchWhiteListedMarketsForVault(
   chainId: number,
   vaultAddress: Address,
@@ -26,7 +35,9 @@ export async function fetchWhiteListedMarketsForVault(
   }
 
   try {
-    const data = (await response.json()) as { withdrawQueue: { marketId: Hex }[] } | undefined;
+    const data = parseWithBigInt<{ withdrawQueue: { marketId: Hex }[] } | undefined>(
+      JSON.stringify(await response.json()),
+    );
     return data?.withdrawQueue.map((q) => q.marketId) ?? [];
   } catch {
     return [];
@@ -45,14 +56,14 @@ export async function fetchLiquidatablePositions(
     throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
 
-  const data = (await response.json()) as {
+  const data = parseWithBigInt<{
     warnings: string[];
     results: {
       market: IMarket;
       positionsLiq: ILiquidatablePosition[];
       positionsPreLiq: IPreLiquidatablePosition[];
     }[];
-  };
+  }>(JSON.stringify(await response.json()));
 
   if (data.warnings.length > 0) {
     console.warn(data.warnings);

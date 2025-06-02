@@ -27,6 +27,7 @@ export const launchBot = (config: ChainConfig) => {
     config.chainId,
     client,
     config.morpho.address,
+    config.vaultWhitelist,
     config.additionalMarketsWhitelist,
     config.executorAddress,
     liquidityVenues,
