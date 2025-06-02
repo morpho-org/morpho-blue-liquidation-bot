@@ -87,7 +87,7 @@ describe("Indexing", () => {
         address: MORPHO,
         abi: morphoBlueAbi,
         functionName: "isAuthorized",
-        args: [randomAuthorization.authorizer, randomAuthorization.authorized],
+        args: [randomAuthorization.authorizer, randomAuthorization.authorizee],
       });
 
       expect(randomAuthorization.isAuthorized).toEqual(onchainAuthorization);
