@@ -184,7 +184,7 @@ ponder.on("Morpho:SetAuthorization", async ({ event, context }) => {
     .values({
       chainId: context.chain.id,
       authorizer: event.args.authorizer,
-      authorized: event.args.authorized,
+      authorizee: event.args.authorized,
       isAuthorized: event.args.newIsAuthorized,
     })
     .onConflictDoUpdate(() => ({

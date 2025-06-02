@@ -1,6 +1,6 @@
 import nock from "nock";
 import { describe, expect } from "vitest";
-import { erc20Abi, maxUint256, parseUnits } from "viem";
+import { type Address, erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import type { AnvilTestClient } from "@morpho-org/test";
@@ -12,7 +12,6 @@ import { MorphoApi } from "../../../src/pricers/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { MORPHO, wbtcUSDC, WETH, borrower } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
-import type { MarketParams } from "../../../src/utils/types.js";
 
 describe("execute liquidation", () => {
   const erc4626 = new Erc4626();
@@ -140,7 +139,13 @@ describe("execute liquidation", () => {
 
 async function setupPosition(
   client: AnvilTestClient,
-  marketParams: MarketParams,
+  marketParams: {
+    loanToken: Address;
+    collateralToken: Address;
+    oracle: Address;
+    irm: Address;
+    lltv: bigint;
+  },
   collateralAmount: bigint,
   borrowAmount: bigint,
 ) {
@@ -185,25 +190,20 @@ async function setupPosition(
   nock("http://localhost:42069")
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
     .reply(200, {
-      liquidatablePositions: [
+      results: [
         {
-          position: {
-            chainId: mainnet.id,
-            marketId: wbtcUSDC,
-            user: borrower.address,
-            supplyShares: `${position[0]}`,
-            borrowShares: `${position[1]}`,
-            collateral: `${position[2]}`,
+          market: {
+            params: marketParams,
           },
-          marketParams: {
-            ...marketParams,
-            lltv: `${marketParams.lltv}`,
-          },
-          seizableCollateral: `${position[2]}`,
-          repayableAssets: `${position[2]}`, // random value as it's not used for now
+          positionsLiq: [
+            {
+              user: borrower.address,
+              seizableCollateral: `${position[2]}n`,
+            },
+          ],
+          positionsPreLiq: [],
         },
       ],
-      preLiquidatablePositions: [],
     });
   nock("https://blue-api.morpho.org")
     .post("/graphql")

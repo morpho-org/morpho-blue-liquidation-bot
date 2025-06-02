@@ -9,7 +9,6 @@
     "test:liquidity-venues": "pnpm build:config && vitest liquidityVenues",
     "test:pricers": "pnpm build:config && vitest pricers",
     "test:execution": "pnpm build:config &&vitest execution",
-    "test:helpers": "vitest helpers",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
     "deploy:executor": "pnpm build:config && tsx apps/client/src/deployExecutor.ts",
     "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env",
@@ -21,6 +20,7 @@
     ]
   },
   "dependencies": {
+    "@morpho-org/blue-sdk": "^3.0.9",
     "ponder": "^0.11.1",
     "tsx": "^4.19.3",
     "viem": "^2.23.2"

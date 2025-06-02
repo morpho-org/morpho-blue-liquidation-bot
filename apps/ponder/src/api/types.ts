@@ -9,15 +9,6 @@ export interface MarketState {
   fee: bigint;
 }
 
-export interface PreLiquidationParams {
-  preLltv: bigint;
-  preLCF1: bigint;
-  preLCF2: bigint;
-  preLIF1: bigint;
-  preLIF2: bigint;
-  preLiquidationOracle: Address;
-}
-
 export type LiquidatablePosition = {
   position: {
     chainId: number;
@@ -36,19 +27,4 @@ export type LiquidatablePosition = {
   };
   seizableCollateral: string;
   repayableAssets: string;
-};
-
-export type PreLiquidatablePosition = LiquidatablePosition & {
-  preLiquidation: {
-    address: Address;
-    params: {
-      preLltv: string;
-      preLCF1: string;
-      preLCF2: string;
-      preLIF1: string;
-      preLIF2: string;
-      preLiquidationOracle: Address;
-    };
-    price: string;
-  };
 };
