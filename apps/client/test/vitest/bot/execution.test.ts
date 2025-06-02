@@ -1,16 +1,16 @@
+import { testAccount } from "@morpho-org/test";
 import nock from "nock";
-import { describe, expect } from "vitest";
 import { erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
-import { testAccount } from "@morpho-org/test";
+import { describe, expect } from "vitest";
 
-import { test } from "../../setup.js";
+import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3, Erc4626 } from "../../../src/liquidityVenues/index.js";
-import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { MORPHO, wbtcUSDC } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
+import { test } from "../../setup.js";
 
 describe("execute liquidation", () => {
   const erc4626 = new Erc4626();
@@ -92,7 +92,6 @@ describe("execute liquidation", () => {
               lltv: `${marketParams.lltv}`,
             },
             seizableCollateral: `${position[2]}`,
-            repayableAssets: `${position[2]}`, // random value as it's not used for now
           },
         ],
       });

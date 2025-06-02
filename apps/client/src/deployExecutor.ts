@@ -1,17 +1,17 @@
+import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import dotenv from "dotenv";
 import { bytecode, executorAbi } from "executooor-viem";
 import { type Address, createWalletClient, type Hex, http, type WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { waitForTransactionReceipt } from "viem/actions";
-import dotenv from "dotenv";
-import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
-async function run() {
+function run() {
   dotenv.config();
 
   const configs = Object.values(chainConfigs);
 
   // biome-ignore lint/complexity/noForEach:
-  configs.forEach(async (config) => {
+  configs.forEach((config) => {
     const chain = config.chain;
     const id = chain.id;
 
@@ -31,7 +31,7 @@ async function run() {
       account: privateKeyToAccount(privateKey as Hex),
     });
 
-    await deploy(client, privateKeyToAccount(privateKey as Hex).address);
+    void deploy(client, privateKeyToAccount(privateKey as Hex).address);
   });
 }
 

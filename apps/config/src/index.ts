@@ -1,7 +1,8 @@
+import dotenv from "dotenv";
 import type { Address, Chain, Hex } from "viem";
+
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
-import dotenv from "dotenv";
 
 dotenv.config();
 

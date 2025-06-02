@@ -36,5 +36,4 @@ export type LiquidatablePosition = {
   position: Position;
   marketParams: MarketParams;
   seizableCollateral: bigint;
-  repayableAssets: bigint;
 };

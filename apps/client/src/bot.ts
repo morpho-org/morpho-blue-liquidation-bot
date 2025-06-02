@@ -1,3 +1,4 @@
+import { executorAbi, ExecutorEncoder } from "executooor-viem";
 import {
   encodeFunctionData,
   getAddress,
@@ -10,10 +11,10 @@ import {
   type Transport,
 } from "viem";
 import { estimateGas, writeContract } from "viem/actions";
-import { executorAbi, ExecutorEncoder } from "executooor-viem";
 
-import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
+import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
+import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 
 export class LiquidationBot {
   private chainId: number;
@@ -44,7 +45,13 @@ export class LiquidationBot {
 
   async run() {
     const { client } = this;
-    const { vaultWhitelist } = this;
+
+    if (this.vaultWhitelist.length === 0) {
+      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+      console.log("Watching markets in the following vaults:");
+      console.log(this.vaultWhitelist);
+    }
+    const vaultWhitelist = this.vaultWhitelist;
     const whitelistedMarketsFromVaults = [
       ...new Set(
         (
