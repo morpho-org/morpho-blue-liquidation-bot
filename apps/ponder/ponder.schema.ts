@@ -1,5 +1,4 @@
 import { index, onchainTable, primaryKey, relations, sql } from "ponder";
-import { zeroAddress } from "viem";
 
 /*//////////////////////////////////////////////////////////////
                             MARKETS
