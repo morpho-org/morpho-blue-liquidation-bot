@@ -14,15 +14,11 @@ app.use("/sql/*", client({ db, schema }));
 app.get("/chain/:id/withdraw-queue/:address", async (c) => {
   const { id: chainId, address } = c.req.param();
 
-  const vault = await db
-    .select()
-    .from(schema.vault)
-    .where(
-      and(eq(schema.vault.chainId, Number(chainId)), eq(schema.vault.address, address as Address)),
-    )
-    .limit(1);
+  const vault = await db.query.vault.findFirst({
+    where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.address, address as Address)),
+  });
 
-  return c.json(vault[0]?.withdrawQueue);
+  return c.json(vault?.withdrawQueue);
 });
 
 /**
