@@ -1,15 +1,15 @@
 import { CommandType, RoutePlanner } from "@uniswap/universal-router-sdk";
-import { Actions, PoolKey, V4Planner } from "@uniswap/v4-sdk";
-import { type ExecutorEncoder } from "executooor-viem";
+import { Actions, type PoolKey, V4Planner } from "@uniswap/v4-sdk";
+import type { ExecutorEncoder } from "executooor-viem";
 import {
   type Address,
   encodeFunctionData,
   erc20Abi,
-  GetContractEventsReturnType,
-  Hex,
+  type GetContractEventsReturnType,
+  type Hex,
   maxUint256,
   maxUint48,
-  ValueOf,
+  type ValueOf,
   zeroAddress,
 } from "viem";
 import { getContractEvents, multicall, readContract } from "viem/actions";
@@ -164,7 +164,12 @@ export class UniswapV4Venue implements LiquidityVenue {
       encoder.transfer(Native.address, maxUint256);
     }
 
-    return { ...toConvert, srcAmount: 0n };
+    /// assumed to be the last liquidity venue
+    return {
+      src: dst,
+      dst: dst,
+      srcAmount: 0n,
+    };
   }
 
   private async fetchPools(
