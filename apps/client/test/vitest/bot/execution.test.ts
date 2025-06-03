@@ -4,6 +4,7 @@ import { type Address, erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import type { AnvilTestClient } from "@morpho-org/test";
+import { replaceBigInts as replaceBigIntsBase } from "ponder";
 
 import { encoderTest } from "../../setup.js";
 import { LiquidationBot } from "../../../src/bot.js";
@@ -189,22 +190,26 @@ async function setupPosition(
   nock.cleanAll();
   nock("http://localhost:42069")
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
-    .reply(200, {
-      results: [
-        {
-          market: {
-            params: marketParams,
-          },
-          positionsLiq: [
-            {
-              user: borrower.address,
-              seizableCollateral: `${position[2]}n`,
+    .reply(
+      200,
+      replaceBigInts({
+        warnings: [],
+        results: [
+          {
+            market: {
+              params: marketParams,
             },
-          ],
-          positionsPreLiq: [],
-        },
-      ],
-    });
+            positionsLiq: [
+              {
+                user: borrower.address,
+                seizableCollateral: `${position[2]}n`,
+              },
+            ],
+            positionsPreLiq: [],
+          },
+        ],
+      }),
+    );
   nock("https://blue-api.morpho.org")
     .post("/graphql")
     .reply(200, {
@@ -240,4 +245,8 @@ async function setupPosition(
         },
       },
     });
+}
+
+function replaceBigInts<T>(value: T) {
+  return replaceBigIntsBase(value, (x) => `${String(x)}n`);
 }

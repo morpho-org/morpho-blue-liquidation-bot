@@ -5,6 +5,10 @@ import schema from "ponder:schema";
 import type { Address, Hex } from "viem";
 import { getLiquidatablePositions } from "./liquidatable-positions";
 
+function replaceBigInts<T>(value: T) {
+  return replaceBigIntsBase(value, (x) => `${String(x)}n`);
+}
+
 const app = new Hono();
 
 app.use("/", graphql({ db, schema }));
@@ -48,10 +52,8 @@ app.post("/chain/:chainId/liquidatable-positions", async (c) => {
     );
   }
 
-  const response = getLiquidatablePositions({ db, chainId, publicClient, marketIds });
-  return c.json(
-    JSON.parse(JSON.stringify(response, (x) => (typeof x === "bigint" ? `${String(x)}n` : x))),
-  );
+  const response = await getLiquidatablePositions({ db, chainId, publicClient, marketIds });
+  return c.json(replaceBigInts(response));
 });
 
 export default app;

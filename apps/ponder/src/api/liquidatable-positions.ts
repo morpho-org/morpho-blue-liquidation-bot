@@ -137,39 +137,42 @@ export async function getLiquidatablePositions({
       price,
     }).accrueInterest(now);
     // Restructure data for use with @morpho-org/blue-sdk (`AccrualPosition`s)
-    const positionsLiq: ILiquidatablePosition[] = dbPositions.map((dbPosition) => {
-      const iposition = dbPosition;
-      return {
-        // NOTE: We spread `iposition` rather than the `AccrualPosition` to minimize bandwidth
-        // (the latter has additional, extra fields).
-        ...iposition,
-        type: "IAccrualPosition",
-        seizableCollateral: new AccrualPosition(dbPosition, market).seizableCollateral ?? 0n,
-      };
-    });
+    const positionsLiq: ILiquidatablePosition[] = dbPositions
+      .map((dbPosition) => {
+        const iposition = dbPosition;
+        return {
+          // NOTE: We spread `iposition` rather than the `AccrualPosition` to minimize bandwidth
+          // (the latter has additional, extra fields).
+          ...iposition,
+          type: "IAccrualPosition" as const,
+          seizableCollateral: new AccrualPosition(dbPosition, market).seizableCollateral ?? 0n,
+        };
+      })
+      .filter((position) => position.seizableCollateral > 0n);
     // Restructure data for use with @morpho-org/blue-sdk (`PreLiquidationPosition`s)
-    const positionsPreLiq: ILiquidatablePosition[] = (
-      preLiquidationCandidates.get(market.id) ?? []
-    ).map((c) => {
-      // If this is `undefined`, the position will be filtered out later when
-      // checking `seizableCollateral > 0n`. This is what we want.
-      const preLiquidationOraclePrice = getPrice(c.preLiquidationContract.preLiquidationOracle);
-      const iposition = {
-        ...c.position,
-        preLiquidation: c.preLiquidationContract.address,
-        preLiquidationParams: (({ chainId, address, marketId, ...rest }) => rest)(
-          c.preLiquidationContract,
-        ),
-        preLiquidationOraclePrice,
-      };
-      return {
-        // NOTE: We spread `iposition` rather than the `PreLiquidationPosition` to minimize bandwidth
-        // (the latter has additional, extra fields).
-        ...iposition,
-        type: "IPreLiquidationPosition",
-        seizableCollateral: new PreLiquidationPosition(iposition, market).seizableCollateral ?? 0n,
-      };
-    });
+    const positionsPreLiq: ILiquidatablePosition[] = (preLiquidationCandidates.get(market.id) ?? [])
+      .map((c) => {
+        // If this is `undefined`, the position will be filtered out later when
+        // checking `seizableCollateral > 0n`. This is what we want.
+        const preLiquidationOraclePrice = getPrice(c.preLiquidationContract.preLiquidationOracle);
+        const iposition = {
+          ...c.position,
+          preLiquidation: c.preLiquidationContract.address,
+          preLiquidationParams: (({ chainId, address, marketId, ...rest }) => rest)(
+            c.preLiquidationContract,
+          ),
+          preLiquidationOraclePrice,
+        };
+        return {
+          // NOTE: We spread `iposition` rather than the `PreLiquidationPosition` to minimize bandwidth
+          // (the latter has additional, extra fields).
+          ...iposition,
+          type: "IPreLiquidationPosition" as const,
+          seizableCollateral:
+            new PreLiquidationPosition(iposition, market).seizableCollateral ?? 0n,
+        };
+      })
+      .filter((position) => position.seizableCollateral > 0n);
 
     // Sort
     positionsLiq.sort((a, b) => (a.seizableCollateral > b.seizableCollateral ? -1 : 1));
@@ -187,7 +190,9 @@ export async function getLiquidatablePositions({
       }
     }
 
-    results.push({ market, positionsLiq, positionsPreLiq: positionsPreLiqBest });
+    if (positionsLiq.length > 0 || positionsPreLiqBest.length > 0) {
+      results.push({ market, positionsLiq, positionsPreLiq: positionsPreLiqBest });
+    }
   }
 
   return { warnings, results };
