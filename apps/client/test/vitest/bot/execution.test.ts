@@ -187,6 +187,8 @@ async function setupPosition(
     args: [wbtcUSDC, borrower.address],
   });
 
+  process.env.PONDER_SERVICE_URL = "http://localhost:42069";
+
   nock.cleanAll();
   nock("http://localhost:42069")
     .post("/chain/1/liquidatable-positions", { marketIds: [] })

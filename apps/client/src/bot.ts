@@ -81,30 +81,11 @@ export class LiquidationBot {
     await Promise.all(liquidationData.map((data) => this.handleMarket(data)));
   }
 
-  private async handleMarket(marketLiquidationData: IndexerAPIResponse) {
+  private async handleMarket({ market, positionsLiq, positionsPreLiq }: IndexerAPIResponse) {
     await Promise.all([
-      this.liquidateOnMarket(marketLiquidationData.market, marketLiquidationData.positionsLiq),
-      this.preLiquidateOnMarket(
-        marketLiquidationData.market,
-        marketLiquidationData.positionsPreLiq,
-      ),
+      ...positionsLiq.map((position) => this.liquidate(market, position)),
+      ...positionsPreLiq.map((position) => this.preLiquidate(market, position)),
     ]);
-  }
-
-  private async liquidateOnMarket(market: IMarket, positions: LiquidatablePosition[]) {
-    await Promise.all(
-      positions.map(async (position) => {
-        await this.liquidate(market, position);
-      }),
-    );
-  }
-
-  private async preLiquidateOnMarket(market: IMarket, positions: PreLiquidatablePosition[]) {
-    await Promise.all(
-      positions.map(async (position) => {
-        await this.preLiquidate(market, position);
-      }),
-    );
   }
 
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
