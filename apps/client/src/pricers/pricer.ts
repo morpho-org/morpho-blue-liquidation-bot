@@ -1,7 +1,7 @@
 import type { Account, Address, Chain, Client, MaybePromise, Transport } from "viem";
 
 /**
- * Pricers are used to convert an amount from a source token to a destination token.
+ * Pricers are used to price an asset in USD.
  * All pricers must implement this interface.
  */
 export interface Pricer {
