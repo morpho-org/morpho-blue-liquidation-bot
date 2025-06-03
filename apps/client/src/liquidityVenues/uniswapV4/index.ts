@@ -23,7 +23,7 @@ import {
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
-import { DEPLOYMENTS } from "./deployments";
+import { DEPLOYMENTS } from "@morpho-blue-liquidation-bot/config";
 
 export class UniswapV4Venue implements LiquidityVenue {
   private STALE_TIME = 60 * 60 * 1000; // 1 hour
