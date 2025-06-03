@@ -19,6 +19,10 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 18925584,
     },
+    preLiquidationFactory: {
+      address: "0x6FF33615e792E35ed1026ea7cACCf42D9BF83476",
+      startBlock: 21414664,
+    },
     wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     options: {
       vaultWhitelist: [
@@ -47,6 +51,10 @@ export const chainConfigs: Record<number, Config> = {
         "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
       ],
       startBlock: 13978134,
+    },
+    preLiquidationFactory: {
+      address: "0x8cd16b62E170Ee0bA83D80e1F80E6085367e2aef",
+      startBlock: 23779056,
     },
     wNative: "0x4200000000000000000000000000000000000006",
     options: {

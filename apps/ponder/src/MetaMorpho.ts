@@ -6,7 +6,7 @@ ponder.on("MetaMorpho:SetWithdrawQueue", async ({ event, context }) => {
     .insert(vault)
     .values({
       // primary key
-      chainId: context.network.chainId,
+      chainId: context.chain.id,
       address: event.log.address,
 
       // `WithdrawQueue`

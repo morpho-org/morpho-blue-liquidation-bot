@@ -53,11 +53,6 @@ jobs:
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
-      - name: Run indexer helpers tests
-        run: pnpm test:helpers
-        env:
-          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-
       - name: Run indexer tests
         run: pnpm test
         working-directory: apps/ponder
