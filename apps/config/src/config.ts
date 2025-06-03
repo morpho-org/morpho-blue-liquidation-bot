@@ -19,6 +19,21 @@ export const chainConfigs: Record<number, Config> = {
       ],
       startBlock: 18925584,
     },
+    preLiquidationFactory: {
+      address: "0x6FF33615e792E35ed1026ea7cACCf42D9BF83476",
+      startBlock: 21414664,
+    },
+    wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    options: {
+      vaultWhitelist: [
+        "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
+        "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
+      ],
+      additionalMarketsWhitelist: [
+        "0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20",
+      ],
+      checkProfit: true,
+    },
   },
   [base.id]: {
     chain: base,
@@ -36,6 +51,16 @@ export const chainConfigs: Record<number, Config> = {
         "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
       ],
       startBlock: 13978134,
+    },
+    preLiquidationFactory: {
+      address: "0x8cd16b62E170Ee0bA83D80e1F80E6085367e2aef",
+      startBlock: 23779056,
+    },
+    wNative: "0x4200000000000000000000000000000000000006",
+    options: {
+      vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
     },
   },
 };

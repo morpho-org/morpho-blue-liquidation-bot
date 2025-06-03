@@ -1,6 +1,6 @@
 {
   "name": "@morpho-blue-liquidation-bot/ponder",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@morpho-blue-liquidation-bot/config": "workspace:*",
     "@morpho-org/test": "^2.1.1",
-    "@ponder/client": "^0.9.27",
+    "@ponder/client": "^0.11.1",
     "@types/node": "^22.13.14"
   }
 }

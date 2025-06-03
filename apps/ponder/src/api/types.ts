@@ -1,3 +1,5 @@
+import type { Address, Hex } from "viem";
+
 export interface MarketState {
   totalSupplyAssets: bigint;
   totalSupplyShares: bigint;
@@ -5,4 +7,24 @@ export interface MarketState {
   totalBorrowShares: bigint;
   lastUpdate: bigint;
   fee: bigint;
+}
+
+export interface LiquidatablePosition {
+  position: {
+    chainId: number;
+    marketId: Hex;
+    user: Address;
+    collateral: string;
+    borrowShares: string;
+    supplyShares: string;
+  };
+  marketParams: {
+    loanToken: Address;
+    collateralToken: Address;
+    irm: Address;
+    oracle: Address;
+    lltv: string;
+  };
+  seizableCollateral: string;
+  repayableAssets: string;
 }

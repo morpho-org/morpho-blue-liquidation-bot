@@ -1,13 +1,27 @@
 import type { Address, Hex } from "viem";
-import type { LiquidatablePosition } from "./types";
+
+import type { IndexerAPIResponse } from "./types";
+
+const PONDER_SERVICE_URL = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+export function parseWithBigInt<T = unknown>(jsonText: string): T {
+  return JSON.parse(jsonText, (_key, value) => {
+    if (typeof value === "string" && /^-?\d+n$/.test(value)) {
+      return BigInt(value.slice(0, -1));
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return value;
+  }) as T;
+}
 
 export async function fetchWhiteListedMarketsForVault(
   chainId: number,
   vaultAddress: Address,
 ): Promise<Hex[]> {
-  const url = `http://localhost:42069/chain/${chainId}/vault/${vaultAddress}`;
+  const url = new URL(`/chain/${chainId}/withdraw-queue/${vaultAddress}`, PONDER_SERVICE_URL);
 
-  const response = await fetch(url);
+  const response = await fetch(url, { method: "POST" });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${vaultAddress} whitelisted markets: ${response.statusText}`);
@@ -18,35 +32,23 @@ export async function fetchWhiteListedMarketsForVault(
   return markets;
 }
 
-export async function fetchLiquidatablePositions(
-  chainId: number,
-  marketIds: Hex[],
-): Promise<LiquidatablePosition[]> {
-  const url = `http://localhost:42069/chain/${chainId}/liquidatable-positions`;
+export async function fetchLiquidatablePositions(chainId: number, marketIds: Hex[]) {
+  const url = new URL(`/chain/${chainId}/liquidatable-positions`, PONDER_SERVICE_URL);
 
   const response = await fetch(url, {
     method: "POST",
     body: JSON.stringify({ marketIds }),
   });
 
+  const data = (await response.json()) as { results: IndexerAPIResponse[]; warnings: string[] };
+
   if (!response.ok) {
     throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
 
-  const data = (await response.json()) as { positions: LiquidatablePosition[] };
+  if (data.warnings.length > 0) {
+    console.warn(data.warnings);
+  }
 
-  return data.positions.map((position) => ({
-    position: {
-      ...position.position,
-      supplyShares: BigInt(position.position.supplyShares),
-      borrowShares: BigInt(position.position.borrowShares),
-      collateral: BigInt(position.position.collateral),
-    },
-    marketParams: {
-      ...position.marketParams,
-      lltv: BigInt(position.marketParams.lltv),
-    },
-    seizableCollateral: BigInt(position.seizableCollateral),
-    repayableAssets: BigInt(position.repayableAssets),
-  }));
+  return parseWithBigInt<IndexerAPIResponse[]>(JSON.stringify(data.results));
 }

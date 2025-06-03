@@ -9,8 +9,10 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 ## Features
 
 - Automatically detects liquidatable positions and executes the liquidations.
+- Also supports Morpho Blue pre liquidations.
 - Multi-chain compatible.
 - Configurable liquidity venues.
+- Profit evaluation thanks to configurable pricers.
 - Minimal setup and dependencies (RPC-only, no extra infra required).
 
 ### ⚠️ Disclaimer
@@ -43,8 +45,6 @@ For each chain, here are the parameters that needs to be configured:
 
 ### Morpho Stack parameters (addresses and start blocks)
 
-**If you don't plan on supporting a new chain, you can ignore this section.**
-
 Morpho Blue:
 
 - `morpho.address`: The address of the Morpho contract.
@@ -60,11 +60,39 @@ Meta Morpho Factories:
 - `metaMorphoFactories.addresses`: The addresses of the MetaMorpho factories.
 - `metaMorphoFactories.startBlock`: The block number of the oldest MetaMorpho factory deployment.
 
+PreLiquidation Factory:
+
+- `preLiquidationFactory.address`: The address of the PreLiquidation factory.
+- `preLiquidationFactory.startBlock`: The block number of the PreLiquidation factory deployment.
+
+You may find the addresses in [Morpho documentation](https://docs.morpho.org/overview/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
+
+### Options
+
+**Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
+
+- `options.vaultWhitelist`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
+- `options.additionalMarketsWhitelist`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
+
+⚠️: These whitelists can't both be empty at the same time.
+
+**Profit Check**: If set, this parameter makes sure to only execute profitable liquidate (including gas costs). This requires to use pricers supported on the configured chains.
+
+- `options.checkProfit`: `true` if you want to check liquidations profit. `false` otherwise.
+
+⚠️: If set to true, each confirgured chain should support at least one of the pricers used by the bot.
+
+**Chain Wrapped Native Asset**:
+
+- `options.wNative`: The chain's wrapped native asset (ex: WETH's address on Ethereum mainnet).
+
 ### Secrets
 
-**Database secrets (optional):**
+**Ponder Service Secrets (optional):**
 
--`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the bot. If not set, the bot will launch a docker container with a local postgres database.
+-`PONDER_SERVICE_URL`: The url of an external ponder service that will be used by the bot (This ponder service's endpoints should be the same as the ones from this repo's `ponder` package). If not set, the bot will launch a local ponder process.
+
+-`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the local ponder process. If not set, the bot will launch a docker container with a local postgres database.
 
 **Chain secrets:**
 
@@ -74,18 +102,11 @@ For each chain, the following secrets must be set:
 - `LIQUIDATION_PRIVATE_KEY`: The private key of the EOA that will be used to execute the liquidations.
 - `EXECUTOR_ADDRESS`: The address of the executor contract. The bot uses an executor contract to execute liquidations. (see [Executor Contract Deployment](#executor-contract-deployment)).
 
-**Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
-
-- `VAULT_WHITELIST`: List of MetaMorpho vaults addresses. All the markets listed by those vaults will be whitelisted.
-- `ADDITIONAL_MARKETS_WHITELIST`: List of markets ids. All these markets will be whitelisted (even if they are not listed by any vault).
-
 The secrets must be set in the `.env` file at the root of the repository (e.g. `.env.example`), with the following keys:
 
 - `RPC_URL_<chainId>`
 - `EXECUTOR_ADDRESS_<chainId>`
 - `LIQUIDATION_PRIVATE_KEY_<chainId>`
-- `VAULT_WHITELIST_<chainId>`
-- `ADDITIONAL_MARKETS_WHITELIST_<chainId>`
 
 Example for mainnet (chainId 1):
 
@@ -93,8 +114,6 @@ Example for mainnet (chainId 1):
 RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/<your-alchemy-api-key>
 EXECUTOR_ADDRESS_1=0x1234567890123456789012345678901234567890
 LIQUIDATION_PRIVATE_KEY_1=0x1234567890123456789012345678901234567890123456789012345678901234
-VAULT_WHITELIST_1=0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183,0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458
-ADDITIONAL_MARKETS_WHITELIST_1=0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20
 ```
 
 ### Liquidity Venues Configuration
@@ -104,6 +123,14 @@ Liquidity venues are explained [below](#liquidity-venues).
 Some liquidity venues require chain-specific configuration. This is done in the `apps/config/src/liquidityVenues/` folder.
 
 For example, the `uniswapV3` venue has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/liquidityVenues/uniswapV3.ts`.
+
+### Pricers Configuration
+
+Pricers are explained [below](#pricers). **Pricers are optionnal**, and don't need to be configured if `options.checkProfit` is set to `false` for every configured chains.
+
+Some pricers require chain-specific configuration. This is done in the `apps/config/src/pricers/` folder.
+
+For example, the `uniswapV3` pricer has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/pricers/uniswapV3.ts`.
 
 ## Executor Contract Deployment
 
@@ -131,6 +158,7 @@ For now, we implemented the following ones:
 - ERC20Wrapper: Enables the withdrawal from ERC20Wrapper tokens.
 - ERC4626: Enables the withdrawals from ERC4626 vaults.
 - UniswapV3: Enables the swap of tokens on Uniswap V3.
+- UniswapV4: Enables the swap of tokens on Uniswap V4.
 
 Liquidity venues can be combined to create more complex strategies. For example, you can combine the `ERC4626` and `UniswapV3` venues to liquidate a position from a 4626 vault by first withdrawing from the vault and then swapping the underlying token for the desired token.
 
@@ -139,11 +167,10 @@ Liquidity venues can be combined to create more complex strategies. For example,
 **If you don't plan on supporting a new liquidity venue, you can ignore this section.**
 
 To add your own venue, you need to create a new folder in the `apps/client/src/liquidityVenues` folder.
-This folder should contain up to 2 files:
+This folder should contain one `index.ts` file. In this file you will implement the new liquidity venue class that needs to implements the `LiquidityVenue` interface (located in `apps/client/src/liquidityVenues/liquidityVenue.ts`).
+This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
 
-- `index.ts`: In this file you will implement the new liquidity venue class that needs to implements the `LiquidityVenue` interface (located in `apps/client/src/liquidityVenues/liquidityVenue.ts`).
-  This class will contain the logic of the venue, and needs to export two methods: `supportsRoute`(Returns true if the venue if pair of tokens `src` and `dst` is supported by the venue) and `convert`(Encodes the calls to the related contracts and pushes them to the encoder, and returns the new `src`, `dst`, and `srcAmount`). Both these methods can be async (to allow onchain calls).
-- `abi.ts` (optional): Should contain all the ABIs of the contracts involved in the venue (if any).
+- If your venue needs any abi, you may add it to a new file named after the venue in the `apps/client/src/abis` folder.
 
 ### Configuration
 
@@ -151,10 +178,64 @@ If your venue requires chain-specific configuration, you need to add create a ne
 
 However, some venues don't need any configuration (ex: erc4626).
 
+## Pricers
+
+A pricer is a way to price a token in USD. Pricers are used to compute the profit of a liquidation, including the gas costs (this is why we expect you to set the `wNative` address of each chain).
+
+The bot is designed to be configurable and support multiple pricers.
+
+For now, we implemented the following ones:
+
+- DefiLlama: Queries the DeFi Llama Api.
+- MorphoApi: Queries the Morpho blue API (only works on the "full-support" chains of Morpho).
+- Chainlink: Queries the chainlink feed registry contracts.
+- UniswapV3: Use UniswapV3 pools to price tokens.
+
+The bot supports multiple pricers through a fallback mechanism. When attempting to price an asset:
+
+- It iterates through the list of pricers in the order they were provided.
+- If a pricer does not support the chain or cannot price the asset, the bot moves to the next pricer.
+- It iterates through the list of pricers in the order they were provided.
+
+This continues until a compatible pricer is found, or until the end of the list is reached.
+
+### Profit Check
+
+The bot can evaluate the profitability of a liquidation on a given chain only if `options.checkProfit` has been set to `true` (for this chain)d and at least one pricer has been provided.
+
+In that case, for every liquidatable position detected, the bot will try to price in USD both the liquidation premium (in loan asset) and the gas expense of the transaction.
+
+If either asset involved in the liquidation cannot be priced (i.e., not supported by any pricer), or if the gas cost exceeds the liquidation premium, the bot won't execute the liquidation transaction. Otherwise, it will.
+
+⚠ Note: While this mechanism helps avoid unprofitable liquidations, it may also block profitable opportunities if the required assets are not supported by the configured pricers.
+
+### Configuration
+
+If your pricer requires chain-specific configuration, you need to add create a new file in the `apps/config/src/pricers` folder, named like the pricer (e.g. `uniswapV3.ts`).
+
+However, some pricers don't need any configuration (ex: `MorphoApi`).
+
+## Add your own pricer
+
+**If you don't plan on supporting a new pricer venue, you can ignore this section.**
+
+To add your own pricer, you need to create a new folder in the `apps/client/src/pricers` folder.
+This folder should contain one `index.ts` file. In this file you will implement the new pricer class that needs to implements the `Pricer` interface (located in `apps/client/src/pricers/Pricer.ts`).
+This class will contain the logic of the pricer, and needs to export one method: `price`(Returns the price of the given asset in USD, or `undefined` if the asset is not supported). This methods can be async.
+
+- If your pricer needs any abi, you may add it to a new file named after the pricer in the `apps/client/src/abis` folder.
+
 ## Order the liquidity venues
 
 The liquidity venues must be imported into the `apps/client/src/index.ts` file and pushed into the `liquidityVenues` array.
 Be careful with the order of the array, as it will be the order in which the venues will be used by the bot.
+
+## Order the pricers
+
+**If you don't want to check for liquidation profit, you can ignore this section.**
+
+The pricers must be imported into the `apps/client/src/index.ts` file and pushed into the `pricers` array.
+Be careful with the order of the array, as it will be the order in which the pricers will be used by the bot.
 
 ## Run the bot
 
