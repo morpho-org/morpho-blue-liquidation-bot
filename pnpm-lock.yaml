@@ -13,6 +13,9 @@ importers:
 
   .:
     dependencies:
+      '@morpho-org/blue-sdk':
+        specifier: ^3.0.9
+        version: 3.0.9(@morpho-org/morpho-ts@2.3.0)
       ponder:
         specifier: ^0.11.1
         version: 0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
@@ -808,6 +811,14 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
+
+  '@morpho-org/blue-sdk@3.0.9':
+    resolution: {integrity: sha512-wmJexYTMNIaDrw1xt8fGl9BVQljI4EEd78WP3JNVGu2+oz4TIEt0q3+I2BMSbe07hw0tYYgFurR/w+LFAhSATw==}
+    peerDependencies:
+      '@morpho-org/morpho-ts': ^2.3.0
+
+  '@morpho-org/morpho-ts@2.3.0':
+    resolution: {integrity: sha512-VBi9ntCAKEoIjVejVSB2P2Gg62QOcBw1sBfES47i/EDswBuqpTXlX1QYclP3GoD1dQaZUpLulRrajGPrHHKDhQ==}
 
   '@morpho-org/test@2.1.1':
     resolution: {integrity: sha512-bVjJH2KIfNZ0aFCJyXtbzGaXM4i/ZbN35eR1MtMAzMj8wI7neCzn5wsrWUIvOGuLkNcWeKybFHZlkG1Z7OJkzg==}
@@ -4676,6 +4687,13 @@ snapshots:
       wrap-ansi-cjs: wrap-ansi@7.0.0
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
+
+  '@morpho-org/blue-sdk@3.0.9(@morpho-org/morpho-ts@2.3.0)':
+    dependencies:
+      '@morpho-org/morpho-ts': 2.3.0
+      '@noble/hashes': 1.7.1
+
+  '@morpho-org/morpho-ts@2.3.0': {}
 
   '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))':
     dependencies:

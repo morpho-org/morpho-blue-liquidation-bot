@@ -1,9 +1,10 @@
 import nock from "nock";
 import { describe, expect } from "vitest";
-import { erc20Abi, maxUint256, parseUnits } from "viem";
+import { type Address, erc20Abi, maxUint256, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import type { AnvilTestClient } from "@morpho-org/test";
+import { replaceBigInts as replaceBigIntsBase } from "ponder";
 
 import { encoderTest } from "../../setup.js";
 import { LiquidationBot } from "../../../src/bot.js";
@@ -12,7 +13,6 @@ import { MorphoApi } from "../../../src/pricers/index.js";
 import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
 import { MORPHO, wbtcUSDC, WETH, borrower } from "../../constants.js";
 import { overwriteCollateral } from "../../helpers.js";
-import type { MarketParams } from "../../../src/utils/types.js";
 
 describe("execute liquidation", () => {
   const erc4626 = new Erc4626();
@@ -140,7 +140,13 @@ describe("execute liquidation", () => {
 
 async function setupPosition(
   client: AnvilTestClient,
-  marketParams: MarketParams,
+  marketParams: {
+    loanToken: Address;
+    collateralToken: Address;
+    oracle: Address;
+    irm: Address;
+    lltv: bigint;
+  },
   collateralAmount: bigint,
   borrowAmount: bigint,
 ) {
@@ -181,30 +187,31 @@ async function setupPosition(
     args: [wbtcUSDC, borrower.address],
   });
 
+  process.env.PONDER_SERVICE_URL = "http://localhost:42069";
+
   nock.cleanAll();
   nock("http://localhost:42069")
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
-    .reply(200, {
-      liquidatablePositions: [
-        {
-          position: {
-            chainId: mainnet.id,
-            marketId: wbtcUSDC,
-            user: borrower.address,
-            supplyShares: `${position[0]}`,
-            borrowShares: `${position[1]}`,
-            collateral: `${position[2]}`,
+    .reply(
+      200,
+      replaceBigInts({
+        warnings: [],
+        results: [
+          {
+            market: {
+              params: marketParams,
+            },
+            positionsLiq: [
+              {
+                user: borrower.address,
+                seizableCollateral: `${position[2]}n`,
+              },
+            ],
+            positionsPreLiq: [],
           },
-          marketParams: {
-            ...marketParams,
-            lltv: `${marketParams.lltv}`,
-          },
-          seizableCollateral: `${position[2]}`,
-          repayableAssets: `${position[2]}`, // random value as it's not used for now
-        },
-      ],
-      preLiquidatablePositions: [],
-    });
+        ],
+      }),
+    );
   nock("https://blue-api.morpho.org")
     .post("/graphql")
     .reply(200, {
@@ -240,4 +247,8 @@ async function setupPosition(
         },
       },
     });
+}
+
+function replaceBigInts<T>(value: T) {
+  return replaceBigIntsBase(value, (x) => `${String(x)}n`);
 }

@@ -12,8 +12,13 @@ import {
 } from "viem";
 import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
 import { executorAbi } from "executooor-viem";
+import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 
-import type { LiquidatablePosition, MarketParams, PreLiquidatablePosition } from "./utils/types.js";
+import type {
+  IndexerAPIResponse,
+  LiquidatablePosition,
+  PreLiquidatablePosition,
+} from "./utils/types.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
@@ -71,103 +76,93 @@ export class LiquidationBot {
       ...this.additionalMarketsWhitelist,
     ];
 
-    const { liquidatablePositions, preLiquidatablePositions } = await fetchLiquidatablePositions(
-      this.chainId,
-      whitelistedMarkets,
-    );
+    const liquidationData = await fetchLiquidatablePositions(this.chainId, whitelistedMarkets);
 
+    await Promise.all(liquidationData.map((data) => this.handleMarket(data)));
+  }
+
+  private async handleMarket({ market, positionsLiq, positionsPreLiq }: IndexerAPIResponse) {
     await Promise.all([
-      this.liquidate(liquidatablePositions),
-      this.preLiquidate(preLiquidatablePositions),
+      ...positionsLiq.map((position) => this.liquidate(market, position)),
+      ...positionsPreLiq.map((position) => this.preLiquidate(market, position)),
     ]);
   }
 
-  private async liquidate(positions: LiquidatablePosition[]) {
+  private async liquidate(market: IMarket, position: LiquidatablePosition) {
     const { client, executorAddress } = this;
 
-    await Promise.all(
-      positions.map(async (position) => {
-        const { marketParams } = position;
+    const marketParams = market.params;
 
-        const encoder = new LiquidationEncoder(executorAddress, client);
+    const encoder = new LiquidationEncoder(executorAddress, client);
 
-        if (
-          !(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder))
-        )
-          return;
+    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+      return;
 
-        encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
+    encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
 
-        encoder.morphoBlueLiquidate(
-          this.morphoAddress,
-          marketParams,
-          position.position.user,
-          position.seizableCollateral,
-          0n,
-          encoder.flush(),
-        );
-
-        const calls = encoder.flush();
-
-        try {
-          const success = await this.handleTx(encoder, calls, marketParams);
-
-          if (success)
-            console.log(`Liquidated ${position.position.user} on ${position.position.marketId}`);
-        } catch (error) {
-          console.log(
-            `Failed to liquidate ${position.position.user} on ${position.position.marketId}`,
-          );
-          console.error("liquidation error", error);
-        }
-      }),
+    encoder.morphoBlueLiquidate(
+      this.morphoAddress,
+      {
+        ...marketParams,
+        lltv: BigInt(marketParams.lltv),
+      },
+      position.user,
+      position.seizableCollateral,
+      0n,
+      encoder.flush(),
     );
+
+    const calls = encoder.flush();
+
+    try {
+      const success = await this.handleTx(encoder, calls, marketParams);
+
+      if (success)
+        console.log(`Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`);
+    } catch (error) {
+      console.log(
+        `Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+      );
+      console.error("liquidation error", error);
+    }
   }
 
-  private async preLiquidate(positions: PreLiquidatablePosition[]) {
+  private async preLiquidate(market: IMarket, position: PreLiquidatablePosition) {
     const { client, executorAddress } = this;
 
-    await Promise.all(
-      positions.map(async (position) => {
-        const { marketParams } = position;
+    const marketParams = market.params;
 
-        const encoder = new LiquidationEncoder(executorAddress, client);
+    const encoder = new LiquidationEncoder(executorAddress, client);
 
-        if (
-          !(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder))
-        )
-          return;
+    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+      return;
 
-        encoder.erc20Approve(marketParams.loanToken, position.preLiquidation.address, maxUint256);
+    encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
 
-        encoder.preLiquidate(
-          position.preLiquidation.address,
-          position.position.user,
-          position.seizableCollateral,
-          0n,
-          encoder.flush(),
-        );
-
-        const calls = encoder.flush();
-
-        try {
-          const success = await this.handleTx(encoder, calls, marketParams);
-
-          if (success)
-            console.log(
-              `Pre-liquidated ${position.position.user} on ${position.position.marketId}`,
-            );
-        } catch (error) {
-          console.log(
-            `Failed to pre-liquidate ${position.position.user} on ${position.position.marketId}`,
-          );
-          console.error("liquidation error", error);
-        }
-      }),
+    encoder.preLiquidate(
+      position.preLiquidation,
+      position.user,
+      position.seizableCollateral,
+      0n,
+      encoder.flush(),
     );
+
+    const calls = encoder.flush();
+
+    try {
+      const success = await this.handleTx(encoder, calls, marketParams);
+
+      if (success)
+        console.log(`Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`);
+    } catch (error) {
+      console.log(
+        `Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+      );
+      console.error("liquidation error", error);
+    }
   }
 
-  private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: MarketParams) {
+  private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: IMarketParams) {
     const { client, executorAddress } = this;
 
     /// TX SIMULATION
@@ -234,7 +229,7 @@ export class LiquidationBot {
   }
 
   private async convertCollateralToLoan(
-    marketParams: MarketParams,
+    marketParams: IMarketParams,
     seizableCollateral: bigint,
     encoder: LiquidationEncoder,
   ) {
