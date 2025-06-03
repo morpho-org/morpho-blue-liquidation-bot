@@ -3,6 +3,7 @@ import { and, client, eq, graphql, replaceBigInts as replaceBigIntsBase } from "
 import { db, publicClients } from "ponder:api";
 import schema from "ponder:schema";
 import type { Address, Hex } from "viem";
+
 import { getLiquidatablePositions } from "./liquidatable-positions";
 
 function replaceBigInts<T>(value: T) {
@@ -15,14 +16,14 @@ app.use("/", graphql({ db, schema }));
 app.use("/graphql", graphql({ db, schema }));
 app.use("/sql/*", client({ db, schema }));
 
-app.get("/chain/:id/withdraw-queue/:address", async (c) => {
+app.post("/chain/:id/withdraw-queue/:address", async (c) => {
   const { id: chainId, address } = c.req.param();
 
   const vault = await db.query.vault.findFirst({
     where: (row) => and(eq(row.chainId, Number(chainId)), eq(row.address, address as Address)),
   });
 
-  return c.json(vault?.withdrawQueue);
+  return c.json(vault?.withdrawQueue ?? []);
 });
 
 /**

@@ -1,20 +1,30 @@
 import { type ChildProcess, spawn } from "node:child_process";
+
 import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
+
 import { launchBot } from ".";
 
+async function sleep(ms: number) {
+  return new Promise<void>((resolve) =>
+    setTimeout(() => {
+      resolve();
+    }, ms),
+  );
+}
+
+async function isPonderReady(apiUrl: string) {
+  try {
+    const response = await fetch(`${apiUrl}/ready`);
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+}
+
 async function waitForIndexing(apiUrl: string) {
-  return new Promise<void>((resolve) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${apiUrl}/ready`);
-        if (res.status === 200) {
-          console.log("✅ indexing is done");
-          clearInterval(interval);
-          resolve();
-        }
-      } catch {}
-    }, 1000);
-  });
+  while (!(await isPonderReady(apiUrl))) {
+    await sleep(1000);
+  }
 }
 
 async function run() {
@@ -45,7 +55,9 @@ async function run() {
     await waitForIndexing(apiUrl);
 
     // biome-ignore lint/complexity/noForEach: <explanation>
-    configs.forEach((config) => launchBot(config));
+    configs.forEach((config) => {
+      launchBot(config);
+    });
   } catch (err) {
     console.error(err);
     if (ponder) ponder.kill("SIGTERM");
@@ -53,4 +65,4 @@ async function run() {
   }
 }
 
-run();
+void run();

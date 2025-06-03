@@ -1,4 +1,10 @@
 import {
+  FEE_TIERS,
+  DEFAULT_FACTORY_ADDRESS,
+  specificFactoryAddresses,
+  USD_REFERENCE,
+} from "@morpho-blue-liquidation-bot/config";
+import {
   type Account,
   type Address,
   type Chain,
@@ -11,15 +17,8 @@ import {
 } from "viem";
 import { readContract } from "viem/actions";
 
-import type { Pricer } from "../pricer";
-
 import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
-import {
-  FEE_TIERS,
-  DEFAULT_FACTORY_ADDRESS,
-  specificFactoryAddresses,
-  USD_REFERENCE,
-} from "@morpho-blue-liquidation-bot/config";
+import type { Pricer } from "../pricer";
 
 export class UniswapV3Pricer implements Pricer {
   private pools: Record<Address, Record<Address, Address[]>> = {};

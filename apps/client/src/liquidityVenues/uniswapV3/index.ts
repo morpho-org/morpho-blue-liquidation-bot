@@ -1,3 +1,10 @@
+import {
+  FEE_TIERS,
+  DEFAULT_FACTORY_ADDRESS,
+  specificFactoryAddresses,
+  MAX_SQRT_RATIO,
+  MIN_SQRT_RATIO,
+} from "@morpho-blue-liquidation-bot/config";
 import { executorAbi, type ExecutorEncoder } from "executooor-viem";
 import {
   type Address,
@@ -9,17 +16,9 @@ import {
 } from "viem";
 import { readContract } from "viem/actions";
 
+import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
-
-import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
-import {
-  FEE_TIERS,
-  DEFAULT_FACTORY_ADDRESS,
-  specificFactoryAddresses,
-  MAX_SQRT_RATIO,
-  MIN_SQRT_RATIO,
-} from "@morpho-blue-liquidation-bot/config";
 
 export class UniswapV3Venue implements LiquidityVenue {
   private pools: Record<Address, Record<Address, Address[]>> = {};

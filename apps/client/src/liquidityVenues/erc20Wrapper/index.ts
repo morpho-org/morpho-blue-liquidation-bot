@@ -1,10 +1,9 @@
+import { wrappers } from "@morpho-blue-liquidation-bot/config";
 import type { ExecutorEncoder } from "executooor-viem";
 import { zeroAddress, type Address } from "viem";
 
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
-
-import { wrappers } from "@morpho-blue-liquidation-bot/config";
 
 export class Erc20Wrapper implements LiquidityVenue {
   private underlying: Record<Address, Address> = {};

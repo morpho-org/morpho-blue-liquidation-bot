@@ -1,11 +1,16 @@
 import type { Address, Hex } from "viem";
+
 import type { IndexerAPIResponse } from "./types";
 
+const PONDER_SERVICE_URL = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function parseWithBigInt<T = unknown>(jsonText: string): T {
   return JSON.parse(jsonText, (_key, value) => {
     if (typeof value === "string" && /^-?\d+n$/.test(value)) {
       return BigInt(value.slice(0, -1));
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return value;
   }) as T;
 }
@@ -14,9 +19,9 @@ export async function fetchWhiteListedMarketsForVault(
   chainId: number,
   vaultAddress: Address,
 ): Promise<Hex[]> {
-  const url = `${process.env.PONDER_SERVICE_URL ?? "http://localhost:42069"}/chain/${chainId}/withdraw-queue/${vaultAddress}`;
+  const url = new URL(`/chain/${chainId}/withdraw-queue/${vaultAddress}`, PONDER_SERVICE_URL);
 
-  const response = await fetch(url);
+  const response = await fetch(url, { method: "POST" });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${vaultAddress} whitelisted markets: ${response.statusText}`);
@@ -28,7 +33,7 @@ export async function fetchWhiteListedMarketsForVault(
 }
 
 export async function fetchLiquidatablePositions(chainId: number, marketIds: Hex[]) {
-  const url = `${process.env.PONDER_SERVICE_URL ?? "http://localhost:42069"}/chain/${chainId}/liquidatable-positions`;
+  const url = new URL(`/chain/${chainId}/liquidatable-positions`, PONDER_SERVICE_URL);
 
   const response = await fetch(url, {
     method: "POST",

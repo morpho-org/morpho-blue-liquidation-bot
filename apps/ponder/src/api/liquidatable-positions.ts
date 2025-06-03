@@ -7,8 +7,8 @@ import {
   MarketParams,
   PreLiquidationPosition,
 } from "@morpho-org/blue-sdk";
-import { and, eq, inArray, gt, type ReadonlyDrizzle } from "ponder";
-import { type Address, zeroAddress, type Hex, type PublicClient } from "viem";
+import { and, eq, inArray, gt, ReadonlyDrizzle } from "ponder";
+import { type Address, zeroAddress, type Hex, PublicClient } from "viem";
 
 import { oracleAbi } from "../../abis/Oracle";
 // NOTE: Use relative path rather than "ponder:schema" so that tests can import from this file
@@ -98,7 +98,7 @@ export async function getLiquidatablePositions({
   });
   const prices: Record<Address, (typeof pricesArr)[number]> = {};
   for (let i = 0; i < oracles.length; i += 1) {
-    // biome-ignore lint/style/noNonNullAssertion: never null
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     prices[oracles[i]!] = pricesArr[i]!;
   }
 

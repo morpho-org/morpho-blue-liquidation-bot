@@ -9,7 +9,7 @@ export interface MarketState {
   fee: bigint;
 }
 
-export type LiquidatablePosition = {
+export interface LiquidatablePosition {
   position: {
     chainId: number;
     marketId: Hex;
@@ -27,4 +27,4 @@ export type LiquidatablePosition = {
   };
   seizableCollateral: string;
   repayableAssets: string;
-};
+}

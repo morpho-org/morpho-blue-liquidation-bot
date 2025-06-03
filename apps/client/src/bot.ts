@@ -1,6 +1,8 @@
+import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
+import { executorAbi } from "executooor-viem";
 import {
-  encodeFunctionData,
   erc20Abi,
+  formatUnits,
   getAddress,
   maxUint256,
   type Account,
@@ -11,20 +13,18 @@ import {
   type Transport,
 } from "viem";
 import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
-import { executorAbi } from "executooor-viem";
-import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 
+import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
+import type { Pricer } from "./pricers/pricer.js";
+import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
+import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import type {
   IndexerAPIResponse,
   LiquidatablePosition,
   PreLiquidatablePosition,
 } from "./utils/types.js";
-import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
-import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
-import type { Pricer } from "./pricers/pricer.js";
-import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 
-export type LiquidationBotInputs = {
+export interface LiquidationBotInputs {
   chainId: number;
   client: Client<Transport, Chain, Account>;
   morphoAddress: Address;
@@ -34,7 +34,7 @@ export type LiquidationBotInputs = {
   executorAddress: Address;
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
-};
+}
 
 export class LiquidationBot {
   private chainId: number;
@@ -50,22 +50,23 @@ export class LiquidationBot {
   constructor(inputs: LiquidationBotInputs) {
     this.chainId = inputs.chainId;
     this.client = inputs.client;
-    this.vaultWhitelist = inputs.vaultWhitelist;
-    this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
     this.morphoAddress = inputs.morphoAddress;
     this.wNative = inputs.wNative;
+    this.vaultWhitelist = inputs.vaultWhitelist;
+    this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
     this.executorAddress = inputs.executorAddress;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
   }
 
   async run() {
-    const { vaultWhitelist } = this;
     const whitelistedMarketsFromVaults = [
       ...new Set(
         (
           await Promise.all(
-            vaultWhitelist.map((vault) => fetchWhiteListedMarketsForVault(this.chainId, vault)),
+            this.vaultWhitelist.map((vault) =>
+              fetchWhiteListedMarketsForVault(this.chainId, vault),
+            ),
           )
         ).flat(),
       ),
@@ -78,7 +79,7 @@ export class LiquidationBot {
 
     const liquidationData = await fetchLiquidatablePositions(this.chainId, whitelistedMarkets);
 
-    await Promise.all(liquidationData.map((data) => this.handleMarket(data)));
+    return Promise.all(liquidationData.map((data) => this.handleMarket(data)));
   }
 
   private async handleMarket({ market, positionsLiq, positionsPreLiq }: IndexerAPIResponse) {
@@ -163,43 +164,38 @@ export class LiquidationBot {
   }
 
   private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: IMarketParams) {
-    const { client, executorAddress } = this;
-
-    /// TX SIMULATION
-
-    const populatedTx = {
-      to: encoder.address,
-      data: encodeFunctionData({
-        abi: executorAbi,
-        functionName: "exec_606BaXt",
-        args: [calls],
-      }),
-      value: 0n, // TODO: find a way to get encoder value
-    };
+    const functionData = {
+      abi: executorAbi,
+      functionName: "exec_606BaXt",
+      args: [calls],
+    } as const;
 
     const [{ results }, gasPrice] = await Promise.all([
-      simulateCalls(client, {
-        account: client.account.address,
+      simulateCalls(this.client, {
+        account: this.client.account.address,
         calls: [
           {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [executorAddress],
+            args: [this.executorAddress],
           },
-          populatedTx,
+          { to: encoder.address, ...functionData },
           {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [executorAddress],
+            args: [this.executorAddress],
           },
         ],
       }),
-      getGasPrice(client),
+      getGasPrice(this.client),
     ]);
 
-    if (results[1].status !== "success") return;
+    if (results[1].status !== "success") {
+      console.warn(`Transaction failed in simulation: ${results[1].error}`);
+      return;
+    }
 
     if (
       !(await this.checkProfit(
@@ -218,12 +214,7 @@ export class LiquidationBot {
 
     // TX EXECUTION
 
-    await writeContract(client, {
-      address: encoder.address,
-      abi: executorAbi,
-      functionName: "exec_606BaXt",
-      args: [calls],
-    });
+    await writeContract(this.client, { address: encoder.address, ...functionData });
 
     return true;
   }
@@ -250,7 +241,7 @@ export class LiquidationBot {
   }
 
   private async price(asset: Address, amount: bigint, pricers: Pricer[]) {
-    let price = undefined;
+    let price: number | undefined = undefined;
 
     for (const pricer of pricers) {
       price = await pricer.price(this.client, asset);
@@ -268,7 +259,7 @@ export class LiquidationBot {
             functionName: "decimals",
           });
 
-    return (Number(amount) / 10 ** decimals) * price;
+    return parseFloat(formatUnits(amount, decimals)) * price;
   }
 
   private async checkProfit(

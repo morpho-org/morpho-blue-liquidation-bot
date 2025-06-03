@@ -1,17 +1,14 @@
-import { UniswapV3Pricer } from "./pricers/uniswapV3/index";
+import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-
-import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
-import type { Pricer } from "./pricers/pricer";
-
-import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
-import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
+import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
+import type { Pricer } from "./pricers/pricer";
 
 export const launchBot = (config: ChainConfig) => {
   const client = createWalletClient({
@@ -30,7 +27,7 @@ export const launchBot = (config: ChainConfig) => {
   const pricers: Pricer[] = [];
 
   if (config.checkProfit && pricers.length === 0) {
-    throw new Error(`No pricers configured for chain ${config.chainId}`);
+    throw new Error(`No pricers configured for chain ${config.chainId.toFixed(0)}`);
   }
 
   const inputs: LiquidationBotInputs = {
