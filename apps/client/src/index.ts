@@ -8,9 +8,14 @@ import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
 import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
+import { UniswapV4Venue } from "./liquidityVenues/uniswapV4";
+import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
 
 export const launchBot = (config: ChainConfig) => {
+  const logTag = `[${config.chain.name} client]: `;
+  console.log(`${logTag}Starting up`);
+
   const client = createWalletClient({
     chain: config.chain,
     transport: http(config.rpcUrl),
@@ -22,15 +27,19 @@ export const launchBot = (config: ChainConfig) => {
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
   liquidityVenues.push(new UniswapV3Venue());
+  liquidityVenues.push(new UniswapV4Venue());
 
   // PRICERS
   const pricers: Pricer[] = [];
+  pricers.push(new DefiLlamaPricer());
+  pricers.push(new ChainlinkPricer());
 
   if (config.checkProfit && pricers.length === 0) {
-    throw new Error(`No pricers configured for chain ${config.chainId.toFixed(0)}`);
+    throw new Error(`${logTag} You must configure pricers!`);
   }
 
   const inputs: LiquidationBotInputs = {
+    logTag,
     chainId: config.chainId,
     client,
     morphoAddress: config.morpho.address,

@@ -1,4 +1,5 @@
-import { base, mainnet } from "viem/chains";
+import { base, mainnet, unichain } from "viem/chains";
+
 import type { Config } from "./types";
 
 export const chainConfigs: Record<number, Config> = {
@@ -59,6 +60,28 @@ export const chainConfigs: Record<number, Config> = {
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
       vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
+      additionalMarketsWhitelist: [],
+      checkProfit: true,
+    },
+  },
+  [unichain.id]: {
+    chain: unichain,
+    morpho: { address: "0x8f5ae9CddB9f68de460C77730b018Ae7E04a140A", startBlock: 9139027 },
+    adaptiveCurveIrm: {
+      address: "0x9a6061d51743B31D2c3Be75D83781Fa423f53F0E",
+      startBlock: 9139027,
+    },
+    metaMorphoFactories: {
+      addresses: ["0xe9EdE3929F43a7062a007C3e8652e4ACa610Bdc0"],
+      startBlock: 9316789,
+    },
+    preLiquidationFactory: {
+      address: "0xb04e4D3D59Ee47Ca9BA192707AF13A7D02969911",
+      startBlock: 9381237,
+    },
+    wNative: "0x4200000000000000000000000000000000000006",
+    options: {
+      vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: false,
     },
