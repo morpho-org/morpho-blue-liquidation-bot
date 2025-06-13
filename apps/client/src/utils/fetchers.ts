@@ -40,15 +40,17 @@ export async function fetchLiquidatablePositions(chainId: number, marketIds: Hex
     body: JSON.stringify({ marketIds }),
   });
 
-  const data = (await response.json()) as { results: IndexerAPIResponse[]; warnings: string[] };
-
   if (!response.ok) {
     throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
+
+  const data = parseWithBigInt<{ results: IndexerAPIResponse[]; warnings: string[] }>(
+    await response.text(),
+  );
 
   if (data.warnings.length > 0) {
     console.warn(data.warnings);
   }
 
-  return parseWithBigInt<IndexerAPIResponse[]>(JSON.stringify(data.results));
+  return data.results;
 }
