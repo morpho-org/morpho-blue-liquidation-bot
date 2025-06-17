@@ -12,47 +12,72 @@ async function sleep(ms: number) {
   );
 }
 
+async function isPonderRunning(apiUrl: string) {
+  try {
+    const controller = new AbortController();
+    setTimeout(() => {
+      controller.abort();
+    }, 5000);
+    await fetch(`${apiUrl}/ready`, { signal: controller.signal });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function isPonderReady(apiUrl: string) {
   try {
     const response = await fetch(`${apiUrl}/ready`);
     return response.status === 200;
-  } catch {
+  } catch (e) {
+    // @ts-expect-error: error cause is poorly typed.
+    if (e instanceof TypeError && e.cause?.code === "ENOTFOUND") {
+      console.warn(`⚠️ The ponder service at ${apiUrl} is unreachable. Please check your config.`);
+    }
     return false;
   }
 }
 
 async function waitForIndexing(apiUrl: string) {
   while (!(await isPonderReady(apiUrl))) {
+    console.log("⏳ Ponder is indexing");
     await sleep(1000);
   }
 }
 
 async function run() {
   let ponder: ChildProcess | undefined;
-  let apiUrl = "http://localhost:42069";
 
   const configs = Object.keys(chainConfigs).map((config) => chainConfig(Number(config)));
 
-  if (process.env.PONDER_SERVICE_URL !== undefined) {
-    apiUrl = process.env.PONDER_SERVICE_URL;
-  } else {
+  const apiUrl = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+  const shouldExpectPonderToRunLocally =
+    apiUrl.includes("localhost") || apiUrl.includes("0.0.0.0") || apiUrl.includes("127.0.0.1");
+
+  // If the ponder service isn't responding, see if we can start it.
+  if (shouldExpectPonderToRunLocally && !(await isPonderRunning(apiUrl))) {
+    console.log("🚦 Starting ponder service locally:");
+    // If `POSTGRES_DATABASE_URL === undefined`, we assume postgres is meant to be run locally.
+    // Start that first.
     if (process.env.POSTGRES_DATABASE_URL === undefined) {
       spawn("docker", ["compose", "up", "-d"]);
-      console.log("Waiting for postgres to be ready...");
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      console.log("→ Spawning docker container for postgres...");
+      await sleep(5000);
     }
 
+    // Then start ponder service, regardless of where database is.
     ponder = spawn(
       "pnpm",
       ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
       { stdio: "inherit", cwd: "apps/ponder" },
     );
 
-    console.log("Ponder is indexing...");
+    console.log("→ Spawning ponder...");
   }
 
   try {
     await waitForIndexing(apiUrl);
+    console.log("✅ Ponder is ready");
 
     // biome-ignore lint/complexity/noForEach: <explanation>
     configs.forEach((config) => {

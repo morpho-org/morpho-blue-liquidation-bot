@@ -1,7 +1,8 @@
+import dotenv from "dotenv";
 import type { Address, Chain, Hex } from "viem";
+
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
-import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ export function chainConfig(chainId: number): ChainConfig {
     throw new Error(`No config found for chainId ${chainId}`);
   }
 
-  const { vaultWhitelist, additionalMarketsWhitelist, checkProfit } = config.options;
+  const { vaultWhitelist, additionalMarketsWhitelist } = config.options;
   if (vaultWhitelist.length === 0 && additionalMarketsWhitelist.length === 0) {
     throw new Error(
       `Vault whitelist and additional markets whitelist both empty for chainId ${chainId}`,
@@ -20,14 +21,12 @@ export function chainConfig(chainId: number): ChainConfig {
 
   const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
   return {
-    ...config,
+    // Hoist all parameters from `options` up 1 level, i.e. flatten the config as much as possible.
+    ...(({ options, ...c }) => ({ ...options, ...c }))(config),
     chainId,
     rpcUrl,
     executorAddress,
     liquidationPrivateKey,
-    vaultWhitelist,
-    additionalMarketsWhitelist,
-    checkProfit,
   };
 }
 

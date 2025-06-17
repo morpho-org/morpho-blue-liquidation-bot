@@ -16,6 +16,7 @@ import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/ac
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
+import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import type {
@@ -25,11 +26,12 @@ import type {
 } from "./utils/types.js";
 
 export interface LiquidationBotInputs {
+  logTag: string;
   chainId: number;
   client: Client<Transport, Chain, Account>;
   morphoAddress: Address;
   wNative: Address;
-  vaultWhitelist: Address[];
+  vaultWhitelist: Address[] | "morpho-api";
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
   liquidityVenues: LiquidityVenue[];
@@ -37,17 +39,19 @@ export interface LiquidationBotInputs {
 }
 
 export class LiquidationBot {
+  private logTag: string;
   private chainId: number;
   private client: Client<Transport, Chain, Account>;
   private morphoAddress: Address;
   private wNative: Address;
-  private vaultWhitelist: Address[];
+  private vaultWhitelist: Address[] | "morpho-api";
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
 
   constructor(inputs: LiquidationBotInputs) {
+    this.logTag = inputs.logTag;
     this.chainId = inputs.chainId;
     this.client = inputs.client;
     this.morphoAddress = inputs.morphoAddress;
@@ -60,13 +64,20 @@ export class LiquidationBot {
   }
 
   async run() {
+    if (this.vaultWhitelist === "morpho-api") {
+      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+      console.log(
+        `${this.logTag}📝 Watching markets in the following vaults:`,
+        this.vaultWhitelist,
+      );
+    }
+    const vaultWhitelist = this.vaultWhitelist;
+
     const whitelistedMarketsFromVaults = [
       ...new Set(
         (
           await Promise.all(
-            this.vaultWhitelist.map((vault) =>
-              fetchWhiteListedMarketsForVault(this.chainId, vault),
-            ),
+            vaultWhitelist.map((vault) => fetchWhiteListedMarketsForVault(this.chainId, vault)),
           )
         ).flat(),
       ),
@@ -119,12 +130,18 @@ export class LiquidationBot {
       const success = await this.handleTx(encoder, calls, marketParams);
 
       if (success)
-        console.log(`Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`);
+        console.log(
+          `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        );
+      else
+        console.log(
+          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
+        );
     } catch (error) {
-      console.log(
-        `Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+      console.error(
+        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        error,
       );
-      console.error("liquidation error", error);
     }
   }
 
@@ -154,12 +171,18 @@ export class LiquidationBot {
       const success = await this.handleTx(encoder, calls, marketParams);
 
       if (success)
-        console.log(`Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`);
+        console.log(
+          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        );
+      else
+        console.log(
+          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
+        );
     } catch (error) {
-      console.log(
-        `Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+      console.error(
+        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        error,
       );
-      console.error("liquidation error", error);
     }
   }
 
@@ -193,7 +216,7 @@ export class LiquidationBot {
     ]);
 
     if (results[1].status !== "success") {
-      console.warn(`Transaction failed in simulation: ${results[1].error}`);
+      console.warn(`${this.logTag}Transaction failed in simulation: ${results[1].error}`);
       return;
     }
 
