@@ -7,8 +7,10 @@ import {
   MarketParams,
   PreLiquidationPosition,
 } from "@morpho-org/blue-sdk";
+import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { and, eq, inArray, gt, ReadonlyDrizzle } from "ponder";
-import { type Address, zeroAddress, type Hex, PublicClient } from "viem";
+import { type Address, zeroAddress, type Hex, PublicClient, parseEther } from "viem";
+import { wMulDown } from "../utils";
 
 import { oracleAbi } from "../../abis/Oracle";
 // NOTE: Use relative path rather than "ponder:schema" so that tests can import from this file
@@ -20,6 +22,8 @@ type ILiquidatablePosition = (
 ) & {
   seizableCollateral: bigint;
 };
+
+const DEFAULT_LIQUIDATION_BUFFER_BPS = 10;
 
 export async function getLiquidatablePositions({
   db,
@@ -140,12 +144,25 @@ export async function getLiquidatablePositions({
     const positionsLiq: ILiquidatablePosition[] = dbPositions
       .map((dbPosition) => {
         const iposition = dbPosition;
+        const seizableCollateral = new AccrualPosition(dbPosition, market).seizableCollateral ?? 0n;
         return {
           // NOTE: We spread `iposition` rather than the `AccrualPosition` to minimize bandwidth
           // (the latter has additional, extra fields).
           ...iposition,
           type: "IAccrualPosition" as const,
-          seizableCollateral: new AccrualPosition(dbPosition, market).seizableCollateral ?? 0n,
+          // NOTE: adding a small buffer to the seizable collateral to avoid rounding errors in case the collateral price increases.
+          seizableCollateral:
+            seizableCollateral == iposition.collateral
+              ? seizableCollateral
+              : wMulDown(
+                  seizableCollateral,
+                  parseEther(
+                    (
+                      chainConfigs[chainId]?.options.liquidationBufferBps ??
+                      DEFAULT_LIQUIDATION_BUFFER_BPS
+                    ).toString(),
+                  ),
+                ),
         };
       })
       .filter((position) => position.seizableCollateral > 0n);

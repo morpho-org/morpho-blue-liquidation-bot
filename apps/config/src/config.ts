@@ -34,6 +34,7 @@ export const chainConfigs: Record<number, Config> = {
         "0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20",
       ],
       checkProfit: true,
+      liquidationBufferBps: 50,
     },
   },
   [base.id]: {
