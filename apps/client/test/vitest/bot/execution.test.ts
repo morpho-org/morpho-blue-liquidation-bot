@@ -43,6 +43,7 @@ describe("execute liquidation", () => {
     await setupPosition(client, marketParams, collateralAmount, borrowAmount);
 
     const bot = new LiquidationBot({
+      logTag: "test client",
       chainId: mainnet.id,
       client,
       morphoAddress: MORPHO,
@@ -103,6 +104,7 @@ describe("execute liquidation", () => {
       await setupPosition(client, marketParams, collateralAmount, borrowAmount);
 
       const bot = new LiquidationBot({
+        logTag: "test client",
         chainId: mainnet.id,
         client,
         morphoAddress: MORPHO,
