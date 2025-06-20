@@ -5,6 +5,7 @@ import {
   formatUnits,
   getAddress,
   maxUint256,
+  parseUnits,
   type Account,
   type Address,
   type Chain,
@@ -24,6 +25,8 @@ import type {
   LiquidatablePosition,
   PreLiquidatablePosition,
 } from "./utils/types.js";
+import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
+import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
 export interface LiquidationBotInputs {
   logTag: string;
@@ -107,7 +110,13 @@ export class LiquidationBot {
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+    if (
+      !(await this.convertCollateralToLoan(
+        marketParams,
+        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        encoder,
+      ))
+    )
       return;
 
     encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
@@ -152,7 +161,13 @@ export class LiquidationBot {
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+    if (
+      !(await this.convertCollateralToLoan(
+        marketParams,
+        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        encoder,
+      ))
+    )
       return;
 
     encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
@@ -315,5 +330,21 @@ export class LiquidationBot {
     const profitUsd = loanAssetProfitUsd - gasUsedUsd;
 
     return profitUsd > 0;
+  }
+
+  private decreaseSeizableCollateral(seizableCollateral: bigint, collateral: bigint) {
+    if (seizableCollateral === collateral) return seizableCollateral;
+
+    return wMulDown(
+      seizableCollateral,
+      WAD -
+        parseUnits(
+          (
+            chainConfigs[this.chainId]?.options.liquidationBufferBps ??
+            DEFAULT_LIQUIDATION_BUFFER_BPS
+          ).toString(),
+          14,
+        ),
+    );
   }
 }
