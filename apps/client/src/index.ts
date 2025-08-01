@@ -55,7 +55,11 @@ export const launchBot = (config: ChainConfig) => {
 
   watchBlocks(client, {
     onBlock: () => {
-      void bot.run();
+      try {
+        void bot.run();
+      } catch (e) {
+        console.error(`${logTag} uncaught error in bot.run():`, e);
+      }
     },
   });
 };

@@ -18,7 +18,7 @@ RUN pnpm install --fetch-retries 5
 # - RAILWAY_DEPLOYMENT_ID
 
 # Declare the chain IDs we support as an environment variable for looping
-ENV CHAIN_IDS="1 130 137 8453"
+ENV CHAIN_IDS="1 130 137 8453 747474"
 
 # Declare the non-dynamic vars so they are available at runtime
 ENV LIQUIDATION_PRIVATE_KEY=${LIQUIDATION_PRIVATE_KEY}

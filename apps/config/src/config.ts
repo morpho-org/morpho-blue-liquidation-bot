@@ -1,5 +1,6 @@
 import { base, mainnet, unichain } from "viem/chains";
 
+import { katana } from "./chains/katana";
 import type { Config } from "./types";
 
 export const chainConfigs: Record<number, Config> = {
@@ -81,6 +82,28 @@ export const chainConfigs: Record<number, Config> = {
       startBlock: 9381237,
     },
     wNative: "0x4200000000000000000000000000000000000006",
+    options: {
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+    },
+  },
+  [katana.id]: {
+    chain: katana,
+    morpho: { address: "0xD50F2DffFd62f94Ee4AEd9ca05C61d0753268aBc", startBlock: 2741069 },
+    adaptiveCurveIrm: {
+      address: "0x4F708C0ae7deD3d74736594C2109C2E3c065B428",
+      startBlock: 2741069,
+    },
+    metaMorphoFactories: {
+      addresses: ["0x1c8De6889acee12257899BFeAa2b7e534de32E16"],
+      startBlock: 2741420,
+    },
+    preLiquidationFactory: {
+      address: "0x678EB53A3bB79111263f47B84989d16D81c36D85",
+      startBlock: 2741993,
+    },
+    wNative: "0xEE7D8BCFb72bC1880D0Cf19822eB0A2e6577aB62",
     options: {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
