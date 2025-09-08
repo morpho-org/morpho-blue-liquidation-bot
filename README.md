@@ -65,7 +65,7 @@ PreLiquidation Factory:
 - `preLiquidationFactory.address`: The address of the PreLiquidation factory.
 - `preLiquidationFactory.startBlock`: The block number of the PreLiquidation factory deployment.
 
-You may find the addresses in [Morpho documentation](https://docs.morpho.org/overview/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
+You may find the addresses in [Morpho documentation](https://docs.morpho.org/get-started/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
 
 ### Options
 
