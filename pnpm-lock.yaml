@@ -17,8 +17,8 @@ importers:
         specifier: ^3.0.9
         version: 3.0.9(@morpho-org/morpho-ts@2.3.0)
       ponder:
-        specifier: ^0.11.1
-        version: 0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        specifier: ^0.13.6
+        version: 0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -996,8 +996,8 @@ packages:
       typescript:
         optional: true
 
-  '@ponder/utils@0.2.7':
-    resolution: {integrity: sha512-7BcDd8y6Dmi+Bys4D0m+BULH9ug2XZ5Lsa4CwGSsJrY4OIQJerib6TENzTFHGR65XBV1gu9xLct9pMz7RpvAKg==}
+  '@ponder/utils@0.2.13':
+    resolution: {integrity: sha512-Yjkr2j9xerqPtsGCrVWTvC/HzjrPsdYPSBnqlj1ZwivIjkB371pTYmj6T1+kNshCyBuClXCp5ZxHReBaG2Fz0A==}
     peerDependencies:
       typescript: '>=5.0.4'
       viem: 2.23.2
@@ -2934,8 +2934,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  ponder@0.11.3:
-    resolution: {integrity: sha512-DA+Tv5BUVCVxocM+3z2wStI1v1Z9SUe/TlRKS9qVcwaPavX5P/gjrCc6OGIH2SRyOvCQtO/hvdUtOzyrIRYYXA==}
+  ponder@0.13.7:
+    resolution: {integrity: sha512-IGQJKQYQT2vy+0ipoYcw9yDgxhNredkUaGslJ2Roh+hVrPl2hFgemVGLvus0jFi5VYgQoS7rsq0OzzZB746i+g==}
     engines: {node: '>=18.14'}
     hasBin: true
     peerDependencies:
@@ -3676,6 +3676,18 @@ packages:
 
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -4904,7 +4916,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@ponder/utils@0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@ponder/utils@0.2.13(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
     dependencies:
       viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -7129,7 +7141,7 @@ snapshots:
       fsevents: 2.3.2
     optional: true
 
-  ponder@0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  ponder@0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       '@babel/code-frame': 7.26.2
       '@commander-js/extra-typings': 12.1.0(commander@12.1.0)
@@ -7138,7 +7150,7 @@ snapshots:
       '@escape.tech/graphql-armor-max-depth': 2.4.0
       '@escape.tech/graphql-armor-max-tokens': 2.5.0
       '@hono/node-server': 1.13.3(hono@4.7.5)
-      '@ponder/utils': 0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@ponder/utils': 0.2.13(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       abitype: 0.10.3(typescript@5.8.2)
       ansi-escapes: 7.0.0
       commander: 12.1.0
@@ -7168,6 +7180,7 @@ snapshots:
       vite: 5.0.7(@types/node@20.17.28)
       vite-node: 1.0.2(@types/node@20.17.28)
       vite-tsconfig-paths: 4.3.1(typescript@5.8.2)(vite@5.0.7(@types/node@20.17.28))
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -7188,6 +7201,7 @@ snapshots:
       - '@vercel/postgres'
       - '@xata.io/client'
       - better-sqlite3
+      - bufferutil
       - bun-types
       - expo-sqlite
       - gel
@@ -7205,6 +7219,7 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+      - utf-8-validate
       - zod
 
   postcss@8.5.3:
@@ -7975,6 +7990,11 @@ snapshots:
     optional: true
 
   ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    optionalDependencies:
+      bufferutil: 4.0.9
+      utf-8-validate: 5.0.10
+
+  ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     optionalDependencies:
       bufferutil: 4.0.9
       utf-8-validate: 5.0.10

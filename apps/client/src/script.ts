@@ -76,7 +76,7 @@ async function run() {
     // Then start ponder service, regardless of where database is.
     ponder = spawn(
       "pnpm",
-      ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
+      ["ponder", "start", "--schema", "public", "--config", "ponder.config.ts"],
       { stdio: "inherit", cwd: "apps/ponder" },
     );
 
