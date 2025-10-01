@@ -8,27 +8,27 @@ import { API_REFRESH_INTERVAL } from "@morpho-blue-liquidation-bot/config";
 
 export class PendlePTVenue implements LiquidityVenue {
   private API_URL = "https://api-v2.pendle.finance/core/";
-  private pendleTokens: TokenListResponse | undefined;
-  private lastPoolRefresh: number | undefined;
-
-  constructor() {}
+  private pendleTokens: Record<number, TokenListResponse | undefined> = {};
+  private lastPoolRefresh: Record<number, number | undefined> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
 
-    if (
-      this.pendleTokens === undefined ||
-      this.lastPoolRefresh === undefined ||
-      Date.now() - this.lastPoolRefresh > API_REFRESH_INTERVAL
-    ) {
-      try {
-        this.pendleTokens = await this.getTokens(encoder.client.chain.id);
-        this.lastPoolRefresh = Date.now();
-      } catch (error) {
-        console.error("Error fetching pendle tokens", error);
-        this.lastPoolRefresh = Date.now(); // prevent infinite retries
-        return false;
+    let pendleTokens = this.pendleTokens[encoder.client.chain.id];
+    let lastPoolRefresh = this.lastPoolRefresh[encoder.client.chain.id];
+
+    if (this.pendleTokens[encoder.client.chain.id] === undefined) {
+      if (lastPoolRefresh === undefined || Date.now() - lastPoolRefresh > API_REFRESH_INTERVAL) {
+        try {
+          pendleTokens = await this.getTokens(encoder.client.chain.id);
+          lastPoolRefresh = Date.now();
+        } catch (error) {
+          console.error("Error fetching pendle tokens", error);
+          lastPoolRefresh = Date.now(); // prevent infinite retries
+          return false;
+        }
       }
+      return false;
     }
 
     return this.isPT(src, encoder.client.chain.id);
