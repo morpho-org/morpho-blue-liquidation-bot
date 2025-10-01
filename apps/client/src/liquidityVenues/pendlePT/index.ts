@@ -148,7 +148,7 @@ export class PendlePTVenue implements LiquidityVenue {
   }
 
   private isPT(token: string, chainId: BigIntish) {
-    return this.pendleTokens!.tokens.some(
+    return this.pendleTokens[Number(chainId)]!.tokens.some(
       (tokenInfo) => tokenInfo.address === token && chainId === tokenInfo.chainId,
     );
   }
