@@ -1,56 +1,58 @@
 import { type ExecutorEncoder } from "executooor-viem";
-import { type Address, Hex, maxUint256 } from "viem";
+import { type Address, getAddress, Hex, maxUint256 } from "viem";
 
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 import { BigIntish } from "@morpho-org/blue-sdk";
 import { API_REFRESH_INTERVAL } from "@morpho-blue-liquidation-bot/config";
+import { PendleMarketsResponse, RedeemParams, SwapCallData, SwapParams } from "./types";
 
 export class PendlePTVenue implements LiquidityVenue {
-  private API_URL = "https://api-v2.pendle.finance/core/";
-  private pendleTokens: Record<number, TokenListResponse | undefined> = {};
+  API_URL = "https://api-v2.pendle.finance/core/";
+  private pendleMarkets: Record<number, PendleMarketsResponse | undefined> = {};
   private lastPoolRefresh: Record<number, number | undefined> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
 
-    let pendleTokens = this.pendleTokens[encoder.client.chain.id];
-    let lastPoolRefresh = this.lastPoolRefresh[encoder.client.chain.id];
-
-    if (this.pendleTokens[encoder.client.chain.id] === undefined) {
-      if (lastPoolRefresh === undefined || Date.now() - lastPoolRefresh > API_REFRESH_INTERVAL) {
+    if (this.pendleMarkets[encoder.client.chain.id] === undefined) {
+      if (
+        this.lastPoolRefresh[encoder.client.chain.id] === undefined ||
+        Date.now() - this.lastPoolRefresh[encoder.client.chain.id]! > API_REFRESH_INTERVAL
+      ) {
         try {
-          pendleTokens = await this.getTokens(encoder.client.chain.id);
-          lastPoolRefresh = Date.now();
+          this.pendleMarkets[encoder.client.chain.id] = await this.getMarkets(
+            encoder.client.chain.id,
+          );
+          this.lastPoolRefresh[encoder.client.chain.id] = Date.now();
         } catch (error) {
           console.error("Error fetching pendle tokens", error);
-          lastPoolRefresh = Date.now(); // prevent infinite retries
+          this.lastPoolRefresh[encoder.client.chain.id] = Date.now(); // prevent infinite retries
           return false;
         }
+      } else {
+        return false;
       }
-      return false;
     }
-
     return this.isPT(src, encoder.client.chain.id);
   }
 
   async convert(encoder: ExecutorEncoder, toConvert: ToConvert) {
     const { src, dst, srcAmount } = toConvert;
 
-    const pendleMarketResponse = await this.getMarketForPTToken(
-      encoder.client.chain.id,
-      toConvert.src,
-    );
-    if (pendleMarketResponse.total !== 1) {
+    const pendleMarket = this.pendleMarkets[encoder.client.chain.id]!.markets.find((marketInfo) => {
+      const ptAddress = marketInfo.pt.split("-")[1];
+      return ptAddress === src.toLowerCase();
+    });
+    if (pendleMarket === undefined) {
       throw Error("Invalid Pendle market result");
     }
-    const pendleMarketData = pendleMarketResponse.results[0]!;
-    const maturity = pendleMarketData.pt.expiry!;
+    const maturity = pendleMarket.expiry;
     if (!maturity) {
       throw Error("Pendle market not found");
     }
 
-    const underlyingToken = pendleMarketData.underlyingAsset.address;
+    const underlyingToken = pendleMarket.underlyingAsset.split("-")[1]!;
 
     if (new Date(maturity) < new Date()) {
       // Pendle market is expired, we can directly redeem the collateral
@@ -58,9 +60,9 @@ export class PendlePTVenue implements LiquidityVenue {
       const redeemCallData = await this.getRedeemCallData(encoder.client.chain.id, {
         receiver: encoder.address,
         slippage: 0.04,
-        yt: pendleMarketData.yt.address,
+        yt: pendleMarket.yt.split("-")[1]!,
         amountIn: srcAmount.toString(),
-        tokenOut: pendleMarketData.underlyingAsset.address,
+        tokenOut: underlyingToken,
         enableAggregator: true,
       });
 
@@ -72,17 +74,21 @@ export class PendlePTVenue implements LiquidityVenue {
           redeemCallData.tx.data,
         );
 
-      return { src: underlyingToken, dst, srcAmount: BigInt(redeemCallData.data.amountOut) };
+      return {
+        src: getAddress(underlyingToken),
+        dst,
+        srcAmount: BigInt(redeemCallData.data.amountOut),
+      };
     } else {
       // Pendle market is not expired, we need to swap the collateral token (PT) to the underlying token
       const swapCallData = await this.getSwapCallData(
         encoder.client.chain.id,
-        pendleMarketData.address,
+        pendleMarket.address,
         {
           receiver: encoder.address,
           slippage: 0.04,
-          tokenIn: src,
-          tokenOut: pendleMarketData.underlyingAsset.address,
+          tokenIn: src.toLowerCase(),
+          tokenOut: underlyingToken,
           amountIn: srcAmount.toString(),
         },
       );
@@ -93,7 +99,11 @@ export class PendlePTVenue implements LiquidityVenue {
           swapCallData.tx.value ? BigInt(swapCallData.tx.value) : 0n,
           swapCallData.tx.data,
         );
-      return { src: underlyingToken, dst, srcAmount: BigInt(swapCallData.data.amountOut) };
+      return {
+        src: getAddress(underlyingToken),
+        dst,
+        srcAmount: BigInt(swapCallData.data.amountOut),
+      };
     }
   }
 
@@ -107,7 +117,7 @@ export class PendlePTVenue implements LiquidityVenue {
       Object.entries(params).map(([key, value]) => [key, String(value)]) as [string, string][],
     ).toString();
 
-    const apiPath = api === "sdk" ? `v1/sdk/${chainId}` : `v1/${chainId}`;
+    const apiPath = api === "sdk" ? `v2/sdk/${chainId}` : `v2/${chainId}`;
     const url = `${this.API_URL}${apiPath}${endpoint}?${queryParams}`;
 
     const res = await fetch(url, {
@@ -122,6 +132,21 @@ export class PendlePTVenue implements LiquidityVenue {
     return res.json() as Promise<U>;
   }
 
+  private async getMarkets(chainId: number) {
+    const url = `${this.API_URL}v1/markets/all?chainId=${chainId}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+      },
+    });
+
+    if (!res.ok) throw new Error(res.statusText);
+
+    return res.json() as Promise<PendleMarketsResponse>;
+  }
+
   private async getSwapCallData(chainId: number, marketAddress: string, params: SwapParams) {
     return this.getApiData<SwapParams, SwapCallData>(
       chainId,
@@ -134,249 +159,10 @@ export class PendlePTVenue implements LiquidityVenue {
     return this.getApiData<RedeemParams, SwapCallData>(chainId, "/redeem", params);
   }
 
-  private async getTokens(chainId: number) {
-    return this.getApiData<{}, TokenListResponse>(
-      chainId,
-      "/assets/pendle-token/list",
-      {},
-      "non-sdk",
-    );
-  }
-
-  private async getMarketForPTToken(chainId: number, token: string) {
-    return this.getApiData<{}, MarketData>(chainId, `/markets?pt=${token}`, {}, "non-sdk");
-  }
-
   private isPT(token: string, chainId: BigIntish) {
-    return this.pendleTokens[Number(chainId)]!.tokens.some(
-      (tokenInfo) => tokenInfo.address === token && chainId === tokenInfo.chainId,
-    );
+    return this.pendleMarkets[Number(chainId)]!.markets.some((marketInfo) => {
+      const ptAddress = marketInfo.pt.split("-")[1];
+      return ptAddress === token.toLowerCase();
+    });
   }
-}
-
-export interface Market {
-  maturity: Date;
-  address: Address;
-  underlyingTokenAddress: Address;
-  yieldTokenAddress: Address;
-}
-
-export interface SwapParams {
-  receiver: string;
-  slippage: number;
-  tokenIn: string;
-  tokenOut: string;
-  amountIn: string;
-}
-
-export interface RedeemParams {
-  receiver: string;
-  slippage: number;
-  yt: string;
-  amountIn: string;
-  tokenOut: string;
-  enableAggregator: boolean;
-}
-
-export interface SwapCallData {
-  tx: {
-    data: Hex;
-    to: Address;
-    value: string;
-  };
-  data: {
-    amountOut: string;
-    priceImpact: number;
-  };
-}
-
-export interface VersionResponse {
-  major: number;
-  minor: number;
-  patch: number;
-}
-
-export interface TokenInfoResponse {
-  chainId: number;
-  address: string;
-  decimals: number;
-  name: string;
-  symbol: string;
-  logoURI: string;
-  tags: string[];
-}
-
-export interface TagDefinitionResponse {
-  name: string;
-  description: string;
-}
-
-export interface TokenListResponse {
-  name: string;
-  timestamp: string;
-  version: VersionResponse;
-  tokens: TokenInfoResponse[];
-  tokenMap: {
-    [key: string]: TokenInfoResponse;
-  };
-  keywords: string[];
-  logoURI: string;
-  tags: {
-    [key: string]: TagDefinitionResponse;
-  };
-}
-
-export interface MarketData {
-  total: number;
-  limit: number;
-  skip: number;
-  results: MarketResult[];
-}
-
-export interface MarketResult {
-  id: string;
-  chainId: number;
-  address: string;
-  symbol: string;
-  expiry: string;
-  pt: Token;
-  yt: Token;
-  sy: Token;
-  lp: Token;
-  accountingAsset: Asset;
-  underlyingAsset: Asset;
-  basePricingAsset: Asset;
-  protocol: string;
-  underlyingPool: string;
-  proSymbol: string;
-  proIcon: string;
-  assetRepresentation: string;
-  isWhitelistedPro: boolean;
-  isWhitelistedSimple: boolean;
-  votable: boolean;
-  isActive: boolean;
-  isWhitelistedLimitOrder: boolean;
-  accentColor: string;
-  totalPt: number;
-  totalSy: number;
-  totalLp: number;
-  liquidity: {
-    usd: number;
-    acc: number;
-  };
-  tradingVolume: {
-    usd: number;
-  };
-  underlyingInterestApy: number;
-  underlyingRewardApy: number;
-  underlyingApy: number;
-  impliedApy: number;
-  ytFloatingApy: number;
-  ptDiscount: number;
-  swapFeeApy: number;
-  pendleApy: number;
-  arbApy: number;
-  aggregatedApy: number;
-  maxBoostedApy: number;
-  lpRewardApy: number;
-  voterApy: number;
-  ytRoi: number;
-  ptRoi: number;
-  dataUpdatedAt: string;
-  categoryIds: string[];
-  timestamp: string;
-  scalarRoot: number;
-  initialAnchor: number;
-  extendedInfo: ExtendedInfo;
-  isFeatured: boolean;
-  isPopular: boolean;
-  tvlThresholdTimestamp: string;
-  isNew: boolean;
-  name: string;
-  simpleName: string;
-  simpleSymbol: string;
-  simpleIcon: string;
-  proName: string;
-  farmName: string;
-  farmSymbol: string;
-  farmSimpleName: string;
-  farmSimpleSymbol: string;
-  farmSimpleIcon: string;
-  farmProName: string;
-  farmProSymbol: string;
-  farmProIcon: string;
-}
-
-export interface Token {
-  id: string;
-  chainId: number;
-  address: string;
-  symbol: string;
-  decimals: number;
-  expiry: string | null;
-  accentColor: string;
-  price: {
-    usd: number;
-    acc?: number;
-  };
-  priceUpdatedAt: string;
-  name: string;
-  baseType: string;
-  types: string[];
-  protocol?: string;
-  underlyingPool?: string;
-  proSymbol: string;
-  proIcon: string;
-  zappable: boolean;
-  simpleName: string;
-  simpleSymbol: string;
-  simpleIcon: string;
-  proName: string;
-}
-
-export interface Asset {
-  id: string;
-  chainId: number;
-  address: Address;
-  symbol: string;
-  decimals: number;
-  expiry: string | null;
-  accentColor: string | null;
-  price: {
-    usd: number;
-  };
-  priceUpdatedAt: string;
-  name: string;
-  baseType: string;
-  types: string[];
-  protocol: string | null;
-  proSymbol: string;
-  proIcon: string;
-  zappable: boolean;
-  simpleName: string;
-  simpleSymbol: string;
-  simpleIcon: string;
-  proName: string;
-}
-
-export interface ExtendedInfo {
-  floatingPt: number;
-  floatingSy: number;
-  pyUnit: string;
-  ptEqualsPyUnit: boolean;
-  underlyingAssetWorthMore?: string;
-  nativeWithdrawalURL?: string;
-  movement10Percent: {
-    ptMovementUpUsd: number;
-    ptMovementDownUsd: number;
-    ytMovementUpUsd: number;
-    ytMovementDownUsd: number;
-  };
-  feeRate: number;
-  yieldRange: {
-    min: number;
-    max: number;
-  };
-  sySupplyCap?: number;
-  syCurrentSupply?: number;
 }
