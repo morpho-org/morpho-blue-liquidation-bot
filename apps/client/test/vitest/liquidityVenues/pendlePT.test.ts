@@ -3,7 +3,7 @@ import { executorAbi } from "executooor-viem";
 import nock from "nock";
 import { Address, erc20Abi, Hex, maxUint256, parseUnits } from "viem";
 import { readContract, writeContract } from "viem/actions";
-import { describe, expect, vi } from "vitest";
+import { afterEach, describe, expect, vi } from "vitest";
 
 import { PendlePTVenue } from "../../../src/liquidityVenues/pendlePT";
 import { USDC, WBTC } from "../../constants";
@@ -66,6 +66,7 @@ describe("erc4626 liquidity venue", () => {
     async ({ client, encoder }) => {
       await syncTimestamp(client);
 
+      // data returned by the api at the block timestamp
       const tx = {
         data: "0x594a88cc000000000000000000000000767a702a317ecd9dd373048dd1a6a3eea87211690000000000000000000000004eaa571eafcd96f51728756bd7f396459bb9b86900000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000004c9edd5852cd905f086c759e8383e09bff1e68b30000000000000000000000000000000000000000000002030ba79fbee409ad770000000000000000000000004c9edd5852cd905f086c759e8383e09bff1e68b3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         to: "0x888888888889758F76e7103c6CbF23ABbF58F946",
@@ -179,12 +180,133 @@ describe("erc4626 liquidity venue", () => {
         }),
       ]);
 
-      console.log("encoder");
+      expect(encoderCollateralBalanceAfter).toBe(0n);
+      expect(encoderUnderlyingBalanceAfter).toBeGreaterThanOrEqual(BigInt(amountOut));
+    },
+  );
+
+  pendlePTTest.sequential(
+    `should swap a PT token to the underlying token market after maturity`,
+    async ({ client, encoder }) => {
+      const postMaturity = BigInt(new Date("2025-11-27T00:00:00.000Z").getTime() / 1000 + 100);
+      await syncTimestamp(client, postMaturity);
+
+      // data returned by the api at the block timestamp
+      const tx = {
+        data: "0x47f1de22000000000000000000000000767a702a317ecd9dd373048dd1a6a3eea872116900000000000000000000000099c92d4da7a81c7698ef33a39d7538d0f92623f700000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000004c9edd5852cd905f086c759e8383e09bff1e68b30000000000000000000000000000000000000000000002086ac35105260000000000000000000000000000004c9edd5852cd905f086c759e8383e09bff1e68b3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        to: "0x888888888889758F76e7103c6CbF23ABbF58F946",
+        from: "0x767a702a317ecd9dd373048dd1a6a3eea8721169",
+      };
+
+      const amountOut = "10000000000000000000000";
+
+      encoder
+        .erc20Approve(collateral, tx.to as Address, maxUint256)
+        .pushCall(tx.to as Address, 0n, tx.data as Hex);
+
+      const expectedCalls = encoder.flush();
+
+      nock.cleanAll();
+
+      nock("https://api-v2.pendle.finance/core/")
+        .get(
+          "/v2/sdk/1/redeem?receiver=0x767a702a317ecd9dd373048dd1a6a3eea8721169&slippage=0.04&yt=0x99c92d4da7a81c7698ef33a39d7538d0f92623f7&amountIn=10000000000000000000000&tokenOut=0x4c9edd5852cd905f086c759e8383e09bff1e68b3&enableAggregator=true",
+        )
+        .reply(200, {
+          method: "redeemPyToToken",
+          contractCallParamsName: ["receiver", "YT", "netPyIn", "output"],
+          contractCallParams: [
+            "0x767a702a317ecd9dd373048dd1a6a3eea8721169",
+            "0x99c92d4da7a81c7698ef33a39d7538d0f92623f7",
+            "10000000000000000000000",
+            {
+              tokenOut: "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+              minTokenOut: "9600000000000000000000",
+              tokenRedeemSy: "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+              pendleSwap: "0x0000000000000000000000000000000000000000",
+              swapData: [Object],
+            },
+          ],
+          tx,
+          tokenApprovals: [
+            {
+              token: "0x62c6e813b9589c3631ba0cdb013acdb8544038b7",
+              amount: "10000000000000000000000",
+            },
+            {
+              token: "0x99c92d4da7a81c7698ef33a39d7538d0f92623f7",
+              amount: "10000000000000000000000",
+            },
+          ],
+          data: { amountOut, priceImpact: -1.817e-16 },
+        });
+
+      await pendlePTVenue.convert(encoder, {
+        src: collateral,
+        dst: USDC,
+        srcAmount: collateralAmount,
+      });
+
+      const encodedCalls = encoder.flush();
+
+      expect(encodedCalls).toEqual(expectedCalls);
+
+      await encoder.client.deal({
+        erc20: collateral,
+        account: encoder.address,
+        amount: collateralAmount,
+      });
+
+      const [encoderCollateralBalanceBefore, encoderUnderlyingBalanceBefore] = await Promise.all([
+        readContract(encoder.client, {
+          address: collateral,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [encoder.address],
+        }),
+        readContract(encoder.client, {
+          address: underlying,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [encoder.address],
+        }),
+      ]);
+
+      expect(encoderCollateralBalanceBefore).toBe(collateralAmount);
+      expect(encoderUnderlyingBalanceBefore).toBe(0n);
+
+      const functionData = {
+        abi: executorAbi,
+        functionName: "exec_606BaXt",
+        args: [encodedCalls],
+      } as const;
+
+      await writeContract(encoder.client, { address: encoder.address, ...functionData });
+
+      const [encoderCollateralBalanceAfter, encoderUnderlyingBalanceAfter] = await Promise.all([
+        readContract(encoder.client, {
+          address: collateral,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [encoder.address],
+        }),
+        readContract(encoder.client, {
+          address: underlying,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [encoder.address],
+        }),
+      ]);
 
       expect(encoderCollateralBalanceAfter).toBe(0n);
       expect(encoderUnderlyingBalanceAfter).toBeGreaterThanOrEqual(BigInt(amountOut));
     },
   );
+});
+
+afterEach(() => {
+  // restoring date after each test run
+  vi.useRealTimers();
 });
 
 const syncTimestamp = async (client: AnvilTestClient, timestamp?: bigint) => {

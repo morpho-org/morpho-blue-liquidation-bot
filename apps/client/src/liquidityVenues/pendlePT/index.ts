@@ -1,5 +1,5 @@
 import { type ExecutorEncoder } from "executooor-viem";
-import { type Address, getAddress, Hex, maxUint256 } from "viem";
+import { type Address, getAddress, maxUint256 } from "viem";
 
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
