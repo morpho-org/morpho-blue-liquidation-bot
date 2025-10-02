@@ -163,6 +163,7 @@ For now, we implemented the following ones:
 - ERC4626: Enables the withdrawals from ERC4626 vaults.
 - UniswapV3: Enables the swap of tokens on Uniswap V3.
 - UniswapV4: Enables the swap of tokens on Uniswap V4.
+- Pendle: Enables the swap (and redeem) Pendle PT tokens.
 
 Liquidity venues can be combined to create more complex strategies. For example, you can combine the `ERC4626` and `UniswapV3` venues to liquidate a position from a 4626 vault by first withdrawing from the vault and then swapping the underlying token for the desired token.
 
