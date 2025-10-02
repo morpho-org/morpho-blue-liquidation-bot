@@ -1,57 +1,10 @@
 import { API_BASE_URL, slippage, supportedNetworks } from "@morpho-blue-liquidation-bot/config";
 import { ExecutorEncoder } from "executooor-viem";
 import { LiquidityVenue } from "../liquidityVenue";
-import { Address, Hex } from "viem";
+import { Address } from "viem";
 import { ToConvert } from "../../utils/types";
 import { BigIntish } from "@morpho-org/blue-sdk";
-
-interface SwapParams {
-  chainId: BigIntish;
-  src: string;
-  dst: string;
-  amount: BigIntish;
-  from: string;
-  origin: string;
-  slippage: BigIntish;
-  protocols?: string;
-  fee?: BigIntish;
-  gasPrice?: BigIntish;
-  complexityLevel?: number;
-  parts?: number;
-  mainRouteParts?: number;
-  gasLimit?: BigIntish;
-  includeTokensInfo?: boolean;
-  includeProtocols?: boolean;
-  includeGas?: boolean;
-  connectorTokens?: string;
-  excludedProtocols?: string;
-  permit?: string;
-  receiver?: string;
-  referrer?: string;
-  allowPartialFill?: boolean;
-  disableEstimate?: boolean;
-  usePermit2?: boolean;
-}
-
-interface SwapToken {
-  symbol: string;
-  name: string;
-  decimals: number;
-  address: string;
-  logoURI: string;
-}
-
-interface SwapResponse {
-  srcToken: SwapToken;
-  dstToken: SwapToken;
-  dstAmount: string;
-  protocols: {}[];
-  tx: {
-    to: Address;
-    data: Hex;
-    value: bigint;
-  };
-}
+import { SwapParams, SwapResponse } from "./types";
 
 export class OneInch implements LiquidityVenue {
   private apiKey: string | undefined;
@@ -61,6 +14,7 @@ export class OneInch implements LiquidityVenue {
   }
 
   supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
+    if (src === dst) return false;
     if (!supportedNetworks.includes(encoder.client.chain.id)) return false;
     return this.apiKey !== undefined;
   }
