@@ -46,9 +46,6 @@
     "node": ">=18.14"
   },
   "pnpm": {
-    "overrides": {
-      "viem": "2.23.2"
-    },
     "packageExtensions": {
       "@uniswap/v4-sdk@*": {
         "dependencies": {

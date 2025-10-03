@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  viem: 2.23.2
-
 packageExtensionsChecksum: b15e09649e3a96b1b8ba63631ff337dc
 
 importers:
@@ -23,7 +20,7 @@ importers:
         specifier: ^4.19.3
         version: 4.19.3
       viem:
-        specifier: 2.23.2
+        specifier: ^2.23.2
         version: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     devDependencies:
       '@eslint/js':
@@ -825,7 +822,7 @@ packages:
     peerDependencies:
       '@playwright/test': ^1.48.1
       ethers: ^6.13.0
-      viem: 2.23.2
+      viem: ^2.21.10
       vitest: '>=2.0.0 <4.0.0'
     peerDependenciesMeta:
       '@playwright/test':
@@ -1000,7 +997,7 @@ packages:
     resolution: {integrity: sha512-Yjkr2j9xerqPtsGCrVWTvC/HzjrPsdYPSBnqlj1ZwivIjkB371pTYmj6T1+kNshCyBuClXCp5ZxHReBaG2Fz0A==}
     peerDependencies:
       typescript: '>=5.0.4'
-      viem: 2.23.2
+      viem: '>=2'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1110,9 +1107,6 @@ packages:
 
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
-
-  '@scure/base@1.2.4':
-    resolution: {integrity: sha512-5Yy9czTO47mqz+/J8GM6GIId4umdCk1wc1q8rKERQulIoc8VP9pzDcghv10Tl2E7R96ZUx/PhND3ESYUQX8NuQ==}
 
   '@scure/base@1.2.6':
     resolution: {integrity: sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==}
@@ -2154,7 +2148,7 @@ packages:
     resolution: {integrity: sha512-8npMgRIDerwxeyWonqsTSrw28CIU4EDUz2JSXRz5hEIF6pxNbRls6uS2wR2lf74J2fxAgtF6+Ltin5/bMlFiyw==}
     peerDependencies:
       evm-maths: ^7.0.0
-      viem: 2.23.2
+      viem: ^2.0.0
 
   expect-type@1.2.0:
     resolution: {integrity: sha512-80F22aiJ3GLyVnS/B3HzgR6RelZVumzj9jkL0Rhz4h0xYbNW9PjlQz5h3J/SShErbXBc295vseR4/MIbVmUbeA==}
@@ -2941,7 +2935,7 @@ packages:
     peerDependencies:
       hono: '>=4.5'
       typescript: '>=5.0.4'
-      viem: 2.23.2
+      viem: '>=2'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -3450,12 +3444,12 @@ packages:
   viem-deal@2.0.4:
     resolution: {integrity: sha512-gd1+pnLissjxYbaJ8u2UtdOOpv0o4W8RsVlSwy5w+SEasi/f5VJvrCVmE8cBrcHpvWYqoaxwj4VfJG45oLPnyQ==}
     peerDependencies:
-      viem: 2.23.2
+      viem: ^2.21.18
 
   viem-tracer@1.5.5:
     resolution: {integrity: sha512-C6fEeO2hfvGEtiRd4ZE/82rWdSzf98YBuWxG7qmrSjOAcz7gVJEt8jpSFHUvVP0IZl0/1N+eix7JHDXGZ6iyHQ==}
     peerDependencies:
-      viem: 2.23.2
+      viem: ^2.21.0
 
   viem@2.23.2:
     resolution: {integrity: sha512-NVmW/E0c5crMOtbEAqMF0e3NmvQykFXhLOc/CkLIXOlzHSA6KXVz3CYVmaKqBF8/xtjsjHAGjdJN3Ru1kFJLaA==}
@@ -4987,10 +4981,7 @@ snapshots:
   '@scure/base@1.1.9':
     optional: true
 
-  '@scure/base@1.2.4': {}
-
-  '@scure/base@1.2.6':
-    optional: true
+  '@scure/base@1.2.6': {}
 
   '@scure/bip32@1.1.5':
     dependencies:
@@ -5010,7 +5001,7 @@ snapshots:
     dependencies:
       '@noble/curves': 1.8.1
       '@noble/hashes': 1.7.1
-      '@scure/base': 1.2.4
+      '@scure/base': 1.2.6
 
   '@scure/bip39@1.1.1':
     dependencies:
@@ -5027,7 +5018,7 @@ snapshots:
   '@scure/bip39@1.5.4':
     dependencies:
       '@noble/hashes': 1.7.1
-      '@scure/base': 1.2.4
+      '@scure/base': 1.2.6
 
   '@sentry/core@5.30.0':
     dependencies:
@@ -6723,7 +6714,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
