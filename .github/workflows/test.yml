@@ -7,58 +7,104 @@ on:
   pull_request:
 
 jobs:
-  run-tests:
+  liquidity-venues:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Run liquidity venue tests
+        run: pnpm test:liquidity-venues
+        env:
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
+  pricers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Run pricers tests
+        run: pnpm test:pricers
+        env:
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
+
+  execution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Run liquidation execution tests
+        run: pnpm test:execution
+        env:
+          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
+
+  indexer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
       - name: Restore Ponder cache
         uses: actions/cache@v3
         with:
           path: apps/ponder/.ponder
           key: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-indexing-test-cache-${{ github.job }}-
-
-      - name: Install dependencies
-        run: pnpm i --frozen-lockfile
-
-      - name: Install Foundry (anvil, forge, cast)
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: stable
-
-      - name: Run liquidity venue tests
-        run: pnpm test:liquidity-venues
-        env:
-          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-
-      - name: Run pricers tests
-        run: pnpm test:pricers
-        env:
-          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-
-      - name: Run liquidation execution tests
-        run: pnpm test:execution
-        env:
-          RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-
       - name: Run indexer tests
         run: pnpm test
         working-directory: apps/ponder
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-
       - name: Save Ponder cache
         uses: actions/cache/save@v3
         with:
