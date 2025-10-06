@@ -17,6 +17,7 @@ import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/ac
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
+import { CooldownMechanism } from "./utils/cooldownMechanism.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
@@ -39,6 +40,7 @@ export interface LiquidationBotInputs {
   executorAddress: Address;
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
+  cooldownMechanism?: CooldownMechanism;
 }
 
 export class LiquidationBot {
@@ -52,6 +54,7 @@ export class LiquidationBot {
   private executorAddress: Address;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
+  private cooldownMechanism?: CooldownMechanism;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -64,6 +67,7 @@ export class LiquidationBot {
     this.executorAddress = inputs.executorAddress;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
+    this.cooldownMechanism = inputs.cooldownMechanism;
   }
 
   async run() {
@@ -104,9 +108,11 @@ export class LiquidationBot {
   }
 
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
-    const { client, executorAddress } = this;
-
     const marketParams = market.params;
+
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+
+    const { client, executorAddress } = this;
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
@@ -155,9 +161,11 @@ export class LiquidationBot {
   }
 
   private async preLiquidate(market: IMarket, position: PreLiquidatablePosition) {
-    const { client, executorAddress } = this;
-
     const marketParams = market.params;
+
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+
+    const { client, executorAddress } = this;
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
@@ -346,5 +354,15 @@ export class LiquidationBot {
           14,
         ),
     );
+  }
+
+  private checkCooldown(marketId: Hex, account: Address) {
+    if (
+      this.cooldownMechanism !== undefined &&
+      !this.cooldownMechanism.isPositionReady(marketId, account)
+    ) {
+      return false;
+    }
+    return true;
   }
 }
