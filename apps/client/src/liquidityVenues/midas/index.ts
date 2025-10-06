@@ -79,7 +79,7 @@ export class MidasVenue implements LiquidityVenue {
     return midasConfigs[chainId]![token]!.instantRedemptionVault;
   }
 
-  private previewRedeemInstant(params: PreviewRedeemInstantParams) {
+  previewRedeemInstant(params: PreviewRedeemInstantParams) {
     const feeData = this._calcAndValidateRedeem(params);
     if (!feeData) return undefined;
 
@@ -178,7 +178,7 @@ export class MidasVenue implements LiquidityVenue {
 
   // async methods
 
-  private async getRedemptionParams(
+  async getRedemptionParams(
     vault: Address,
     tokenOut: Address,
     seizedCollateral: bigint,
@@ -323,15 +323,6 @@ export class MidasVenue implements LiquidityVenue {
       address: dataFeed,
       abi: midasDataFeedAbi,
       functionName: "getDataInBase18",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultPaymentTokens(vault: Address) {
-    return readContract(this.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "getPaymentTokens",
       args: [],
     });
   }
