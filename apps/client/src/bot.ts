@@ -110,7 +110,10 @@ export class LiquidationBot {
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
     const marketParams = market.params;
 
-    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+    if (
+      !this.cooldownMechanism?.isPositionReady(MarketUtils.getMarketId(marketParams), position.user)
+    )
+      return;
 
     const { client, executorAddress } = this;
 
@@ -163,7 +166,10 @@ export class LiquidationBot {
   private async preLiquidate(market: IMarket, position: PreLiquidatablePosition) {
     const marketParams = market.params;
 
-    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+    if (
+      !this.cooldownMechanism?.isPositionReady(MarketUtils.getMarketId(marketParams), position.user)
+    )
+      return;
 
     const { client, executorAddress } = this;
 
@@ -354,15 +360,5 @@ export class LiquidationBot {
           14,
         ),
     );
-  }
-
-  private checkCooldown(marketId: Hex, account: Address) {
-    if (
-      this.cooldownMechanism !== undefined &&
-      !this.cooldownMechanism.isPositionReady(marketId, account)
-    ) {
-      return false;
-    }
-    return true;
   }
 }

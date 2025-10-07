@@ -15,8 +15,7 @@ export class CooldownMechanism {
     }
 
     if (this.positionReadyAt[marketId][account] === undefined) {
-      this.positionReadyAt[marketId][account] = Date.now() / 1000 + this.cooldownPeriod;
-      return true;
+      this.positionReadyAt[marketId][account] = 0;
     }
 
     if (this.positionReadyAt[marketId][account] > Date.now() / 1000) {
