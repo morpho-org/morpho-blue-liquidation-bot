@@ -202,7 +202,7 @@ export class MidasVenue implements LiquidityVenue {
         midasContract.read.instantDailyLimit(),
         midasContract.read.STABLECOIN_RATE(),
         midasContract.read.waivedFeeRestriction([encoder.address]),
-        midasContract.read.dailyLimits([BigInt(Math.round(Date.now() / 1000 / (60 * 60 * 24)))]),
+        midasContract.read.dailyLimits([BigInt(Math.floor(Date.now() / 1000 / (60 * 60 * 24)))]),
         midasContract.read.mTokenDataFeed(),
         midasContract.read.tokensConfig([tokenOut]),
         readContract(encoder.client, {
