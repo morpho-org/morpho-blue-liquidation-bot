@@ -3,3 +3,4 @@ export * from "./uniswapV3";
 export * from "./uniswapV4";
 export * from "./1inch";
 export * from "./pendlePT";
+export * from "./midas";

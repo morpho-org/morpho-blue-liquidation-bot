@@ -51,7 +51,7 @@ export const oneInchTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
   forkBlockNumber: 23_474_754,
   timeout: 100_000,
- }).extend<ExecutorEncoderTestContext<typeof mainnet>>({
+}).extend<ExecutorEncoderTestContext<typeof mainnet>>({
   encoder: async ({ client }, use) => {
     const receipt = await client.deployContractWait({
       abi: executorAbi,
@@ -64,7 +64,7 @@ export const oneInchTest = createViemTest(mainnet, {
 });
 
 export const pendlePTTest = createViemTest(mainnet, {
-  forkUrl: process.env.MAINNET_RPC_URL,
+  forkUrl: process.env.RPC_URL_1,
   forkBlockNumber: 23_490_817,
 }).extend<ExecutorEncoderTestContext<typeof mainnet>>({
   encoder: async ({ client }, use) => {
@@ -77,4 +77,18 @@ export const pendlePTTest = createViemTest(mainnet, {
     await use(new ExecutorEncoder(receipt.contractAddress, client));
   },
 });
-                                      
+
+export const midasTest = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1,
+  forkBlockNumber: 21_587_766,
+}).extend<ExecutorEncoderTestContext<typeof mainnet>>({
+  encoder: async ({ client }, use) => {
+    const receipt = await client.deployContractWait({
+      abi: executorAbi,
+      bytecode,
+      args: [client.account.address],
+    });
+
+    await use(new ExecutorEncoder(receipt.contractAddress, client));
+  },
+});

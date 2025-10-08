@@ -15,7 +15,7 @@ const underlying = "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3" as Address; // U
 const collateralAmount = parseUnits("10000", 18);
 const pendlePTVenue = new PendlePTVenue();
 
-describe("erc4626 liquidity venue", () => {
+describe("Pendle PT liquidity venue", () => {
   pendlePTTest.sequential(`should test supportsRoute`, async ({ encoder }) => {
     nock("https://api-v2.pendle.finance/core/")
       .get("/v1/markets/all?chainId=1")
