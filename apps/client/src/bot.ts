@@ -1,3 +1,4 @@
+import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -21,13 +22,12 @@ import { CooldownMechanism } from "./utils/cooldownMechanism.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
+import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
 import type {
   IndexerAPIResponse,
   LiquidatablePosition,
   PreLiquidatablePosition,
 } from "./utils/types.js";
-import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
-import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
 export interface LiquidationBotInputs {
   logTag: string;
@@ -110,10 +110,7 @@ export class LiquidationBot {
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
     const marketParams = market.params;
 
-    if (
-      !this.cooldownMechanism?.isPositionReady(MarketUtils.getMarketId(marketParams), position.user)
-    )
-      return;
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
     const { client, executorAddress } = this;
 
@@ -166,10 +163,7 @@ export class LiquidationBot {
   private async preLiquidate(market: IMarket, position: PreLiquidatablePosition) {
     const marketParams = market.params;
 
-    if (
-      !this.cooldownMechanism?.isPositionReady(MarketUtils.getMarketId(marketParams), position.user)
-    )
-      return;
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
     const { client, executorAddress } = this;
 
@@ -360,5 +354,15 @@ export class LiquidationBot {
           14,
         ),
     );
+  }
+
+  private checkCooldown(marketId: Hex, account: Address) {
+    if (
+      this.cooldownMechanism !== undefined &&
+      !this.cooldownMechanism.isPositionReady(marketId, account)
+    ) {
+      return false;
+    }
+    return true;
   }
 }
