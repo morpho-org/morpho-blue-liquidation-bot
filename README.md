@@ -136,6 +136,12 @@ Some pricers require chain-specific configuration. This is done in the `apps/con
 
 For example, the `uniswapV3` pricer has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/pricers/uniswapV3.ts`.
 
+### Cooldown Mechanism Configuration
+
+It's possible to configure a cooldown mechanism, allowing the bot to wait a configurable time before attempting to liquidate a position that it has failed to liquidate. This mechanism is useful if some liquidity venue relies on an API with a low rate-limit (ex: 1inch).
+
+This is done by configuring `COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).
