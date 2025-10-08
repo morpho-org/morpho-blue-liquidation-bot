@@ -1,6 +1,6 @@
 import { midasConfigs } from "@morpho-blue-liquidation-bot/config";
 import { type ExecutorEncoder } from "executooor-viem";
-import { type Address, encodeFunctionData, erc20Abi } from "viem";
+import { type Address, encodeFunctionData, erc20Abi, getContract } from "viem";
 import { readContract } from "viem/actions";
 
 import type { ToConvert } from "../../utils/types";
@@ -165,15 +165,11 @@ export class MidasVenue implements LiquidityVenue {
     if (originalAmount === 0n) return 0n;
     if (originalDecimals === decidedDecimals) return originalAmount;
 
-    let adjustedAmount = 0n;
-
     if (originalDecimals > decidedDecimals) {
-      adjustedAmount = originalAmount / 10n ** (originalDecimals - decidedDecimals);
+      return originalAmount / 10n ** (originalDecimals - decidedDecimals);
     } else {
-      adjustedAmount = originalAmount * 10n ** (decidedDecimals - originalDecimals);
+      return originalAmount * 10n ** (decidedDecimals - originalDecimals);
     }
-
-    return adjustedAmount;
   }
 
   // async methods
@@ -184,6 +180,11 @@ export class MidasVenue implements LiquidityVenue {
     seizedCollateral: bigint,
     encoder: ExecutorEncoder,
   ): Promise<PreviewRedeemInstantParams | undefined> {
+    const midasContract = getContract({
+      address: vault,
+      abi: redemptionVaultAbi,
+      client: encoder.client,
+    });
     try {
       const [
         minAmount,
@@ -196,14 +197,14 @@ export class MidasVenue implements LiquidityVenue {
         tokenOutConfig,
         tokenOutDecimals,
       ] = await Promise.all([
-        this.getRedemptionVaultMinAmount(vault, encoder),
-        this.getRedemptionVaultInstantFee(vault, encoder),
-        this.getRedemptionVaultInstantDailyLimit(vault, encoder),
-        this.getRedemptionVaultStableCoinRate(vault, encoder),
-        this.getRedemptionVaultWaivedFeeRestriction(vault, encoder),
-        this.getRedemptionVaultDailyLimits(vault, encoder),
-        this.getRedemptionVaultmTokenDataFeed(vault, encoder),
-        this.getRedemptionVaultMTokenOutConfig(vault, tokenOut, encoder),
+        midasContract.read.minAmount(),
+        midasContract.read.instantFee(),
+        midasContract.read.instantDailyLimit(),
+        midasContract.read.STABLECOIN_RATE(),
+        midasContract.read.waivedFeeRestriction([encoder.address]),
+        midasContract.read.dailyLimits([BigInt(Math.round(Date.now() / 1000 / (60 * 60 * 24)))]),
+        midasContract.read.mTokenDataFeed(),
+        midasContract.read.tokensConfig([tokenOut]),
         readContract(encoder.client, {
           address: tokenOut,
           abi: erc20Abi,
@@ -239,83 +240,6 @@ export class MidasVenue implements LiquidityVenue {
       console.error(e);
       return undefined;
     }
-  }
-
-  async getRedemptionVaultMinAmount(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "minAmount",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultInstantFee(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "instantFee",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultInstantDailyLimit(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "instantDailyLimit",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultStableCoinRate(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "STABLECOIN_RATE",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultWaivedFeeRestriction(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "waivedFeeRestriction",
-      args: [encoder.address],
-    });
-  }
-
-  async getRedemptionVaultDailyLimits(vault: Address, encoder: ExecutorEncoder) {
-    const currentDayNumber = Math.round(Date.now() / 1000 / (60 * 60 * 24));
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "dailyLimits",
-      args: [BigInt(currentDayNumber)],
-    });
-  }
-
-  async getRedemptionVaultmTokenDataFeed(vault: Address, encoder: ExecutorEncoder) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "mTokenDataFeed",
-      args: [],
-    });
-  }
-
-  async getRedemptionVaultMTokenOutConfig(
-    vault: Address,
-    tokenOutAddress: Address,
-    encoder: ExecutorEncoder,
-  ) {
-    return readContract(encoder.client, {
-      address: vault,
-      abi: redemptionVaultAbi,
-      functionName: "tokensConfig",
-      args: [tokenOutAddress],
-    });
   }
 
   async getMidasRate(dataFeed: Address, encoder: ExecutorEncoder) {
