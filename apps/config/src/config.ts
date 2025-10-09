@@ -1,9 +1,10 @@
-import { base, mainnet, unichain, katana } from "viem/chains";
+import { base, mainnet, unichain, katana, arbitrum } from "viem/chains";
 
 import type { Config } from "./types";
 
 export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
 export const COOLDOWN_PERIOD = 60 * 60; // 1 hour
+export const WHITELIST_FETCH_INTERVAL = 60 * 60; // 1 hour
 
 export const chainConfigs: Record<number, Config> = {
   [mainnet.id]: {
@@ -29,13 +30,8 @@ export const chainConfigs: Record<number, Config> = {
     },
     wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     options: {
-      vaultWhitelist: [
-        "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
-        "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
-      ],
-      additionalMarketsWhitelist: [
-        "0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20",
-      ],
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
       checkProfit: true,
       liquidationBufferBps: 50,
     },
@@ -63,9 +59,10 @@ export const chainConfigs: Record<number, Config> = {
     },
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
-      vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
+      vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: true,
+      liquidationBufferBps: 50,
     },
   },
   [unichain.id]: {
@@ -88,6 +85,7 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      liquidationBufferBps: 50,
     },
   },
   [katana.id]: {
@@ -110,6 +108,30 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      liquidationBufferBps: 50,
+    },
+  },
+  [arbitrum.id]: {
+    chain: arbitrum,
+    morpho: { address: "0x6c247b1F6182318877311737BaC0844bAa518F5e", startBlock: 296446593 },
+    adaptiveCurveIrm: {
+      address: "0x66F30587FB8D4206918deb78ecA7d5eBbafD06DA",
+      startBlock: 296446593,
+    },
+    metaMorphoFactories: {
+      addresses: ["0x878988f5f561081deEa117717052164ea1Ef0c82"],
+      startBlock: 296446593,
+    },
+    preLiquidationFactory: {
+      address: "0x635c31B5DF1F7EFbCbC07E302335Ef4230758e3d",
+      startBlock: 307326238,
+    },
+    wNative: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    options: {
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+      liquidationBufferBps: 50,
     },
   },
 };

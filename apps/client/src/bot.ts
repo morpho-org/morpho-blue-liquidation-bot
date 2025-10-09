@@ -1,4 +1,4 @@
-import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import { chainConfigs, WHITELIST_FETCH_INTERVAL } from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -55,6 +55,8 @@ export class LiquidationBot {
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
   private cooldownMechanism?: CooldownMechanism;
+  private lastWhitelistFetch: number;
+  private fetchedVaults: Address[] = [];
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -68,17 +70,25 @@ export class LiquidationBot {
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
     this.cooldownMechanism = inputs.cooldownMechanism;
+    this.fetchedVaults = [];
+    this.lastWhitelistFetch = 0;
   }
 
   async run() {
+    let vaultWhitelist: Address[] = [];
     if (this.vaultWhitelist === "morpho-api") {
-      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
-      console.log(
-        `${this.logTag}📝 Watching markets in the following vaults:`,
-        this.vaultWhitelist,
-      );
+      if (Date.now() / 1000 - this.lastWhitelistFetch > WHITELIST_FETCH_INTERVAL) {
+        try {
+          this.fetchedVaults = await fetchWhitelistedVaults(this.chainId);
+        } catch (error) {
+          console.error(`${this.logTag}Failed to fetch whitelisted vaults:`, error);
+        }
+        this.lastWhitelistFetch = Date.now() / 1000;
+      }
+      vaultWhitelist = this.fetchedVaults;
+    } else {
+      vaultWhitelist = this.vaultWhitelist;
     }
-    const vaultWhitelist = this.vaultWhitelist;
 
     const whitelistedMarketsFromVaults = [
       ...new Set(
