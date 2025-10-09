@@ -1,3 +1,4 @@
+import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -5,6 +6,7 @@ import {
   formatUnits,
   getAddress,
   maxUint256,
+  parseUnits,
   type Account,
   type Address,
   type Chain,
@@ -16,9 +18,11 @@ import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/ac
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
+import { CooldownMechanism } from "./utils/cooldownMechanism.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
+import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
 import type {
   IndexerAPIResponse,
   LiquidatablePosition,
@@ -36,6 +40,7 @@ export interface LiquidationBotInputs {
   executorAddress: Address;
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
+  cooldownMechanism?: CooldownMechanism;
 }
 
 export class LiquidationBot {
@@ -49,6 +54,7 @@ export class LiquidationBot {
   private executorAddress: Address;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
+  private cooldownMechanism?: CooldownMechanism;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -61,6 +67,7 @@ export class LiquidationBot {
     this.executorAddress = inputs.executorAddress;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
+    this.cooldownMechanism = inputs.cooldownMechanism;
   }
 
   async run() {
@@ -101,13 +108,21 @@ export class LiquidationBot {
   }
 
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
-    const { client, executorAddress } = this;
-
     const marketParams = market.params;
+
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+
+    const { client, executorAddress } = this;
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+    if (
+      !(await this.convertCollateralToLoan(
+        marketParams,
+        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        encoder,
+      ))
+    )
       return;
 
     encoder.erc20Approve(marketParams.loanToken, this.morphoAddress, maxUint256);
@@ -146,13 +161,21 @@ export class LiquidationBot {
   }
 
   private async preLiquidate(market: IMarket, position: PreLiquidatablePosition) {
-    const { client, executorAddress } = this;
-
     const marketParams = market.params;
+
+    if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
+
+    const { client, executorAddress } = this;
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, position.seizableCollateral, encoder)))
+    if (
+      !(await this.convertCollateralToLoan(
+        marketParams,
+        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        encoder,
+      ))
+    )
       return;
 
     encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
@@ -315,5 +338,31 @@ export class LiquidationBot {
     const profitUsd = loanAssetProfitUsd - gasUsedUsd;
 
     return profitUsd > 0;
+  }
+
+  private decreaseSeizableCollateral(seizableCollateral: bigint, collateral: bigint) {
+    if (seizableCollateral === collateral) return seizableCollateral;
+
+    return wMulDown(
+      seizableCollateral,
+      WAD -
+        parseUnits(
+          (
+            chainConfigs[this.chainId]?.options.liquidationBufferBps ??
+            DEFAULT_LIQUIDATION_BUFFER_BPS
+          ).toString(),
+          14,
+        ),
+    );
+  }
+
+  private checkCooldown(marketId: Hex, account: Address) {
+    if (
+      this.cooldownMechanism !== undefined &&
+      !this.cooldownMechanism.isPositionReady(marketId, account)
+    ) {
+      return false;
+    }
+    return true;
   }
 }

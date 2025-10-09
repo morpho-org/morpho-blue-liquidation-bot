@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  viem: 2.23.2
-
 packageExtensionsChecksum: b15e09649e3a96b1b8ba63631ff337dc
 
 importers:
@@ -17,14 +14,14 @@ importers:
         specifier: ^3.0.9
         version: 3.0.9(@morpho-org/morpho-ts@2.3.0)
       ponder:
-        specifier: ^0.11.1
-        version: 0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        specifier: ^0.13.6
+        version: 0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
       viem:
-        specifier: 2.23.2
-        version: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        specifier: ^2.37.0
+        version: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     devDependencies:
       '@eslint/js':
         specifier: ^9.20.0
@@ -82,7 +79,7 @@ importers:
         version: 0.11.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
       executooor-viem:
         specifier: ^1.3.3
-        version: 1.3.3(evm-maths@7.0.1)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 1.3.3(evm-maths@7.0.1)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -99,7 +96,7 @@ importers:
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
       '@types/yargs':
         specifier: ^17.0.33
         version: 17.0.33
@@ -120,7 +117,7 @@ importers:
         version: link:../config
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))
       '@ponder/client':
         specifier: ^0.11.1
         version: 0.11.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.14.1)(typescript@5.8.2)
@@ -825,7 +822,7 @@ packages:
     peerDependencies:
       '@playwright/test': ^1.48.1
       ethers: ^6.13.0
-      viem: 2.23.2
+      viem: ^2.21.10
       vitest: '>=2.0.0 <4.0.0'
     peerDependenciesMeta:
       '@playwright/test':
@@ -842,6 +839,10 @@ packages:
   '@napi-rs/wasm-runtime@0.2.7':
     resolution: {integrity: sha512-5yximcFK5FNompXfJFoWanu5l8v1hNGqNHh9du1xETp9HWk/B/PzvchX55WYOPaIeNglG8++68AAiauBAtbnzw==}
 
+  '@noble/ciphers@1.3.0':
+    resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
+    engines: {node: ^14.21.3 || >=16}
+
   '@noble/curves@1.2.0':
     resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
 
@@ -850,6 +851,10 @@ packages:
 
   '@noble/curves@1.8.1':
     resolution: {integrity: sha512-warwspo+UYUPep0Q+vtdVB4Ugn8GGQj8iyB3gnRWsztmUHTI3S1nhdiWNsPUGL0vud7JlRRk1XEu7Lq1KGTnMQ==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/curves@1.9.1':
+    resolution: {integrity: sha512-k11yZxZg+t+gWvBbIswW0yoJlu8cHOC7dhunwOzoWH/mXGBiYyR4YY6hAEK/3EUs4UpB8la1RfdRpeGsFHkWsA==}
     engines: {node: ^14.21.3 || >=16}
 
   '@noble/hashes@1.2.0':
@@ -865,6 +870,10 @@ packages:
 
   '@noble/hashes@1.7.1':
     resolution: {integrity: sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/hashes@1.8.0':
+    resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
     engines: {node: ^14.21.3 || >=16}
 
   '@noble/secp256k1@1.7.1':
@@ -996,11 +1005,11 @@ packages:
       typescript:
         optional: true
 
-  '@ponder/utils@0.2.7':
-    resolution: {integrity: sha512-7BcDd8y6Dmi+Bys4D0m+BULH9ug2XZ5Lsa4CwGSsJrY4OIQJerib6TENzTFHGR65XBV1gu9xLct9pMz7RpvAKg==}
+  '@ponder/utils@0.2.13':
+    resolution: {integrity: sha512-Yjkr2j9xerqPtsGCrVWTvC/HzjrPsdYPSBnqlj1ZwivIjkB371pTYmj6T1+kNshCyBuClXCp5ZxHReBaG2Fz0A==}
     peerDependencies:
       typescript: '>=5.0.4'
-      viem: 2.23.2
+      viem: '>=2'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1111,9 +1120,6 @@ packages:
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
 
-  '@scure/base@1.2.4':
-    resolution: {integrity: sha512-5Yy9czTO47mqz+/J8GM6GIId4umdCk1wc1q8rKERQulIoc8VP9pzDcghv10Tl2E7R96ZUx/PhND3ESYUQX8NuQ==}
-
   '@scure/base@1.2.6':
     resolution: {integrity: sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==}
 
@@ -1123,8 +1129,8 @@ packages:
   '@scure/bip32@1.4.0':
     resolution: {integrity: sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==}
 
-  '@scure/bip32@1.6.2':
-    resolution: {integrity: sha512-t96EPDMbtGgtb7onKKqxRLfE5g05k7uHnHRM2xdE6BP/ZmxaLtPek4J4KfVn/90IQNrU1IOAqMgiDtUdtbe3nw==}
+  '@scure/bip32@1.7.0':
+    resolution: {integrity: sha512-E4FFX/N3f4B80AKWp5dP6ow+flD1LQZo/w8UnLGYZO674jS6YnYeepycOOksv+vLPSpgN35wgKgy+ybfTb2SMw==}
 
   '@scure/bip39@1.1.1':
     resolution: {integrity: sha512-t+wDck2rVkh65Hmv280fYdVdY25J9YeEUIgn2LG1WM6gxFkGzcksoDiUkWVpVp3Oex9xGC68JU2dSbUfwZ2jPg==}
@@ -1132,8 +1138,8 @@ packages:
   '@scure/bip39@1.3.0':
     resolution: {integrity: sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==}
 
-  '@scure/bip39@1.5.4':
-    resolution: {integrity: sha512-TFM4ni0vKvCfBpohoh+/lY05i9gRbSwXWngAsF4CABQxoaOHijxuaZ2R6cStDQ5CHtHO9aGJTr4ksVJASRRyMA==}
+  '@scure/bip39@1.6.0':
+    resolution: {integrity: sha512-+lF0BbLiJNwVlev4eKelw1WWLaiKXw7sSl8T6FvBlWkdX+94aGJ4o8XjUdlyhTCjd8c+B3KT3JfS8P0bLRNU6A==}
 
   '@sentry/core@5.30.0':
     resolution: {integrity: sha512-TmfrII8w1PQZSZgPpUESqjB+jC6MvZJZdLtE/0hZ+SrnKhW3x5WlYLvTXZpcWePYBku7rl2wn1RZu6uT0qCTeg==}
@@ -1450,11 +1456,11 @@ packages:
       zod:
         optional: true
 
-  abitype@1.0.8:
-    resolution: {integrity: sha512-ZeiI6h3GnW06uYDLx0etQtX/p8E24UaHHBj57RSjK7YBFe7iuVn07EDpOeP451D06sF27VOz9JJPlIKJmXgkEg==}
+  abitype@1.1.0:
+    resolution: {integrity: sha512-6Vh4HcRxNMLA0puzPjM5GBgT4aAcFGKZzSgAXvuZ27shJP6NEpielTuqbBmZILR5/xd0PizkBGy5hReKz9jl5A==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: ^3 >=3.22.0
+      zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -2154,7 +2160,7 @@ packages:
     resolution: {integrity: sha512-8npMgRIDerwxeyWonqsTSrw28CIU4EDUz2JSXRz5hEIF6pxNbRls6uS2wR2lf74J2fxAgtF6+Ltin5/bMlFiyw==}
     peerDependencies:
       evm-maths: ^7.0.0
-      viem: 2.23.2
+      viem: ^2.0.0
 
   expect-type@1.2.0:
     resolution: {integrity: sha512-80F22aiJ3GLyVnS/B3HzgR6RelZVumzj9jkL0Rhz4h0xYbNW9PjlQz5h3J/SShErbXBc295vseR4/MIbVmUbeA==}
@@ -2520,8 +2526,8 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  isows@1.0.6:
-    resolution: {integrity: sha512-lPHCayd40oW98/I0uvgaHKWCSvkzY27LjWLbtzOm64yQ+G3Q5npjjbdppU65iZXkK1Zt+kH9pfegli0AYfwYYw==}
+  isows@1.0.7:
+    resolution: {integrity: sha512-I1fSfDCZL5P0v33sVqeTDSpcstAg/N+wF5HS033mogOVIp4B+oHC7oOCsA3axAbBSGTJ8QubbNmnIRN/h8U7hg==}
     peerDependencies:
       ws: '*'
 
@@ -2787,8 +2793,8 @@ packages:
   outvariant@1.4.3:
     resolution: {integrity: sha512-+Sl2UErvtsoajRDKCE5/dBz4DIvHXQQnAxtQTF04OJxY0+DyZXSo5P5Bb7XYWOh81syohlYL24hbDwxedPUJCA==}
 
-  ox@0.6.7:
-    resolution: {integrity: sha512-17Gk/eFsFRAZ80p5eKqv89a57uXjd3NgIf1CaXojATPBuujVc/fQSVhBeAU9JCRB+k7J50WQAyWTxK19T9GgbA==}
+  ox@0.9.6:
+    resolution: {integrity: sha512-8SuCbHPvv2eZLYXrNmC0EC12rdzXQLdhnOMlHDW2wiCPLxBrOOJwX5L5E61by+UjTPOryqQiRSnjIKCI+GykKg==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -2934,14 +2940,14 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  ponder@0.11.3:
-    resolution: {integrity: sha512-DA+Tv5BUVCVxocM+3z2wStI1v1Z9SUe/TlRKS9qVcwaPavX5P/gjrCc6OGIH2SRyOvCQtO/hvdUtOzyrIRYYXA==}
+  ponder@0.13.7:
+    resolution: {integrity: sha512-IGQJKQYQT2vy+0ipoYcw9yDgxhNredkUaGslJ2Roh+hVrPl2hFgemVGLvus0jFi5VYgQoS7rsq0OzzZB746i+g==}
     engines: {node: '>=18.14'}
     hasBin: true
     peerDependencies:
       hono: '>=4.5'
       typescript: '>=5.0.4'
-      viem: 2.23.2
+      viem: '>=2'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -3450,15 +3456,15 @@ packages:
   viem-deal@2.0.4:
     resolution: {integrity: sha512-gd1+pnLissjxYbaJ8u2UtdOOpv0o4W8RsVlSwy5w+SEasi/f5VJvrCVmE8cBrcHpvWYqoaxwj4VfJG45oLPnyQ==}
     peerDependencies:
-      viem: 2.23.2
+      viem: ^2.21.18
 
   viem-tracer@1.5.5:
     resolution: {integrity: sha512-C6fEeO2hfvGEtiRd4ZE/82rWdSzf98YBuWxG7qmrSjOAcz7gVJEt8jpSFHUvVP0IZl0/1N+eix7JHDXGZ6iyHQ==}
     peerDependencies:
-      viem: 2.23.2
+      viem: ^2.21.0
 
-  viem@2.23.2:
-    resolution: {integrity: sha512-NVmW/E0c5crMOtbEAqMF0e3NmvQykFXhLOc/CkLIXOlzHSA6KXVz3CYVmaKqBF8/xtjsjHAGjdJN3Ru1kFJLaA==}
+  viem@2.37.12:
+    resolution: {integrity: sha512-87lIfGNrAxrfxuM3TCxRET8cj5LvrLZABwJuilHGvijIrPZHZVFv3alquaRx0vvrfSP4QeIcnV/QaO/w2iXbsQ==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
@@ -3676,6 +3682,18 @@ packages:
 
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -4695,12 +4713,12 @@ snapshots:
 
   '@morpho-org/morpho-ts@2.3.0': {}
 
-  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))':
+  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0))':
     dependencies:
       lodash.kebabcase: 4.1.1
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-      viem-deal: 2.0.4(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      viem-tracer: 1.5.5(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem-deal: 2.0.4(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      viem-tracer: 1.5.5(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
     optionalDependencies:
       '@playwright/test': 1.51.1
       ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -4728,6 +4746,8 @@ snapshots:
       '@tybys/wasm-util': 0.9.0
     optional: true
 
+  '@noble/ciphers@1.3.0': {}
+
   '@noble/curves@1.2.0':
     dependencies:
       '@noble/hashes': 1.3.2
@@ -4741,6 +4761,11 @@ snapshots:
   '@noble/curves@1.8.1':
     dependencies:
       '@noble/hashes': 1.7.1
+    optional: true
+
+  '@noble/curves@1.9.1':
+    dependencies:
+      '@noble/hashes': 1.8.0
 
   '@noble/hashes@1.2.0':
     optional: true
@@ -4752,6 +4777,8 @@ snapshots:
     optional: true
 
   '@noble/hashes@1.7.1': {}
+
+  '@noble/hashes@1.8.0': {}
 
   '@noble/secp256k1@1.7.1':
     optional: true
@@ -4904,9 +4931,9 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@ponder/utils@0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@ponder/utils@0.2.13(typescript@5.8.2)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
     dependencies:
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.8.2
 
@@ -4975,10 +5002,7 @@ snapshots:
   '@scure/base@1.1.9':
     optional: true
 
-  '@scure/base@1.2.4': {}
-
-  '@scure/base@1.2.6':
-    optional: true
+  '@scure/base@1.2.6': {}
 
   '@scure/bip32@1.1.5':
     dependencies:
@@ -4994,11 +5018,11 @@ snapshots:
       '@scure/base': 1.1.9
     optional: true
 
-  '@scure/bip32@1.6.2':
+  '@scure/bip32@1.7.0':
     dependencies:
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/base': 1.2.4
+      '@noble/curves': 1.9.1
+      '@noble/hashes': 1.8.0
+      '@scure/base': 1.2.6
 
   '@scure/bip39@1.1.1':
     dependencies:
@@ -5012,10 +5036,10 @@ snapshots:
       '@scure/base': 1.1.9
     optional: true
 
-  '@scure/bip39@1.5.4':
+  '@scure/bip39@1.6.0':
     dependencies:
-      '@noble/hashes': 1.7.1
-      '@scure/base': 1.2.4
+      '@noble/hashes': 1.8.0
+      '@scure/base': 1.2.6
 
   '@sentry/core@5.30.0':
     dependencies:
@@ -5471,7 +5495,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.2
 
-  abitype@1.0.8(typescript@5.8.2):
+  abitype@1.1.0(typescript@5.8.2):
     optionalDependencies:
       typescript: 5.8.2
 
@@ -6262,10 +6286,10 @@ snapshots:
       signal-exit: 4.1.0
       strip-final-newline: 3.0.0
 
-  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       evm-maths: 7.0.1
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
 
   expect-type@1.2.0: {}
 
@@ -6668,9 +6692,9 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isows@1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+  isows@1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
   jackspeak@3.4.3:
     dependencies:
@@ -6711,7 +6735,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -6983,14 +7007,15 @@ snapshots:
 
   outvariant@1.4.3: {}
 
-  ox@0.6.7(typescript@5.8.2):
+  ox@0.9.6(typescript@5.8.2):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.8.2)
+      '@noble/ciphers': 1.3.0
+      '@noble/curves': 1.9.1
+      '@noble/hashes': 1.8.0
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
+      abitype: 1.1.0(typescript@5.8.2)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.8.2
@@ -7129,7 +7154,7 @@ snapshots:
       fsevents: 2.3.2
     optional: true
 
-  ponder@0.11.3(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(hono@4.7.5)(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  ponder@0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       '@babel/code-frame': 7.26.2
       '@commander-js/extra-typings': 12.1.0(commander@12.1.0)
@@ -7138,7 +7163,7 @@ snapshots:
       '@escape.tech/graphql-armor-max-depth': 2.4.0
       '@escape.tech/graphql-armor-max-tokens': 2.5.0
       '@hono/node-server': 1.13.3(hono@4.7.5)
-      '@ponder/utils': 0.2.7(typescript@5.8.2)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@ponder/utils': 0.2.13(typescript@5.8.2)(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       abitype: 0.10.3(typescript@5.8.2)
       ansi-escapes: 7.0.0
       commander: 12.1.0
@@ -7164,10 +7189,11 @@ snapshots:
       stacktrace-parser: 0.1.11
       superjson: 2.2.2
       terminal-size: 4.0.0
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
       vite: 5.0.7(@types/node@20.17.28)
       vite-node: 1.0.2(@types/node@20.17.28)
       vite-tsconfig-paths: 4.3.1(typescript@5.8.2)(vite@5.0.7(@types/node@20.17.28))
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -7188,6 +7214,7 @@ snapshots:
       - '@vercel/postgres'
       - '@xata.io/client'
       - better-sqlite3
+      - bufferutil
       - bun-types
       - expo-sqlite
       - gel
@@ -7205,6 +7232,7 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+      - utf-8-validate
       - zod
 
   postcss@8.5.3:
@@ -7687,25 +7715,25 @@ snapshots:
   uuid@8.3.2:
     optional: true
 
-  viem-deal@2.0.4(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  viem-deal@2.0.4(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
 
-  viem-tracer@1.5.5(viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  viem-tracer@1.5.5(viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       colors: 1.4.0
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
 
-  viem@2.23.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10):
+  viem@2.37.12(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10):
     dependencies:
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.8.2)
-      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      ox: 0.6.7(typescript@5.8.2)
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@noble/curves': 1.9.1
+      '@noble/hashes': 1.8.0
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
+      abitype: 1.1.0(typescript@5.8.2)
+      isows: 1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      ox: 0.9.6(typescript@5.8.2)
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -7975,6 +8003,12 @@ snapshots:
     optional: true
 
   ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    optionalDependencies:
+      bufferutil: 4.0.9
+      utf-8-validate: 5.0.10
+    optional: true
+
+  ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     optionalDependencies:
       bufferutil: 4.0.9
       utf-8-validate: 5.0.10

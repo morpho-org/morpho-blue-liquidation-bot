@@ -65,7 +65,7 @@ PreLiquidation Factory:
 - `preLiquidationFactory.address`: The address of the PreLiquidation factory.
 - `preLiquidationFactory.startBlock`: The block number of the PreLiquidation factory deployment.
 
-You may find the addresses in [Morpho documentation](https://docs.morpho.org/overview/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
+You may find the addresses in [Morpho documentation](https://docs.morpho.org/get-started/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
 
 ### Options
 
@@ -85,6 +85,10 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/ove
 **Chain Wrapped Native Asset**:
 
 - `options.wNative`: The chain's wrapped native asset (ex: WETH's address on Ethereum mainnet).
+
+**Liquidation buffer**:
+
+- `options.liquidationBufferBps`: For a given position, the bot computes the maximum seizable collateral. Then, if the collateral price slightly increases before the liquidation execution, it will fail. To avoid such scenario, we reduce the seizable collateral by a small buffer, that can be configured in base points. If not set, a default value of 10 bps will be used. When all of the position's collateral can be seized, the buffer is not applied to allow for bad debt realization.
 
 ### Secrets
 
@@ -132,6 +136,12 @@ Some pricers require chain-specific configuration. This is done in the `apps/con
 
 For example, the `uniswapV3` pricer has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/pricers/uniswapV3.ts`.
 
+### Cooldown Mechanism Configuration
+
+It's possible to configure a cooldown mechanism, allowing the bot to wait a configurable time before attempting to liquidate a position that it has failed to liquidate. This mechanism is useful if some liquidity venue relies on an API with a low rate-limit (ex: 1inch).
+
+This is done by configuring `COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).
@@ -159,6 +169,8 @@ For now, we implemented the following ones:
 - ERC4626: Enables the withdrawals from ERC4626 vaults.
 - UniswapV3: Enables the swap of tokens on Uniswap V3.
 - UniswapV4: Enables the swap of tokens on Uniswap V4.
+- 1inch: Enables the swap of tokens via the 1inch swap aggregator (requires a 1inch API Key).
+- Pendle: Enables the swap (and redeem) Pendle PT tokens.
 
 Liquidity venues can be combined to create more complex strategies. For example, you can combine the `ERC4626` and `UniswapV3` venues to liquidate a position from a 4626 vault by first withdrawing from the vault and then swapping the underlying token for the desired token.
 

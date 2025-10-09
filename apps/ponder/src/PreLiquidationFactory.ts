@@ -1,10 +1,10 @@
 import { ponder } from "ponder:registry";
-import { preLiquidation } from "ponder:schema";
+import { preLiquidationContract } from "ponder:schema";
 
 ponder.on("PreLiquidationFactory:CreatePreLiquidation", async ({ event, context }) => {
   // `CreatePreLiquidation` can only fire once for a given `{ chainId, id, preLiquidationParams}`,
   // so we can insert without any `onConflict` handling.
-  await context.db.insert(preLiquidation).values({
+  await context.db.insert(preLiquidationContract).values({
     chainId: context.chain.id,
     marketId: event.args.id,
     address: event.args.preLiquidation,

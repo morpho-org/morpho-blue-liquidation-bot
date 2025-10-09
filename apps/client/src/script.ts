@@ -48,7 +48,15 @@ async function waitForIndexing(apiUrl: string) {
 async function run() {
   let ponder: ChildProcess | undefined;
 
-  const configs = Object.keys(chainConfigs).map((config) => chainConfig(Number(config)));
+  const configs = Object.keys(chainConfigs)
+    .map((config) => {
+      try {
+        return chainConfig(Number(config));
+      } catch {
+        return undefined;
+      }
+    })
+    .filter((config) => config !== undefined);
 
   const apiUrl = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
   const shouldExpectPonderToRunLocally =
@@ -68,7 +76,7 @@ async function run() {
     // Then start ponder service, regardless of where database is.
     ponder = spawn(
       "pnpm",
-      ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
+      ["ponder", "start", "--schema", "public", "--config", "ponder.config.ts"],
       { stdio: "inherit", cwd: "apps/ponder" },
     );
 
