@@ -4,11 +4,16 @@ import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
-import { Erc4626 } from "./liquidityVenues/erc4626";
+import {
+  MidasVenue,
+  OneInch,
+  PendlePTVenue,
+  Erc20Wrapper,
+  Erc4626,
+  UniswapV3Venue,
+  UniswapV4Venue,
+} from "./liquidityVenues";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
-import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
-import { UniswapV4Venue } from "./liquidityVenues/uniswapV4";
 import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
 
@@ -24,6 +29,9 @@ export const launchBot = (config: ChainConfig) => {
 
   // LIQUIDITY VENUES
   const liquidityVenues: LiquidityVenue[] = [];
+  liquidityVenues.push(new PendlePTVenue());
+  liquidityVenues.push(new MidasVenue());
+  liquidityVenues.push(new OneInch());
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
   liquidityVenues.push(new UniswapV3Venue());
