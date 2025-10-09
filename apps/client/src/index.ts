@@ -2,6 +2,7 @@ import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
+import dotenv from "dotenv";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import {
@@ -18,6 +19,8 @@ import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
 
 export const launchBot = (config: ChainConfig) => {
+  dotenv.config();
+
   const logTag = `[${config.chain.name} client]: `;
   console.log(`${logTag}Starting up`);
 
@@ -31,7 +34,7 @@ export const launchBot = (config: ChainConfig) => {
   const liquidityVenues: LiquidityVenue[] = [];
   liquidityVenues.push(new PendlePTVenue());
   liquidityVenues.push(new MidasVenue());
-  liquidityVenues.push(new OneInch());
+  liquidityVenues.push(new OneInch(process.env.ONE_INCH_SWAP_API_KEY));
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
   liquidityVenues.push(new UniswapV3Venue());

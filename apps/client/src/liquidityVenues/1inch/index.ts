@@ -9,8 +9,8 @@ import { SwapParams, SwapResponse } from "./types";
 export class OneInch implements LiquidityVenue {
   private apiKey: string | undefined;
 
-  constructor() {
-    this.apiKey = process.env.ONE_INCH_SWAP_API_KEY;
+  constructor(apiKey: string | undefined) {
+    this.apiKey = apiKey;
   }
 
   supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
