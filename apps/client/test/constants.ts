@@ -16,6 +16,8 @@ export const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address
 /// Markets
 
 export const wbtcUSDC = "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49" as Hex;
+export const ptsUSDeUSDC =
+  "0x05702edf1c4709808b62fe65a7d082dccc9386f858ae460ef207ec8dd1debfa2" as Hex;
 
 /// Protocols addresses
 

@@ -136,6 +136,12 @@ Some pricers require chain-specific configuration. This is done in the `apps/con
 
 For example, the `uniswapV3` pricer has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/pricers/uniswapV3.ts`.
 
+### Cooldown Mechanism Configuration
+
+It's possible to configure a cooldown mechanism, allowing the bot to wait a configurable time before attempting to liquidate a position that it has failed to liquidate. This mechanism is useful if some liquidity venue relies on an API with a low rate-limit (ex: 1inch).
+
+This is done by configuring `COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).
@@ -163,6 +169,8 @@ For now, we implemented the following ones:
 - ERC4626: Enables the withdrawals from ERC4626 vaults.
 - UniswapV3: Enables the swap of tokens on Uniswap V3.
 - UniswapV4: Enables the swap of tokens on Uniswap V4.
+- 1inch: Enables the swap of tokens via the 1inch swap aggregator (requires a 1inch API Key).
+- Pendle: Enables the swap (and redeem) Pendle PT tokens.
 
 Liquidity venues can be combined to create more complex strategies. For example, you can combine the `ERC4626` and `UniswapV3` venues to liquidate a position from a 4626 vault by first withdrawing from the vault and then swapping the underlying token for the desired token.
 

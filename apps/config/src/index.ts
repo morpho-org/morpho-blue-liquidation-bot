@@ -56,3 +56,4 @@ export function getSecrets(chainId: number, chain?: Chain) {
 export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
 export * from "./pricers";
+export { COOLDOWN_PERIOD, COOLDOWN_ENABLED } from "./config";
