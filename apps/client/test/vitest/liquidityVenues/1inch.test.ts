@@ -1,12 +1,12 @@
-import { executorAbi, ExecutorEncoder } from "executooor-viem";
+import { executorAbi } from "executooor-viem";
 import nock from "nock";
-import { Address, erc20Abi, parseUnits } from "viem";
+import { erc20Abi, parseUnits } from "viem";
 import { readContract, writeContract } from "viem/actions";
 import { describe, expect } from "vitest";
 
-import { OneInch } from "../../../src/liquidityVenues/1inch/index.js";
 import { USDC, wstETH } from "../../constants.js";
 import { oneInchTest } from "../../setup.js";
+import { OneInchTest } from "../../helpers.js";
 
 describe("1inch liquidity venue", () => {
   // data from 1inch swap API at test block
@@ -16,22 +16,9 @@ describe("1inch liquidity venue", () => {
 
   const one1inchContract = "0x111111125421cA6dc452d289314280a0f8842A65";
 
-  class OneInchTest extends OneInch {
-    private readonly supportedNetworks: number[];
-
-    constructor(supportedNetworks: number[]) {
-      super();
-      this.supportedNetworks = supportedNetworks;
-    }
-
-    supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
-      return this.supportedNetworks.includes(encoder.client.chain.id);
-    }
-  }
-
   const liquidityVenue = new OneInchTest([1]);
 
-  oneInchTest.sequential("should test supportsRoute", async ({ encoder }) => {
+  oneInchTest.sequential("should test supportsRoute", ({ encoder }) => {
     expect(liquidityVenue.supportsRoute(encoder, wstETH, USDC)).toBe(true);
   });
 
