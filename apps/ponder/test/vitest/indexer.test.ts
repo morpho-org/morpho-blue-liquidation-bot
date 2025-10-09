@@ -14,8 +14,6 @@ describe("Indexing", () => {
     const vaults = await ponderClient.db.select().from(schema.vault).limit(10);
     const count = vaults.length;
 
-    console.log("vaults", vaults);
-
     const randomIndex = Math.floor(Math.random() * count);
     const randomVault = vaults[randomIndex]!;
 
@@ -34,8 +32,6 @@ describe("Indexing", () => {
   indexingTest.sequential("should test markets indexing", async ({ client }) => {
     const markets = await ponderClient.db.select().from(schema.market).limit(100);
     const count = markets.length;
-
-    console.log("markets", markets);
 
     for (let i = 0; i < 5; i++) {
       const randomIndex = Math.floor(Math.random() * count);
@@ -62,11 +58,11 @@ describe("Indexing", () => {
     const positions = await ponderClient.db.select().from(schema.position).limit(100);
     const count = positions.length;
 
-    console.log("positions", positions);
-
     for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * count);
       const randomPosition = positions[randomIndex]!;
+
+      console.log("randomPosition", randomPosition);
 
       const onchainPosition = await client.readContract({
         address: MORPHO,
@@ -84,8 +80,6 @@ describe("Indexing", () => {
   indexingTest.sequential("should test authorizations indexing", async ({ client }) => {
     const authorizations = await ponderClient.db.select().from(schema.authorization).limit(100);
     const count = authorizations.length;
-
-    console.log("authorizations", authorizations);
 
     for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * count);
