@@ -24,7 +24,10 @@ export async function fetchWhiteListedMarketsForVault(
   const response = await fetch(url, { method: "POST" });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${vaultAddress} whitelisted markets: ${response.statusText}`);
+    console.error(
+      new Error(`Failed to fetch ${vaultAddress} whitelisted markets: ${response.statusText}`),
+    );
+    return [];
   }
 
   const markets = (await response.json()) as Hex[];
