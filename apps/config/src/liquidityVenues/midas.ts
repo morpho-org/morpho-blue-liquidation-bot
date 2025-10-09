@@ -1,10 +1,10 @@
 import { Address } from "viem";
-import { base, mainnet } from "viem/chains";
+import { base, mainnet, katana } from "viem/chains";
 
-export type MidasConfig = {
+export interface MidasConfig {
   instantRedemptionVault: Address;
   redemptionAssets: Address[];
-};
+}
 
 export const midasConfigs: Record<number, Record<Address, MidasConfig>> = {
   [mainnet.id]: {
@@ -109,7 +109,7 @@ export const midasConfigs: Record<number, Record<Address, MidasConfig>> = {
       redemptionAssets: ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"], // USDC
     },
   },
-  /* [katana.id]: {
+  [katana.id]: {
     "0xC6135d59F8D10c9C035963ce9037B3635170D716": {
       // mRe7SOL
       instantRedemptionVault: "0xE93E6Cf151588d63bB669138277D20f28C2E7cdA",
@@ -118,5 +118,5 @@ export const midasConfigs: Record<number, Record<Address, MidasConfig>> = {
         "0x6C16E26013f2431e8B2e1Ba7067ECCcad0Db6C52", // jitoSOL
       ],
     },
-  }, */
+  },
 };

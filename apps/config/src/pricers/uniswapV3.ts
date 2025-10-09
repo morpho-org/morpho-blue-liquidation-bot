@@ -1,7 +1,5 @@
 import type { Address } from "viem";
-import { base, mainnet } from "viem/chains";
-
-import { katana } from "../chains/katana";
+import { base, mainnet, katana } from "viem/chains";
 
 export const USD_REFERENCE: Record<number, Address> = {
   [mainnet.id]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
