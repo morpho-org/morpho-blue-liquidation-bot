@@ -87,6 +87,8 @@ export async function setupPosition(
   process.env.PONDER_SERVICE_URL = "http://localhost:42069";
 
   nock("http://localhost:42069")
+    .post("/chain/1/vaults-whitelisted-markets", { vaults: [] })
+    .reply(200, [])
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
     .reply(
       200,
