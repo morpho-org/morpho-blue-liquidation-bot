@@ -1,3 +1,8 @@
+import { MarketUtils } from "@morpho-org/blue-sdk";
+import type { AnvilTestClient } from "@morpho-org/test";
+import { ExecutorEncoder } from "executooor-viem";
+import nock from "nock";
+import { replaceBigInts as replaceBigIntsBase } from "ponder";
 import {
   type Address,
   encodePacked,
@@ -8,15 +13,12 @@ import {
   maxUint256,
   toHex,
 } from "viem";
-import { replaceBigInts as replaceBigIntsBase } from "ponder";
-import { BORROW_SHARES_AND_COLLATERAL_OFFSET, borrower, MORPHO, POSITION_SLOT } from "./constants";
 import { getStorageAt, readContract } from "viem/actions";
-import type { AnvilTestClient } from "@morpho-org/test";
-import { MarketUtils } from "@morpho-org/blue-sdk";
+
 import { morphoBlueAbi } from "../../ponder/abis/MorphoBlue";
-import nock from "nock";
 import { OneInch } from "../src/liquidityVenues";
-import { ExecutorEncoder } from "executooor-viem";
+
+import { BORROW_SHARES_AND_COLLATERAL_OFFSET, borrower, MORPHO, POSITION_SLOT } from "./constants";
 
 /// test liquidity Venues
 
@@ -28,7 +30,8 @@ export class OneInchTest extends OneInch {
     this.supportedNetworks = supportedNetworks;
   }
 
-  supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  supportsRoute(encoder: ExecutorEncoder, _src: Address, _dst: Address) {
     return this.supportedNetworks.includes(encoder.client.chain.id);
   }
 }
@@ -87,7 +90,7 @@ export async function setupPosition(
   process.env.PONDER_SERVICE_URL = "http://localhost:42069";
 
   nock("http://localhost:42069")
-    .post("/chain/1/vaults-whitelisted-markets", { vaults: [] })
+    .post("/chain/1/withdraw-queue-set", { vaults: [] })
     .reply(200, [])
     .post("/chain/1/liquidatable-positions", { marketIds: [] })
     .reply(
@@ -175,7 +178,8 @@ async function overwriteCollateral(
   await client.setStorageAt({
     address: MORPHO,
     index: slot,
-    value: modifyCollateralSlot(value as Hex, amount),
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    value: modifyCollateralSlot(value!, amount),
   });
 }
 
@@ -195,13 +199,13 @@ function borrowSharesAndCollateralSlot(user: Address, marketId: Hex) {
         "bigint",
       ) + BORROW_SHARES_AND_COLLATERAL_OFFSET,
     ),
-  ) as Hex;
+  );
 }
 
 function padToBytes32(hex: `0x${string}`, bytes = 32): Hex {
   const withoutPrefix = hex.slice(2);
   const padded = withoutPrefix.padStart(2 * bytes, "0");
-  return `0x${padded}` as Hex;
+  return `0x${padded}`;
 }
 
 function modifyCollateralSlot(value: Hex, amount: bigint) {
