@@ -15,16 +15,13 @@ export function parseWithBigInt<T = unknown>(jsonText: string): T {
   }) as T;
 }
 
-export async function fetchWhiteListedMarketsForVault(
-  chainId: number,
-  vaultAddress: Address,
-): Promise<Hex[]> {
-  const url = new URL(`/chain/${chainId}/withdraw-queue/${vaultAddress}`, PONDER_SERVICE_URL);
+export async function fetchMarketsForVaults(chainId: number, vaults: Address[]): Promise<Hex[]> {
+  const url = new URL(`/chain/${chainId}/withdraw-queue-set`, PONDER_SERVICE_URL);
 
-  const response = await fetch(url, { method: "POST" });
+  const response = await fetch(url, { method: "POST", body: JSON.stringify({ vaults }) });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${vaultAddress} whitelisted markets: ${response.statusText}`);
+    throw new Error(`Failed to fetch ${vaults} whitelisted markets: ${response.statusText}`);
   }
 
   const markets = (await response.json()) as Hex[];

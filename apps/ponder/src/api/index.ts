@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { and, client, eq, graphql, replaceBigInts as replaceBigIntsBase } from "ponder";
+import { and, client, eq, graphql, inArray, replaceBigInts as replaceBigIntsBase } from "ponder";
 import { db, publicClients } from "ponder:api";
 import schema from "ponder:schema";
 import type { Address, Hex } from "viem";
@@ -24,6 +24,22 @@ app.post("/chain/:id/withdraw-queue/:address", async (c) => {
   });
 
   return c.json(vault?.withdrawQueue ?? []);
+});
+
+/**
+ * Fetch the set of markets from all vaults' withdraw queues.
+ */
+app.post("/chain/:chainId/withdraw-queue-set", async (c) => {
+  const { chainId } = c.req.param();
+  const { vaults: vaultsRaw } = (await c.req.json()) as unknown as { vaults: Address[] };
+
+  const vaults = await db.query.vault.findMany({
+    where: (row) => and(eq(row.chainId, Number(chainId)), inArray(row.address, vaultsRaw)),
+  });
+
+  const withdrawQueueSet = new Set(vaults.flatMap((item) => item.withdrawQueue));
+
+  return c.json(replaceBigInts([...withdrawQueueSet]));
 });
 
 /**
