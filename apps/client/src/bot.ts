@@ -20,7 +20,7 @@ import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
 import { CooldownMechanism } from "./utils/cooldownMechanism.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
-import { fetchLiquidatablePositions, fetchWhiteListedMarketsForVault } from "./utils/fetchers.js";
+import { fetchLiquidatablePositions, fetchMarketsForVaults } from "./utils/fetchers.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
 import type {
@@ -90,15 +90,7 @@ export class LiquidationBot {
       vaultWhitelist = this.vaultWhitelist;
     }
 
-    const whitelistedMarketsFromVaults = [
-      ...new Set(
-        (
-          await Promise.all(
-            vaultWhitelist.map((vault) => fetchWhiteListedMarketsForVault(this.chainId, vault)),
-          )
-        ).flat(),
-      ),
-    ];
+    const whitelistedMarketsFromVaults = await fetchMarketsForVaults(this.chainId, vaultWhitelist);
 
     const whitelistedMarkets = [
       ...whitelistedMarketsFromVaults,
@@ -353,17 +345,10 @@ export class LiquidationBot {
   private decreaseSeizableCollateral(seizableCollateral: bigint, collateral: bigint) {
     if (seizableCollateral === collateral) return seizableCollateral;
 
-    return wMulDown(
-      seizableCollateral,
-      WAD -
-        parseUnits(
-          (
-            chainConfigs[this.chainId]?.options.liquidationBufferBps ??
-            DEFAULT_LIQUIDATION_BUFFER_BPS
-          ).toString(),
-          14,
-        ),
-    );
+    const liquidationBufferBps =
+      chainConfigs[this.chainId]?.options.liquidationBufferBps ?? DEFAULT_LIQUIDATION_BUFFER_BPS;
+
+    return wMulDown(seizableCollateral, WAD - parseUnits(liquidationBufferBps.toString(), 14));
   }
 
   private checkCooldown(marketId: Hex, account: Address) {
