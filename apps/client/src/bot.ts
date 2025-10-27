@@ -1,4 +1,8 @@
-import { chainConfigs, WHITELIST_FETCH_INTERVAL } from "@morpho-blue-liquidation-bot/config";
+import {
+  ALWAYS_REALIZE_BAD_DEBT,
+  chainConfigs,
+  WHITELIST_FETCH_INTERVAL,
+} from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -120,6 +124,8 @@ export class LiquidationBot {
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
     const marketParams = market.params;
 
+    const badDebtPosition = position.seizableCollateral === position.collateral;
+
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
     const { client, executorAddress } = this;
@@ -152,7 +158,7 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams);
+      const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
 
       if (success)
         console.log(
@@ -201,7 +207,7 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams);
+      const success = await this.handleTx(encoder, calls, marketParams, false);
 
       if (success)
         console.log(
@@ -219,7 +225,12 @@ export class LiquidationBot {
     }
   }
 
-  private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: IMarketParams) {
+  private async handleTx(
+    encoder: LiquidationEncoder,
+    calls: Hex[],
+    marketParams: IMarketParams,
+    badDebtPosition: boolean,
+  ) {
     const functionData = {
       abi: executorAbi,
       functionName: "exec_606BaXt",
@@ -264,6 +275,7 @@ export class LiquidationBot {
           used: results[1].gasUsed,
           price: gasPrice,
         },
+        badDebtPosition,
       ))
     )
       return false;
@@ -328,7 +340,9 @@ export class LiquidationBot {
       used: bigint;
       price: bigint;
     },
+    badDebtPosition: boolean,
   ) {
+    if (ALWAYS_REALIZE_BAD_DEBT && badDebtPosition) return true;
     if (this.pricers === undefined) return true;
 
     if (loanAssetBalance.beforeTx === undefined || loanAssetBalance.afterTx === undefined)
