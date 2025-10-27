@@ -1,4 +1,4 @@
-import { base, mainnet, unichain } from "viem/chains";
+import { base, mainnet, unichain, worldchain } from "viem/chains";
 
 import { katana } from "./chains/katana";
 import type { Config } from "./types";
@@ -109,6 +109,33 @@ export const chainConfigs: Record<number, Config> = {
     wNative: "0xEE7D8BCFb72bC1880D0Cf19822eB0A2e6577aB62",
     options: {
       vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+    },
+  },
+  [worldchain.id]: {
+    chain: worldchain,
+    morpho: { address: "0xE741BC7c34758b4caE05062794E8Ae24978AF432", startBlock: 9025669 },
+    adaptiveCurveIrm: {
+      address: "0x937Ce2d6c488b361825D2DB5e8A70e26d48afEd5",
+      startBlock: 9025669,
+    },
+    metaMorphoFactories: {
+      addresses: ["0x937Ce2d6c488b361825D2DB5e8A70e26d48afEd5"],
+      startBlock: 9025733,
+    },
+    preLiquidationFactory: {
+      address: "0xe3cE2051a24e58DBFC0eFBe4c2d9e89c5eAe4695",
+      startBlock: 10273494,
+    },
+    wNative: "0x4200000000000000000000000000000000000006",
+    options: {
+      vaultWhitelist: [
+        "0xb1E80387EbE53Ff75a89736097D34dC8D9E9045B", // Re7 USDC
+        "0x348831b46876d3dF2Db98BdEc5E3B4083329Ab9f", // Re7 WLD
+        "0xBC8C37467c5Df9D50B42294B8628c25888BECF61", // Re7 WETH
+        "0xBC8C37467c5Df9D50B42294B8628c25888BECF61", // Re7 WBTC
+      ],
       additionalMarketsWhitelist: [],
       checkProfit: false,
     },

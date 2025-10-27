@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { base, unichain } from "viem/chains";
+import { base, unichain, worldchain } from "viem/chains";
 
 import { katana } from "../chains/katana";
 
@@ -12,6 +12,7 @@ export const specificFactoryAddresses: Record<number, Address> = {
   [base.id]: "0x33128a8fC17869897dcE68Ed026d694621f6FDfD",
   [unichain.id]: "0x1F98400000000000000000000000000000000003",
   [katana.id]: "0x203e8740894c8955cB8950759876d7E7E45E04c1",
+  [worldchain.id]: "0x7a5028BDa40e7B173C278C5342087826455ea25a",
 };
 
 export const FEE_TIERS = [500, 3000, 10000];
