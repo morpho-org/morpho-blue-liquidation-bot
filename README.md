@@ -142,6 +142,12 @@ It's possible to configure a cooldown mechanism, allowing the bot to wait a conf
 
 This is done by configuring `COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
 
+### Bad Debt Realization
+
+It's possible to ensure bad debt position are always fully liquidated by the bot (even if not profitable) to realize bad debt.
+
+This is done by configuring `ALWAYS_REALIZE_BAD_DEBT` (set it to `true` to always realize bad debt, `false` otherwise) in the `apps/config/config.ts` file.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)).

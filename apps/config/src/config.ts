@@ -5,6 +5,7 @@ import type { Config } from "./types";
 
 export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
 export const COOLDOWN_PERIOD = 60 * 60; // 1 hour
+export const ALWAYS_REALIZE_BAD_DEBT = false; // true if you want to always realize bad debt
 
 export const chainConfigs: Record<number, Config> = {
   [mainnet.id]: {
