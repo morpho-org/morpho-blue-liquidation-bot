@@ -38,6 +38,7 @@ export interface LiquidationBotInputs {
   vaultWhitelist: Address[] | "morpho-api";
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
+  treasuryAddress: Address;
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
@@ -52,6 +53,7 @@ export class LiquidationBot {
   private vaultWhitelist: Address[] | "morpho-api";
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
+  private treasuryAddress: Address;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
   private cooldownMechanism?: CooldownMechanism;
@@ -65,6 +67,7 @@ export class LiquidationBot {
     this.vaultWhitelist = inputs.vaultWhitelist;
     this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
     this.executorAddress = inputs.executorAddress;
+    this.treasuryAddress = inputs.treasuryAddress;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
     this.cooldownMechanism = inputs.cooldownMechanism;
@@ -130,6 +133,7 @@ export class LiquidationBot {
       0n,
       encoder.flush(),
     );
+    encoder.erc20Skim(marketParams.loanToken, this.treasuryAddress);
 
     const calls = encoder.flush();
 
@@ -179,6 +183,7 @@ export class LiquidationBot {
       0n,
       encoder.flush(),
     );
+    encoder.erc20Skim(marketParams.loanToken, this.treasuryAddress);
 
     const calls = encoder.flush();
 
@@ -216,14 +221,14 @@ export class LiquidationBot {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [this.executorAddress],
+            args: [this.client.account.address],
           },
           { to: encoder.address, ...functionData },
           {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [this.executorAddress],
+            args: [this.client.account.address],
           },
         ],
       }),

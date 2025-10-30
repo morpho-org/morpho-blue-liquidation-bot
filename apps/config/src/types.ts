@@ -26,6 +26,7 @@ export interface Options {
   vaultWhitelist: Address[] | "morpho-api";
   additionalMarketsWhitelist: Hex[];
   checkProfit: boolean;
+  treasuryAddress?: Address;
   liquidationBufferBps?: number;
 }
 
