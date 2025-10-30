@@ -9,8 +9,8 @@ import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3Venue, Erc4626, PendlePTVenue } from "../../../src/liquidityVenues/index.js";
 import { MorphoApi } from "../../../src/pricers/index.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
-import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
 import { OneInchTest, setupPosition, mockEtherPrice } from "../../helpers.js";
+import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
 
 describe("execute liquidation swapping on Uniswap V3", () => {
   const erc4626 = new Erc4626();
@@ -56,6 +56,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       vaultWhitelist: [],
       additionalMarketsWhitelist: [],
       executorAddress: encoder.address,
+      treasuryAddress: client.account.address,
       liquidityVenues: [erc4626, uniswapV3],
       pricers: [pricer],
     });
@@ -69,14 +70,14 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       args: [wbtcUSDC, borrower.address],
     });
 
-    const executorBalance = await readContract(client, {
+    const accountBalance = await readContract(client, {
       address: marketParams.loanToken,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [encoder.address],
+      args: [client.account.address],
     });
 
-    expect(executorBalance).toBeGreaterThan(0n);
+    expect(accountBalance).toBeGreaterThan(0n);
     expect(positionPostLiquidation[0]).toBe(0n);
     expect(positionPostLiquidation[1]).toBe(0n);
     expect(positionPostLiquidation[2]).toBe(0n);
@@ -118,6 +119,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
         vaultWhitelist: [],
         additionalMarketsWhitelist: [],
         executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
         liquidityVenues: [erc4626, uniswapV3],
         pricers: [pricer],
       });
@@ -131,14 +133,14 @@ describe("execute liquidation swapping on Uniswap V3", () => {
         args: [wbtcUSDC, borrower.address],
       });
 
-      const executorBalance = await readContract(client, {
+      const EAOBalance = await readContract(client, {
         address: marketParams.loanToken,
         abi: erc20Abi,
         functionName: "balanceOf",
-        args: [encoder.address],
+        args: [client.account.address],
       });
 
-      expect(executorBalance).toBe(0n);
+      expect(EAOBalance).toBe(0n);
       expect(positionPostLiquidation[1]).toBeGreaterThan(0n);
       // We overiden collateral slot to make the position liquidatable
       expect(positionPostLiquidation[2]).toBe(collateralAmount / 2n);
@@ -188,6 +190,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       vaultWhitelist: [],
       additionalMarketsWhitelist: [],
       executorAddress: encoder.address,
+      treasuryAddress: client.account.address,
       liquidityVenues: [pendlePT, oneInch],
     });
 
@@ -303,24 +306,24 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
         },
       });
 
-    const encoderLoanTokenBalanceBeforeLiquidation = await readContract(encoder.client, {
+    const accountLoanTokenBalanceBeforeLiquidation = await readContract(encoder.client, {
       address: marketParams.loanToken,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [encoder.address],
+      args: [client.account.address],
     });
 
     await bot.run();
 
-    const encoderLoanTokenBalanceAfterLiquidation = await readContract(encoder.client, {
+    const accountLoanTokenBalanceAfterLiquidation = await readContract(encoder.client, {
       address: marketParams.loanToken,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [encoder.address],
+      args: [client.account.address],
     });
 
     expect(
-      encoderLoanTokenBalanceAfterLiquidation - encoderLoanTokenBalanceBeforeLiquidation,
+      accountLoanTokenBalanceAfterLiquidation - accountLoanTokenBalanceBeforeLiquidation,
     ).toBeGreaterThan(0n);
   });
 });

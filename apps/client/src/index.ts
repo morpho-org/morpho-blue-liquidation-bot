@@ -58,6 +58,7 @@ export const launchBot = (config: ChainConfig) => {
     vaultWhitelist: config.vaultWhitelist,
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
+    treasuryAddress: config.treasuryAddress ?? client.account.address,
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
     flashbotAccount,

@@ -86,6 +86,12 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 ⚠️: If set to true, each confirgured chain should support at least one of the pricers used by the bot.
 
+**Treasury Address (optional)**: If set, the profit of the liquidation will be sent to this address at the end of the transaction. If not set, the bot's EOA will be used.
+
+- `options.treasuryAddress`: the intended treasury address.
+
+**Chain Wrapped Native Asset**:
+
 **Flashbots**:
 
 - `options.useFlashbots`: `true` if you want to use flashbots for this chain (in that case, you will have to set the `FLASHBOTS_PRIVATE_KEY`), `false` otherwise.
@@ -138,7 +144,7 @@ For example, the `uniswapV3` venue has different factory addresses for some chai
 
 ### Pricers Configuration
 
-Pricers are explained [below](#pricers). **Pricers are optionnal**, and don't need to be configured if `options.checkProfit` is set to `false` for every configured chains.
+Pricers are explained [below](#pricers). **Pricers are optional**, and don't need to be configured if `options.checkProfit` is set to `false` for every configured chains.
 
 Some pricers require chain-specific configuration. This is done in the `apps/config/src/pricers/` folder.
 
