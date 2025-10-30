@@ -27,6 +27,7 @@ export interface Options {
   additionalMarketsWhitelist: Hex[];
   checkProfit: boolean;
   liquidationBufferBps?: number;
+  useFlashbots: boolean;
 }
 
 export type ChainConfig = Omit<Config, "options"> &
