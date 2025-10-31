@@ -9,16 +9,23 @@ import {
   erc20Abi,
   formatUnits,
   getAddress,
+  LocalAccount,
   maxUint256,
   parseUnits,
   type Account,
   type Address,
   type Chain,
-  type Client,
   type Hex,
   type Transport,
+  type WalletClient,
 } from "viem";
-import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
+import {
+  getBlockNumber,
+  getGasPrice,
+  readContract,
+  simulateCalls,
+  writeContract,
+} from "viem/actions";
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
@@ -32,35 +39,40 @@ import type {
   LiquidatablePosition,
   PreLiquidatablePosition,
 } from "./utils/types.js";
+import { Flashbots } from "./utils/flashbots.js";
 
 export interface LiquidationBotInputs {
   logTag: string;
   chainId: number;
-  client: Client<Transport, Chain, Account>;
+  client: WalletClient<Transport, Chain, Account>;
   morphoAddress: Address;
   wNative: Address;
   vaultWhitelist: Address[] | "morpho-api";
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
+  treasuryAddress: Address;
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
+  flashbotAccount?: LocalAccount;
 }
 
 export class LiquidationBot {
   private logTag: string;
   private chainId: number;
-  private client: Client<Transport, Chain, Account>;
+  private client: WalletClient<Transport, Chain, Account>;
   private morphoAddress: Address;
   private wNative: Address;
   private vaultWhitelist: Address[] | "morpho-api";
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
+  private treasuryAddress: Address;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
   private cooldownMechanism?: CooldownMechanism;
   private lastWhitelistFetch: number;
   private fetchedVaults: Address[] = [];
+  private flashbotAccount?: LocalAccount;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -71,11 +83,13 @@ export class LiquidationBot {
     this.vaultWhitelist = inputs.vaultWhitelist;
     this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
     this.executorAddress = inputs.executorAddress;
+    this.treasuryAddress = inputs.treasuryAddress;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
     this.cooldownMechanism = inputs.cooldownMechanism;
     this.fetchedVaults = [];
     this.lastWhitelistFetch = 0;
+    this.flashbotAccount = inputs.flashbotAccount;
   }
 
   async run() {
@@ -127,7 +141,7 @@ export class LiquidationBot {
     if (
       !(await this.convertCollateralToLoan(
         marketParams,
-        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        this.decreaseSeizableCollateral(position.seizableCollateral, badDebtPosition),
         encoder,
       ))
     )
@@ -146,6 +160,7 @@ export class LiquidationBot {
       0n,
       encoder.flush(),
     );
+    encoder.erc20Skim(marketParams.loanToken, this.treasuryAddress);
 
     const calls = encoder.flush();
 
@@ -180,7 +195,7 @@ export class LiquidationBot {
     if (
       !(await this.convertCollateralToLoan(
         marketParams,
-        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        this.decreaseSeizableCollateral(position.seizableCollateral, false),
         encoder,
       ))
     )
@@ -195,6 +210,7 @@ export class LiquidationBot {
       0n,
       encoder.flush(),
     );
+    encoder.erc20Skim(marketParams.loanToken, this.treasuryAddress);
 
     const calls = encoder.flush();
 
@@ -237,14 +253,14 @@ export class LiquidationBot {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [this.executorAddress],
+            args: [this.client.account.address],
           },
           { to: encoder.address, ...functionData },
           {
             to: marketParams.loanToken,
             abi: erc20Abi,
             functionName: "balanceOf",
-            args: [this.executorAddress],
+            args: [this.client.account.address],
           },
         ],
       }),
@@ -274,7 +290,22 @@ export class LiquidationBot {
 
     // TX EXECUTION
 
-    await writeContract(this.client, { address: encoder.address, ...functionData });
+    if (this.flashbotAccount) {
+      const signedBundle = await Flashbots.signBundle([
+        {
+          transaction: { to: encoder.address, ...functionData },
+          client: this.client,
+        },
+      ]);
+
+      return await Flashbots.sendRawBundle(
+        signedBundle,
+        (await getBlockNumber(this.client)) + 1n,
+        this.flashbotAccount,
+      );
+    } else {
+      await writeContract(this.client, { address: encoder.address, ...functionData });
+    }
 
     return true;
   }
@@ -356,8 +387,8 @@ export class LiquidationBot {
     return profitUsd > 0;
   }
 
-  private decreaseSeizableCollateral(seizableCollateral: bigint, collateral: bigint) {
-    if (seizableCollateral === collateral) return seizableCollateral;
+  private decreaseSeizableCollateral(seizableCollateral: bigint, badDebtPosition: boolean) {
+    if (badDebtPosition) return seizableCollateral;
 
     const liquidationBufferBps =
       chainConfigs[this.chainId]?.options.liquidationBufferBps ?? DEFAULT_LIQUIDATION_BUFFER_BPS;

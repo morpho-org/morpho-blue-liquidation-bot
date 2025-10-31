@@ -26,7 +26,7 @@ export class OneInchTest extends OneInch {
   private readonly supportedNetworks: number[];
 
   constructor(supportedNetworks: number[]) {
-    super();
+    super("test");
     this.supportedNetworks = supportedNetworks;
   }
 

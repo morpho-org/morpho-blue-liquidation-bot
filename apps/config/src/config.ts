@@ -35,6 +35,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: true,
       liquidationBufferBps: 50,
+      useFlashbots: true,
     },
   },
   [base.id]: {
@@ -64,6 +65,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: true,
       liquidationBufferBps: 50,
+      useFlashbots: false,
     },
   },
   [unichain.id]: {
@@ -87,6 +89,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       liquidationBufferBps: 50,
+      useFlashbots: false,
     },
   },
   [katana.id]: {
@@ -110,6 +113,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       liquidationBufferBps: 50,
+      useFlashbots: false,
     },
   },
   [arbitrum.id]: {
@@ -133,6 +137,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       liquidationBufferBps: 50,
+      useFlashbots: false,
     },
   },
   [worldchain.id]: {
@@ -160,6 +165,7 @@ export const chainConfigs: Record<number, Config> = {
       ],
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      useFlashbots: false,
     },
   },
 };

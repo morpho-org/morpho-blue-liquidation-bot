@@ -67,6 +67,10 @@ PreLiquidation Factory:
 
 You may find the addresses in [Morpho documentation](https://docs.morpho.org/get-started/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
 
+### Chain Wrapped Native Asset
+
+- `wNative`: The chain's wrapped native asset (ex: WETH's address on Ethereum mainnet).
+
 ### Options
 
 **Markets Whitelist**: The bot will only liquidate positions from the markets that are whitelisted. There are two ways to whitelist markets:
@@ -82,9 +86,15 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 ⚠️: If set to true, each confirgured chain should support at least one of the pricers used by the bot.
 
+**Treasury Address (optional)**: If set, the profit of the liquidation will be sent to this address at the end of the transaction. If not set, the bot's EOA will be used.
+
+- `options.treasuryAddress`: the intended treasury address.
+
 **Chain Wrapped Native Asset**:
 
-- `options.wNative`: The chain's wrapped native asset (ex: WETH's address on Ethereum mainnet).
+**Flashbots**:
+
+- `options.useFlashbots`: `true` if you want to use flashbots for this chain (in that case, you will have to set the `FLASHBOTS_PRIVATE_KEY`), `false` otherwise.
 
 **Liquidation buffer**:
 
@@ -97,6 +107,10 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 -`PONDER_SERVICE_URL`: The url of an external ponder service that will be used by the bot (This ponder service's endpoints should be the same as the ones from this repo's `ponder` package). If not set, the bot will launch a local ponder process.
 
 -`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the local ponder process. If not set, the bot will launch a docker container with a local postgres database.
+
+**Flashbot Secrets (optional):**
+
+-`FLASHBOTS_PRIVATE_KEY`: The Flashbots private key. Only needs to be set if you intend to use Flashbots on some of your chains.
 
 **Chain secrets:**
 
@@ -130,7 +144,7 @@ For example, the `uniswapV3` venue has different factory addresses for some chai
 
 ### Pricers Configuration
 
-Pricers are explained [below](#pricers). **Pricers are optionnal**, and don't need to be configured if `options.checkProfit` is set to `false` for every configured chains.
+Pricers are explained [below](#pricers). **Pricers are optional**, and don't need to be configured if `options.checkProfit` is set to `false` for every configured chains.
 
 Some pricers require chain-specific configuration. This is done in the `apps/config/src/pricers/` folder.
 

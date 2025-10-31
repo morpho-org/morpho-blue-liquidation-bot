@@ -2,7 +2,7 @@ import type { Address, Hex } from "viem";
 
 import type { IndexerAPIResponse } from "./types";
 
-const PONDER_SERVICE_URL = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+const PONDER_SERVICE_URL = "http://localhost:42069";
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function parseWithBigInt<T = unknown>(jsonText: string): T {

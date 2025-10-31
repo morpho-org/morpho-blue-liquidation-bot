@@ -1,5 +1,5 @@
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
-import { createWalletClient, http } from "viem";
+import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 import dotenv from "dotenv";
@@ -49,6 +49,17 @@ export const launchBot = (config: ChainConfig) => {
     throw new Error(`${logTag} You must configure pricers!`);
   }
 
+  let flashbotAccount = undefined;
+  if (config.useFlashbots) {
+    const flashbotsPrivateKey = process.env.FLASHBOTS_PRIVATE_KEY;
+
+    if (flashbotsPrivateKey === undefined) {
+      throw new Error(`${logTag} FLASHBOTS_PRIVATE_KEY is not set`);
+    }
+
+    flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
+  }
+
   const inputs: LiquidationBotInputs = {
     logTag,
     chainId: config.chainId,
@@ -58,8 +69,10 @@ export const launchBot = (config: ChainConfig) => {
     vaultWhitelist: config.vaultWhitelist,
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
+    treasuryAddress: config.treasuryAddress ?? client.account.address,
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
+    flashbotAccount,
   };
 
   const bot = new LiquidationBot(inputs);
