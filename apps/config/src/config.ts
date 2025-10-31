@@ -39,6 +39,7 @@ export const chainConfigs: Record<number, Config> = {
       ],
       checkProfit: true,
       liquidationBufferBps: 50,
+      useFlashbots: true,
     },
   },
   [base.id]: {
@@ -67,6 +68,7 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
       additionalMarketsWhitelist: [],
       checkProfit: true,
+      useFlashbots: false,
     },
   },
   [unichain.id]: {
@@ -89,6 +91,7 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      useFlashbots: false,
     },
   },
   [katana.id]: {
@@ -111,6 +114,7 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      useFlashbots: false,
     },
   },
   [worldchain.id]: {
@@ -138,6 +142,7 @@ export const chainConfigs: Record<number, Config> = {
       ],
       additionalMarketsWhitelist: [],
       checkProfit: false,
+      useFlashbots: false,
     },
   },
 };

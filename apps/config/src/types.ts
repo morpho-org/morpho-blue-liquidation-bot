@@ -28,6 +28,7 @@ export interface Options {
   checkProfit: boolean;
   treasuryAddress?: Address;
   liquidationBufferBps?: number;
+  useFlashbots: boolean;
 }
 
 export type ChainConfig = Omit<Config, "options"> &

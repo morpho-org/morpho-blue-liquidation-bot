@@ -5,16 +5,23 @@ import {
   erc20Abi,
   formatUnits,
   getAddress,
+  LocalAccount,
   maxUint256,
   parseUnits,
   type Account,
   type Address,
   type Chain,
-  type Client,
   type Hex,
   type Transport,
+  type WalletClient,
 } from "viem";
-import { getGasPrice, readContract, simulateCalls, writeContract } from "viem/actions";
+import {
+  getBlockNumber,
+  getGasPrice,
+  readContract,
+  simulateCalls,
+  writeContract,
+} from "viem/actions";
 
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
@@ -28,11 +35,12 @@ import type {
   LiquidatablePosition,
   PreLiquidatablePosition,
 } from "./utils/types.js";
+import { Flashbots } from "./utils/flashbots.js";
 
 export interface LiquidationBotInputs {
   logTag: string;
   chainId: number;
-  client: Client<Transport, Chain, Account>;
+  client: WalletClient<Transport, Chain, Account>;
   morphoAddress: Address;
   wNative: Address;
   vaultWhitelist: Address[] | "morpho-api";
@@ -42,12 +50,13 @@ export interface LiquidationBotInputs {
   liquidityVenues: LiquidityVenue[];
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
+  flashbotAccount?: LocalAccount;
 }
 
 export class LiquidationBot {
   private logTag: string;
   private chainId: number;
-  private client: Client<Transport, Chain, Account>;
+  private client: WalletClient<Transport, Chain, Account>;
   private morphoAddress: Address;
   private wNative: Address;
   private vaultWhitelist: Address[] | "morpho-api";
@@ -57,6 +66,7 @@ export class LiquidationBot {
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
   private cooldownMechanism?: CooldownMechanism;
+  private flashbotAccount?: LocalAccount;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -71,6 +81,7 @@ export class LiquidationBot {
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
     this.cooldownMechanism = inputs.cooldownMechanism;
+    this.flashbotAccount = inputs.flashbotAccount;
   }
 
   async run() {
@@ -257,7 +268,22 @@ export class LiquidationBot {
 
     // TX EXECUTION
 
-    await writeContract(this.client, { address: encoder.address, ...functionData });
+    if (this.flashbotAccount) {
+      const signedBundle = await Flashbots.signBundle([
+        {
+          transaction: { to: encoder.address, ...functionData },
+          client: this.client,
+        },
+      ]);
+
+      return await Flashbots.sendRawBundle(
+        signedBundle,
+        (await getBlockNumber(this.client)) + 1n,
+        this.flashbotAccount,
+      );
+    } else {
+      await writeContract(this.client, { address: encoder.address, ...functionData });
+    }
 
     return true;
   }
