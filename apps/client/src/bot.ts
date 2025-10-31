@@ -1,4 +1,4 @@
-import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import { ALWAYS_REALIZE_BAD_DEBT, chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -116,6 +116,8 @@ export class LiquidationBot {
   private async liquidate(market: IMarket, position: LiquidatablePosition) {
     const marketParams = market.params;
 
+    const badDebtPosition = position.seizableCollateral === position.collateral;
+
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
     const { client, executorAddress } = this;
@@ -125,7 +127,7 @@ export class LiquidationBot {
     if (
       !(await this.convertCollateralToLoan(
         marketParams,
-        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        this.decreaseSeizableCollateral(position.seizableCollateral, badDebtPosition),
         encoder,
       ))
     )
@@ -149,7 +151,7 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams);
+      const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
 
       if (success)
         console.log(
@@ -179,7 +181,7 @@ export class LiquidationBot {
     if (
       !(await this.convertCollateralToLoan(
         marketParams,
-        this.decreaseSeizableCollateral(position.seizableCollateral, position.collateral),
+        this.decreaseSeizableCollateral(position.seizableCollateral, false),
         encoder,
       ))
     )
@@ -199,7 +201,7 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams);
+      const success = await this.handleTx(encoder, calls, marketParams, false);
 
       if (success)
         console.log(
@@ -217,7 +219,12 @@ export class LiquidationBot {
     }
   }
 
-  private async handleTx(encoder: LiquidationEncoder, calls: Hex[], marketParams: IMarketParams) {
+  private async handleTx(
+    encoder: LiquidationEncoder,
+    calls: Hex[],
+    marketParams: IMarketParams,
+    badDebtPosition: boolean,
+  ) {
     const functionData = {
       abi: executorAbi,
       functionName: "exec_606BaXt",
@@ -262,6 +269,7 @@ export class LiquidationBot {
           used: results[1].gasUsed,
           price: gasPrice,
         },
+        badDebtPosition,
       ))
     )
       return false;
@@ -341,7 +349,9 @@ export class LiquidationBot {
       used: bigint;
       price: bigint;
     },
+    badDebtPosition: boolean,
   ) {
+    if (ALWAYS_REALIZE_BAD_DEBT && badDebtPosition) return true;
     if (this.pricers === undefined) return true;
 
     if (loanAssetBalance.beforeTx === undefined || loanAssetBalance.afterTx === undefined)
@@ -363,8 +373,8 @@ export class LiquidationBot {
     return profitUsd > 0;
   }
 
-  private decreaseSeizableCollateral(seizableCollateral: bigint, collateral: bigint) {
-    if (seizableCollateral === collateral) return seizableCollateral;
+  private decreaseSeizableCollateral(seizableCollateral: bigint, badDebtPosition: boolean) {
+    if (badDebtPosition) return seizableCollateral;
 
     const liquidationBufferBps =
       chainConfigs[this.chainId]?.options.liquidationBufferBps ?? DEFAULT_LIQUIDATION_BUFFER_BPS;
