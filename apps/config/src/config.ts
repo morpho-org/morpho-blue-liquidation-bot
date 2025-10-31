@@ -140,7 +140,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: false,
     },
   },
-  [worldchain.id]: {
+  /* [worldchain.id]: {
     chain: worldchain,
     morpho: { address: "0xE741BC7c34758b4caE05062794E8Ae24978AF432", startBlock: 9025669 },
     adaptiveCurveIrm: {
@@ -167,5 +167,5 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: false,
       useFlashbots: false,
     },
-  },
+  }, */
 };
