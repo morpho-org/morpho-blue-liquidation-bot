@@ -195,6 +195,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       useFlashbots: false,
+      blockInterval: 10,
     },
   },
 };
