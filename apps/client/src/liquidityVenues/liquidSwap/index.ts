@@ -23,8 +23,12 @@ export class LiquidSwapVenue implements LiquidityVenue {
       const srcDecimals = await this.getAssetsDecimals(encoder.client, src);
       const url = this.apiUrl(src, dst, Math.floor(Number(srcAmount) / 10 ** srcDecimals));
 
+      console.log(url);
+
       const response = await fetch(url);
       const data = (await response.json()) as SwapRouteV2Response;
+
+      console.log(data);
 
       if (!data.success || !data.execution) {
         throw new Error("failed to fetch liquid swap route");
