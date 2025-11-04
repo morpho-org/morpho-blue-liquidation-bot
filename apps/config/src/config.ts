@@ -41,6 +41,7 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: true,
       liquidationBufferBps: 50,
       useFlashbots: true,
+      blockInterval: 2,
     },
   },
   [base.id]: {
@@ -70,6 +71,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: true,
       useFlashbots: false,
+      blockInterval: 10,
     },
   },
   [unichain.id]: {
@@ -93,6 +95,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       useFlashbots: false,
+      blockInterval: 5,
     },
   },
   [katana.id]: {
@@ -116,6 +119,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       useFlashbots: false,
+      blockInterval: 5,
     },
   },
   [worldchain.id]: {
@@ -144,6 +148,7 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       useFlashbots: false,
+      blockInterval: 5,
     },
   },
 };

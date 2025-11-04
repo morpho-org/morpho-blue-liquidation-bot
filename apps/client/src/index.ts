@@ -66,13 +66,19 @@ export const launchBot = (config: ChainConfig) => {
 
   const bot = new LiquidationBot(inputs);
 
+  const blockInterval = config.blockInterval ?? 1;
+  let count = 0;
+
   watchBlocks(client, {
     onBlock: () => {
-      try {
-        void bot.run();
-      } catch (e) {
-        console.error(`${logTag} uncaught error in bot.run():`, e);
+      if (count % blockInterval === 0) {
+        try {
+          void bot.run();
+        } catch (e) {
+          console.error(`${logTag} uncaught error in bot.run():`, e);
+        }
       }
+      count++;
     },
   });
 };

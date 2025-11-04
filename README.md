@@ -90,15 +90,17 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 - `options.treasuryAddress`: the intended treasury address.
 
-**Chain Wrapped Native Asset**:
-
-**Flashbots**:
+**Flashbots (optional)**:
 
 - `options.useFlashbots`: `true` if you want to use flashbots for this chain (in that case, you will have to set the `FLASHBOTS_PRIVATE_KEY`), `false` otherwise.
 
 **Liquidation buffer**:
 
 - `options.liquidationBufferBps`: For a given position, the bot computes the maximum seizable collateral. Then, if the collateral price slightly increases before the liquidation execution, it will fail. To avoid such scenario, we reduce the seizable collateral by a small buffer, that can be configured in base points. If not set, a default value of 10 bps will be used. When all of the position's collateral can be seized, the buffer is not applied to allow for bad debt realization.
+
+**Block Interval (optional)**:
+
+- `options.blockInterval`: Controls how often the bot executes liquidation checks. The bot watches every new block, but only runs the liquidation logic every N blocks (where N is the value of `blockInterval`). This can be useful to reduce RPC calls and gas costs on chains with high block frequencies, or to throttle execution on less active chains. If not set, the bot will run at every new block.
 
 ### Secrets
 
