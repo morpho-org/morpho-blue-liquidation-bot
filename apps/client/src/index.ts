@@ -1,8 +1,8 @@
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import dotenv from "dotenv";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
-import dotenv from "dotenv";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import {
@@ -77,13 +77,19 @@ export const launchBot = (config: ChainConfig) => {
 
   const bot = new LiquidationBot(inputs);
 
+  const blockInterval = config.blockInterval ?? 1;
+  let count = 0;
+
   watchBlocks(client, {
     onBlock: () => {
-      try {
-        void bot.run();
-      } catch (e) {
-        console.error(`${logTag} uncaught error in bot.run():`, e);
+      if (count % blockInterval === 0) {
+        try {
+          void bot.run();
+        } catch (e) {
+          console.error(`${logTag} uncaught error in bot.run():`, e);
+        }
       }
+      count++;
     },
   });
 };

@@ -1,5 +1,6 @@
-import { base, mainnet, unichain, katana, arbitrum, worldchain } from "viem/chains";
+import { base, mainnet, unichain, katana, arbitrum } from "viem/chains";
 
+import { hyperevm } from "./chains";
 import type { Config } from "./types";
 
 export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
@@ -36,6 +37,7 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: true,
       liquidationBufferBps: 50,
       useFlashbots: true,
+      blockInterval: 2,
     },
   },
   [base.id]: {
@@ -66,6 +68,7 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: true,
       liquidationBufferBps: 50,
       useFlashbots: false,
+      blockInterval: 10,
     },
   },
   [unichain.id]: {
@@ -90,6 +93,7 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: false,
       liquidationBufferBps: 50,
       useFlashbots: false,
+      blockInterval: 5,
     },
   },
   [katana.id]: {
@@ -114,6 +118,7 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: false,
       liquidationBufferBps: 50,
       useFlashbots: false,
+      blockInterval: 5,
     },
   },
   [arbitrum.id]: {
@@ -166,6 +171,30 @@ export const chainConfigs: Record<number, Config> = {
       additionalMarketsWhitelist: [],
       checkProfit: false,
       useFlashbots: false,
+      blockInterval: 5,
     },
   }, */
+  [hyperevm.id]: {
+    chain: hyperevm,
+    morpho: { address: "0x68e37dE8d93d3496ae143F2E900490f6280C57cD", startBlock: 1988429 },
+    adaptiveCurveIrm: {
+      address: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483",
+      startBlock: 1988429,
+    },
+    metaMorphoFactories: {
+      addresses: ["0xec051b19d654C48c357dC974376DeB6272f24e53"],
+      startBlock: 1988677,
+    },
+    preLiquidationFactory: {
+      address: "0x1b6782Ac7A859503cE953FBf4736311CC335B8f0",
+      startBlock: 1988956,
+    },
+    wNative: "0x5555555555555555555555555555555555555555",
+    options: {
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+      useFlashbots: false,
+    },
+  },
 };
