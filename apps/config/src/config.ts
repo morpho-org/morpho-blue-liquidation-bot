@@ -1,6 +1,6 @@
 import { base, mainnet, unichain, worldchain } from "viem/chains";
 
-import { katana } from "./chains/katana";
+import { hyperevm, katana } from "./chains";
 import type { Config } from "./types";
 
 export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
@@ -149,6 +149,33 @@ export const chainConfigs: Record<number, Config> = {
       checkProfit: false,
       useFlashbots: false,
       blockInterval: 5,
+    },
+  },
+  [hyperevm.id]: {
+    chain: worldchain,
+    morpho: { address: "0x68e37dE8d93d3496ae143F2E900490f6280C57cD", startBlock: 1988429 },
+    adaptiveCurveIrm: {
+      address: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483",
+      startBlock: 1988429,
+    },
+    metaMorphoFactories: {
+      addresses: ["0xec051b19d654C48c357dC974376DeB6272f24e53"],
+      startBlock: 1988677,
+    },
+    preLiquidationFactory: {
+      address: "0x1b6782Ac7A859503cE953FBf4736311CC335B8f0",
+      startBlock: 1988956,
+    },
+    wNative: "0x5555555555555555555555555555555555555555",
+    options: {
+      vaultWhitelist: [
+        "0x8A862fD6c12f9ad34C9c2ff45AB2b6712e8CEa27", // Felix USDC
+        "0xFc5126377F0efc0041C0969Ef9BA903Ce67d151e", // Felix USDT
+        "0x2900ABd73631b2f60747e687095537B673c06A76", // Felix HYPE
+      ],
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+      useFlashbots: false,
     },
   },
 };
