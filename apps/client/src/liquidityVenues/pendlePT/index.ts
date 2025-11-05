@@ -79,9 +79,10 @@ export class PendlePTVenue implements LiquidityVenue {
         this.pendleMarkets[encoder.client.chain.id] = await getMarkets(encoder.client.chain.id);
         this.lastPoolRefresh[encoder.client.chain.id] = Date.now();
       } catch (error) {
-        console.error("Error fetching pendle tokens", error);
         this.lastPoolRefresh[encoder.client.chain.id] = Date.now(); // prevent infinite retries
-        return false;
+        throw new Error(
+          `(PendlePT) Error fetching pendle tokens: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
     return this.isPT(src, encoder.client.chain.id);
@@ -117,8 +118,9 @@ export class PendlePTVenue implements LiquidityVenue {
           underlyingToken,
         );
       } catch (error) {
-        console.error("Error redeeming PT to underlying", error);
-        return toConvert;
+        throw new Error(
+          `(PendlePT) Error redeeming PT to underlying: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     } else {
       // Pendle market is not expired, we need to swap the collateral token (PT) to the underlying token
@@ -131,8 +133,9 @@ export class PendlePTVenue implements LiquidityVenue {
           underlyingToken,
         );
       } catch (error) {
-        console.error("Error swapping PT to underlying", error);
-        return toConvert;
+        throw new Error(
+          `(PendlePT) Error swapping PT to underlying: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
 

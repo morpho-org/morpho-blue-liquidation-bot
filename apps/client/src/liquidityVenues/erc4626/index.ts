@@ -47,8 +47,10 @@ export class Erc4626 implements LiquidityVenue {
 
       encoder.erc4626Redeem(src, srcAmount, encoder.address, encoder.address);
       return { src: underlying, dst, srcAmount: withdrawAmount };
-    } catch {
-      return toConvert;
+    } catch (error) {
+      throw new Error(
+        `(ERC4626) Error previewing redeem: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }

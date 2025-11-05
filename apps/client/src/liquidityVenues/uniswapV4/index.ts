@@ -87,8 +87,9 @@ export class UniswapV4Venue implements LiquidityVenue {
         batchSize: 2 ** 16,
       });
     } catch (error) {
-      console.error("UniswapV4: Error fetching pools liquidities", error);
-      return toConvert;
+      throw new Error(
+        `(UniswapV4) Error fetching pools liquidities: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -154,8 +155,9 @@ export class UniswapV4Venue implements LiquidityVenue {
         encoder.erc20Approve(rawSrc, deployments.Permit2.address, maxUint256);
       }
     } catch (error) {
-      console.error("UniswapV4: Error fetching Permit2 allowance", error);
-      return toConvert;
+      throw new Error(
+        `(UniswapV4) Error fetching Permit2 allowance: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     // Tell Permit2 that the UniversalRouter can spend our tokens
@@ -226,8 +228,9 @@ export class UniswapV4Venue implements LiquidityVenue {
 
       return { currency0, currency1, pools };
     } catch (error) {
-      console.error("UniswapV4: Error fetching pools", error);
-      return { currency0, currency1, pools: [] };
+      throw new Error(
+        `(UniswapV4) Error fetching pools: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }

@@ -60,7 +60,7 @@ export class UniswapV3Venue implements LiquidityVenue {
       )?.pool;
 
       if (!biggestPool) {
-        throw new Error("No Uniswap pool found");
+        throw new Error("(UniswapV3) No Uniswap pool found");
       }
 
       const zeroForOne = fromHex(src, "bigint") < fromHex(dst, "bigint");
@@ -111,9 +111,9 @@ export class UniswapV3Venue implements LiquidityVenue {
         srcAmount: 0n,
       };
     } catch (error) {
-      console.log(`Error swapping ${src} to ${dst} on UniswapV3`);
-      console.error(error);
-      return toConvert;
+      throw new Error(
+        `(UniswapV3) Error swapping: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -147,11 +147,9 @@ export class UniswapV3Venue implements LiquidityVenue {
 
       return newPools;
     } catch (error) {
-      console.log(
-        `Error fetching UniswapV3 pools for src: ${src} and dst: ${dst}. Check if the factory address is correct.`,
+      throw new Error(
+        `(UniswapV3) Error fetching pools: ${error instanceof Error ? error.message : String(error)}`,
       );
-      console.error(error);
-      return [];
     }
   }
 }
