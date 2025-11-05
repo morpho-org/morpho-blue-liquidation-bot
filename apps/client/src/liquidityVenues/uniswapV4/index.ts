@@ -62,16 +62,35 @@ export class UniswapV4Venue implements LiquidityVenue {
     const { currency0, currency1, pools } = await this.fetchPools(encoder, PoolManager, src, dst);
     if (pools.length === 0) return toConvert;
 
-    const liquidities = await multicall(encoder.client, {
-      contracts: pools.map((pool) => ({
-        ...StateView,
-        abi: uniswapV4StateViewAbi,
-        functionName: "getLiquidity" as const,
-        args: [pool.id],
-      })),
-      allowFailure: true,
-      batchSize: 2 ** 16,
-    });
+    let liquidities: (
+      | {
+          error: Error;
+          result?: undefined;
+          status: "failure";
+        }
+      | {
+          error?: undefined;
+          result: bigint;
+          status: "success";
+        }
+    )[] = [];
+
+    try {
+      liquidities = await multicall(encoder.client, {
+        contracts: pools.map((pool) => ({
+          ...StateView,
+          abi: uniswapV4StateViewAbi,
+          functionName: "getLiquidity" as const,
+          args: [pool.id],
+        })),
+        allowFailure: true,
+        batchSize: 2 ** 16,
+      });
+    } catch (error) {
+      throw new Error(
+        `(UniswapV4) Error fetching pools liquidities: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     let bestPool = pools[0]!;
@@ -125,14 +144,20 @@ export class UniswapV4Venue implements LiquidityVenue {
     routePlanner.addCommand(CommandType.V4_SWAP, [v4Planner.finalize()], false);
 
     // Make sure Permit2 can control our tokens
-    const permit2Allowance = await readContract(encoder.client, {
-      abi: erc20Abi,
-      address: rawSrc,
-      functionName: "allowance",
-      args: [encoder.address, deployments.Permit2.address],
-    });
-    if (permit2Allowance < srcAmount) {
-      encoder.erc20Approve(rawSrc, deployments.Permit2.address, maxUint256);
+    try {
+      const permit2Allowance = await readContract(encoder.client, {
+        abi: erc20Abi,
+        address: rawSrc,
+        functionName: "allowance",
+        args: [encoder.address, deployments.Permit2.address],
+      });
+      if (permit2Allowance < srcAmount) {
+        encoder.erc20Approve(rawSrc, deployments.Permit2.address, maxUint256);
+      }
+    } catch (error) {
+      throw new Error(
+        `(UniswapV4) Error fetching Permit2 allowance: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     // Tell Permit2 that the UniversalRouter can spend our tokens
@@ -178,28 +203,34 @@ export class UniswapV4Venue implements LiquidityVenue {
     const cache = this.poolCreationEventsCache[`${currency0}${currency1}`];
     const cacheIsValid = cache?.lastUpdate && Date.now() - cache.lastUpdate < this.STALE_TIME;
 
-    const poolCreationEvents = cacheIsValid
-      ? cache.events
-      : await getContractEvents(encoder.client, {
-          ...poolManager,
-          abi: uniswapV4PoolManagerAbi,
-          eventName: "Initialize",
-          args: { currency0, currency1 },
-          strict: true,
-        });
+    try {
+      const poolCreationEvents = cacheIsValid
+        ? cache.events
+        : await getContractEvents(encoder.client, {
+            ...poolManager,
+            abi: uniswapV4PoolManagerAbi,
+            eventName: "Initialize",
+            args: { currency0, currency1 },
+            strict: true,
+          });
 
-    if (!cacheIsValid) {
-      this.poolCreationEventsCache[`${currency0}${currency1}`] = {
-        events: poolCreationEvents,
-        lastUpdate: Date.now(),
-      };
+      if (!cacheIsValid) {
+        this.poolCreationEventsCache[`${currency0}${currency1}`] = {
+          events: poolCreationEvents,
+          lastUpdate: Date.now(),
+        };
+      }
+
+      // Ignore pools with hooks, as we don't know what extra data they'd require for swaps.
+      const pools = poolCreationEvents
+        .filter((ev) => ev.args.hooks === zeroAddress)
+        .map((ev) => ev.args);
+
+      return { currency0, currency1, pools };
+    } catch (error) {
+      throw new Error(
+        `(UniswapV4) Error fetching pools: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
-
-    // Ignore pools with hooks, as we don't know what extra data they'd require for swaps.
-    const pools = poolCreationEvents
-      .filter((ev) => ev.args.hooks === zeroAddress)
-      .map((ev) => ev.args);
-
-    return { currency0, currency1, pools };
   }
 }

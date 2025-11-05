@@ -79,9 +79,10 @@ export class PendlePTVenue implements LiquidityVenue {
         this.pendleMarkets[encoder.client.chain.id] = await getMarkets(encoder.client.chain.id);
         this.lastPoolRefresh[encoder.client.chain.id] = Date.now();
       } catch (error) {
-        console.error("Error fetching pendle tokens", error);
         this.lastPoolRefresh[encoder.client.chain.id] = Date.now(); // prevent infinite retries
-        return false;
+        throw new Error(
+          `(PendlePT) Error fetching pendle tokens: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
     return this.isPT(src, encoder.client.chain.id);
@@ -108,22 +109,34 @@ export class PendlePTVenue implements LiquidityVenue {
     if (new Date(maturity) < new Date()) {
       // Pendle market is expired, we can directly redeem the collateral
       // If called before YT's expiry, both PT & YT of equal amounts are needed and will be burned. Else, only PT is needed and will be burned.
-      amountOut = await this.redeemPToUnderlying(
-        encoder,
-        pendleMarket,
-        srcAmount,
-        src,
-        underlyingToken,
-      );
+      try {
+        amountOut = await this.redeemPToUnderlying(
+          encoder,
+          pendleMarket,
+          srcAmount,
+          src,
+          underlyingToken,
+        );
+      } catch (error) {
+        throw new Error(
+          `(PendlePT) Error redeeming PT to underlying: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     } else {
       // Pendle market is not expired, we need to swap the collateral token (PT) to the underlying token
-      amountOut = await this.swapPTToUnderlying(
-        encoder,
-        pendleMarket,
-        srcAmount,
-        src,
-        underlyingToken,
-      );
+      try {
+        amountOut = await this.swapPTToUnderlying(
+          encoder,
+          pendleMarket,
+          srcAmount,
+          src,
+          underlyingToken,
+        );
+      } catch (error) {
+        throw new Error(
+          `(PendlePT) Error swapping PT to underlying: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
 
     return {

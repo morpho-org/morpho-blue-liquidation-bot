@@ -32,13 +32,7 @@ export class MidasVenue implements LiquidityVenue {
       encoder,
     );
 
-    if (!redemptionParams) return toConvert;
-
     const previewRedeemInstantData = this.previewRedeemInstant(redemptionParams);
-
-    if (!previewRedeemInstantData) {
-      return toConvert;
-    }
 
     const { amountTokenOutWithoutFee, feeAmount } = previewRedeemInstantData;
 
@@ -81,17 +75,29 @@ export class MidasVenue implements LiquidityVenue {
 
   previewRedeemInstant(params: PreviewRedeemInstantParams) {
     const feeData = this._calcAndValidateRedeem(params);
-    if (!feeData) return undefined;
+    if (!feeData)
+      throw new Error(
+        `(Midas) Error calculating and validating redeem for ${params.tokenOutConfig.dataFeed}`,
+      );
 
-    if (!this._requireAndUpdateLimit(params, feeData.amountMTokenWithoutFee)) return undefined;
+    if (!this._requireAndUpdateLimit(params, feeData.amountMTokenWithoutFee))
+      throw new Error(
+        `(Midas) Error validating redeem limit for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     const usdData = this._convertMTokenToUsd(params, feeData.amountMTokenWithoutFee);
 
-    if (!usdData) return undefined;
+    if (!usdData)
+      throw new Error(
+        `(Midas) Error converting MToken to USD for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     const tokenData = this._convertUsdToToken(params, usdData.amountUsd);
 
-    if (!tokenData) return undefined;
+    if (!tokenData)
+      throw new Error(
+        `(Midas) Error converting USD to token for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     return {
       amountTokenOutWithoutFee: this._truncate(
@@ -103,7 +109,10 @@ export class MidasVenue implements LiquidityVenue {
   }
 
   private _calcAndValidateRedeem(params: PreviewRedeemInstantParams) {
-    if (params.minAmount > params.amountMTokenIn) return undefined;
+    if (params.minAmount > params.amountMTokenIn)
+      throw new Error(
+        `(Midas) Error calculating and validating redeem for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     const feeAmount = this._getFeeAmount(params);
 
@@ -128,7 +137,10 @@ export class MidasVenue implements LiquidityVenue {
   }
 
   private _convertMTokenToUsd(params: PreviewRedeemInstantParams, amount: bigint) {
-    if (amount === 0n || params.mTokenRate === 0n) return undefined;
+    if (amount === 0n || params.mTokenRate === 0n)
+      throw new Error(
+        `(Midas) Error converting MToken to USD for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     return {
       amountUsd: (amount * params.mTokenRate) / 10n ** 18n,
@@ -137,11 +149,17 @@ export class MidasVenue implements LiquidityVenue {
   }
 
   private _convertUsdToToken(params: PreviewRedeemInstantParams, amountUsd: bigint) {
-    if (amountUsd === 0n) return undefined;
+    if (amountUsd === 0n)
+      throw new Error(
+        `(Midas) Error converting USD to token for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     const tokenRate = params.tokenOutConfig.stable ? params.STABLECOIN_RATE : params.tokenOutRate;
 
-    if (tokenRate === 0n) return undefined;
+    if (tokenRate === 0n)
+      throw new Error(
+        `(Midas) Error converting USD to token for ${params.tokenOutConfig.dataFeed}`,
+      );
 
     return {
       amountToken: (amountUsd * 10n ** 18n) / tokenRate,
@@ -179,7 +197,7 @@ export class MidasVenue implements LiquidityVenue {
     tokenOut: Address,
     seizedCollateral: bigint,
     encoder: ExecutorEncoder,
-  ): Promise<PreviewRedeemInstantParams | undefined> {
+  ): Promise<PreviewRedeemInstantParams> {
     const midasContract = getContract({
       address: vault,
       abi: redemptionVaultAbi,
@@ -236,9 +254,10 @@ export class MidasVenue implements LiquidityVenue {
         mTokenRate,
         tokenOutRate,
       };
-    } catch (e) {
-      console.error(e);
-      return undefined;
+    } catch (error) {
+      throw new Error(
+        `(Midas) Error getting redemption params for ${vault} to ${tokenOut}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
