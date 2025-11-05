@@ -6,6 +6,7 @@ import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import {
+  LiquidSwapVenue,
   MidasVenue,
   OneInch,
   PendlePTVenue,
@@ -37,6 +38,7 @@ export const launchBot = (config: ChainConfig) => {
   liquidityVenues.push(new OneInch(process.env.ONE_INCH_SWAP_API_KEY));
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
+  liquidityVenues.push(new LiquidSwapVenue());
   liquidityVenues.push(new UniswapV3Venue());
   liquidityVenues.push(new UniswapV4Venue());
 

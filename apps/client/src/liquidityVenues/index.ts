@@ -5,3 +5,4 @@ export * from "./erc20Wrapper";
 export * from "./1inch";
 export * from "./pendlePT";
 export * from "./midas";
+export * from "./liquidSwap";
