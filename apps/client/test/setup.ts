@@ -111,7 +111,7 @@ export const pendleOneInchExecutionTest = createViemTest(mainnet, {
 
 export const liquidSwapTest = createViemTest(hyperevm, {
   forkUrl: process.env.RPC_URL_999,
-  forkBlockNumber: 18_323_966,
+  forkBlockNumber: 18383174,
 }).extend<ExecutorEncoderTestContext<typeof hyperevm>>({
   encoder: async ({ client }, use) => {
     const receipt = await client.deployContractWait({
