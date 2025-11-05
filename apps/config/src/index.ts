@@ -53,6 +53,7 @@ export function getSecrets(chainId: number, chain?: Chain) {
   };
 }
 
+export * from "./chains";
 export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
 export * from "./pricers";

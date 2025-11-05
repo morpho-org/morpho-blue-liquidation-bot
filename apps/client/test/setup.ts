@@ -1,3 +1,4 @@
+import { hyperevm } from "@morpho-blue-liquidation-bot/config";
 import type { AnvilTestClient } from "@morpho-org/test";
 import { createViemTest } from "@morpho-org/test/vitest";
 import dotenv from "dotenv";
@@ -97,6 +98,21 @@ export const pendleOneInchExecutionTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1,
   forkBlockNumber: 23_540_181,
 }).extend<ExecutorEncoderTestContext<typeof mainnet>>({
+  encoder: async ({ client }, use) => {
+    const receipt = await client.deployContractWait({
+      abi: executorAbi,
+      bytecode,
+      args: [client.account.address],
+    });
+
+    await use(new ExecutorEncoder(receipt.contractAddress, client));
+  },
+});
+
+export const liquidSwapTest = createViemTest(hyperevm, {
+  forkUrl: process.env.RPC_URL_999,
+  forkBlockNumber: 18383174,
+}).extend<ExecutorEncoderTestContext<typeof hyperevm>>({
   encoder: async ({ client }, use) => {
     const receipt = await client.deployContractWait({
       abi: executorAbi,

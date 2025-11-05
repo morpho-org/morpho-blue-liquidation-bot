@@ -322,8 +322,13 @@ export class LiquidationBot {
     };
 
     for (const venue of this.liquidityVenues) {
-      if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
-        toConvert = await venue.convert(encoder, toConvert);
+      try {
+        if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
+          toConvert = await venue.convert(encoder, toConvert);
+      } catch (error) {
+        console.error(`${this.logTag}Error converting ${toConvert.src} to ${toConvert.dst}`, error);
+        continue;
+      }
 
       if (toConvert.src === toConvert.dst) return true;
     }

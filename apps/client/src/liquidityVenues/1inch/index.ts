@@ -48,9 +48,9 @@ export class OneInch implements LiquidityVenue {
         srcAmount: 0n,
       };
     } catch (error) {
-      console.log(`Error swapping ${toConvert.src} to ${toConvert.dst} on 1inch`);
-      console.error(error);
-      return toConvert;
+      throw new Error(
+        `(1inch) Error fetching swap response: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
