@@ -62,8 +62,21 @@ export class UniswapV4Venue implements LiquidityVenue {
     const { currency0, currency1, pools } = await this.fetchPools(encoder, PoolManager, src, dst);
     if (pools.length === 0) return toConvert;
 
+    let liquidities: (
+      | {
+          error: Error;
+          result?: undefined;
+          status: "failure";
+        }
+      | {
+          error?: undefined;
+          result: bigint;
+          status: "success";
+        }
+    )[] = [];
+
     try {
-      const liquidities = await multicall(encoder.client, {
+      liquidities = await multicall(encoder.client, {
         contracts: pools.map((pool) => ({
           ...StateView,
           abi: uniswapV4StateViewAbi,
@@ -73,59 +86,64 @@ export class UniswapV4Venue implements LiquidityVenue {
         allowFailure: true,
         batchSize: 2 ** 16,
       });
+    } catch (error) {
+      console.error("UniswapV4: Error fetching pools liquidities", error);
+      return toConvert;
+    }
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      let bestPool = pools[0]!;
-      let bestLiquidity = 0n;
-      for (let i = 0; i < pools.length; i += 1) {
-        const liquidity = liquidities[i];
-        if (!liquidity || liquidity.status === "failure") continue;
-        if (liquidity.result > bestLiquidity) {
-          // TODO: could improve this by picking minimum fee tier if there's a set
-          // of similarly-sized pools.
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          bestPool = pools[i]!;
-          bestLiquidity = liquidity.result;
-        }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    let bestPool = pools[0]!;
+    let bestLiquidity = 0n;
+    for (let i = 0; i < pools.length; i += 1) {
+      const liquidity = liquidities[i];
+      if (!liquidity || liquidity.status === "failure") continue;
+      if (liquidity.result > bestLiquidity) {
+        // TODO: could improve this by picking minimum fee tier if there's a set
+        // of similarly-sized pools.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        bestPool = pools[i]!;
+        bestLiquidity = liquidity.result;
       }
+    }
 
-      const bestPoolKey: PoolKey = {
-        currency0,
-        currency1,
-        fee: bestPool.fee,
-        tickSpacing: bestPool.tickSpacing,
-        hooks: bestPool.hooks,
-      };
+    const bestPoolKey: PoolKey = {
+      currency0,
+      currency1,
+      fee: bestPool.fee,
+      tickSpacing: bestPool.tickSpacing,
+      hooks: bestPool.hooks,
+    };
 
-      // Configure exact swap at the Uniswap v4 Router level
-      const v4Planner = new V4Planner();
-      v4Planner.addAction(Actions.SWAP_EXACT_IN_SINGLE, [
-        // See https://github.com/Uniswap/sdks/blob/5a1cbfb55d47625afd40f5f0f5e934ed18dfd5e4/sdks/v4-sdk/src/utils/v4Planner.ts#L70
-        {
-          poolKey: bestPoolKey,
-          zeroForOne: currency0 === src,
-          amountIn: srcAmount,
-          amountOutMinimum: 0n,
-          hookData: "0x",
-        },
+    // Configure exact swap at the Uniswap v4 Router level
+    const v4Planner = new V4Planner();
+    v4Planner.addAction(Actions.SWAP_EXACT_IN_SINGLE, [
+      // See https://github.com/Uniswap/sdks/blob/5a1cbfb55d47625afd40f5f0f5e934ed18dfd5e4/sdks/v4-sdk/src/utils/v4Planner.ts#L70
+      {
+        poolKey: bestPoolKey,
+        zeroForOne: currency0 === src,
+        amountIn: srcAmount,
+        amountOutMinimum: 0n,
+        hookData: "0x",
+      },
+    ]);
+    v4Planner.addAction(Actions.SETTLE_ALL, [src, maxUint256]); // [currency, maxAmount]
+    v4Planner.addAction(Actions.TAKE_ALL, [dst, 0n]); // [currency, minAmount]
+
+    // Configure overall actions at the Uniswap Universal Router level
+    const routePlanner = new RoutePlanner();
+    if (shouldUnwrap) {
+      routePlanner.addCommand(CommandType.PERMIT2_TRANSFER_FROM, [
+        Native.address,
+        UniversalRouter.address,
+        srcAmount,
       ]);
-      v4Planner.addAction(Actions.SETTLE_ALL, [src, maxUint256]); // [currency, maxAmount]
-      v4Planner.addAction(Actions.TAKE_ALL, [dst, 0n]); // [currency, minAmount]
+      routePlanner.addCommand(CommandType.UNWRAP_WETH, [UniversalRouter.address, 0], false);
+    }
+    // See https://github.com/Uniswap/sdks/blob/5a1cbfb55d47625afd40f5f0f5e934ed18dfd5e4/sdks/universal-router-sdk/src/utils/routerCommands.ts#L268
+    routePlanner.addCommand(CommandType.V4_SWAP, [v4Planner.finalize()], false);
 
-      // Configure overall actions at the Uniswap Universal Router level
-      const routePlanner = new RoutePlanner();
-      if (shouldUnwrap) {
-        routePlanner.addCommand(CommandType.PERMIT2_TRANSFER_FROM, [
-          Native.address,
-          UniversalRouter.address,
-          srcAmount,
-        ]);
-        routePlanner.addCommand(CommandType.UNWRAP_WETH, [UniversalRouter.address, 0], false);
-      }
-      // See https://github.com/Uniswap/sdks/blob/5a1cbfb55d47625afd40f5f0f5e934ed18dfd5e4/sdks/universal-router-sdk/src/utils/routerCommands.ts#L268
-      routePlanner.addCommand(CommandType.V4_SWAP, [v4Planner.finalize()], false);
-
-      // Make sure Permit2 can control our tokens
+    // Make sure Permit2 can control our tokens
+    try {
       const permit2Allowance = await readContract(encoder.client, {
         abi: erc20Abi,
         address: rawSrc,
@@ -135,40 +153,40 @@ export class UniswapV4Venue implements LiquidityVenue {
       if (permit2Allowance < srcAmount) {
         encoder.erc20Approve(rawSrc, deployments.Permit2.address, maxUint256);
       }
-
-      // Tell Permit2 that the UniversalRouter can spend our tokens
-      const deadline = maxUint48;
-      encoder.pushCall(
-        deployments.Permit2.address,
-        0n,
-        encodeFunctionData({
-          abi: permit2Abi,
-          functionName: "approve",
-          args: [rawSrc, deployments.UniversalRouter.address, srcAmount, Number(deadline)],
-        }),
-      );
-
-      encoder.pushCall(
-        UniversalRouter.address,
-        0n,
-        encodeFunctionData({
-          abi: uniswapUniversalRouterAbi,
-          functionName: "execute",
-          args: [routePlanner.commands as Hex, routePlanner.inputs as Hex[], deadline],
-        }),
-      );
-      if (shouldWrap) {
-        // `Executor` contract caps amount at `address(this).balance`, and WETH receive
-        // function falls back to a deposit -- this is the only way to wrap max amount
-        // since placeholders can't specify msg.value.
-        encoder.transfer(Native.address, maxUint256);
-      }
-
-      return { ...toConvert, src: rawDst, srcAmount: 0n };
     } catch (error) {
-      console.error("Error swapping on UniswapV4", error);
+      console.error("UniswapV4: Error fetching Permit2 allowance", error);
       return toConvert;
     }
+
+    // Tell Permit2 that the UniversalRouter can spend our tokens
+    const deadline = maxUint48;
+    encoder.pushCall(
+      deployments.Permit2.address,
+      0n,
+      encodeFunctionData({
+        abi: permit2Abi,
+        functionName: "approve",
+        args: [rawSrc, deployments.UniversalRouter.address, srcAmount, Number(deadline)],
+      }),
+    );
+
+    encoder.pushCall(
+      UniversalRouter.address,
+      0n,
+      encodeFunctionData({
+        abi: uniswapUniversalRouterAbi,
+        functionName: "execute",
+        args: [routePlanner.commands as Hex, routePlanner.inputs as Hex[], deadline],
+      }),
+    );
+    if (shouldWrap) {
+      // `Executor` contract caps amount at `address(this).balance`, and WETH receive
+      // function falls back to a deposit -- this is the only way to wrap max amount
+      // since placeholders can't specify msg.value.
+      encoder.transfer(Native.address, maxUint256);
+    }
+
+    return { ...toConvert, src: rawDst, srcAmount: 0n };
   }
 
   private async fetchPools(
@@ -183,28 +201,33 @@ export class UniswapV4Venue implements LiquidityVenue {
     const cache = this.poolCreationEventsCache[`${currency0}${currency1}`];
     const cacheIsValid = cache?.lastUpdate && Date.now() - cache.lastUpdate < this.STALE_TIME;
 
-    const poolCreationEvents = cacheIsValid
-      ? cache.events
-      : await getContractEvents(encoder.client, {
-          ...poolManager,
-          abi: uniswapV4PoolManagerAbi,
-          eventName: "Initialize",
-          args: { currency0, currency1 },
-          strict: true,
-        });
+    try {
+      const poolCreationEvents = cacheIsValid
+        ? cache.events
+        : await getContractEvents(encoder.client, {
+            ...poolManager,
+            abi: uniswapV4PoolManagerAbi,
+            eventName: "Initialize",
+            args: { currency0, currency1 },
+            strict: true,
+          });
 
-    if (!cacheIsValid) {
-      this.poolCreationEventsCache[`${currency0}${currency1}`] = {
-        events: poolCreationEvents,
-        lastUpdate: Date.now(),
-      };
+      if (!cacheIsValid) {
+        this.poolCreationEventsCache[`${currency0}${currency1}`] = {
+          events: poolCreationEvents,
+          lastUpdate: Date.now(),
+        };
+      }
+
+      // Ignore pools with hooks, as we don't know what extra data they'd require for swaps.
+      const pools = poolCreationEvents
+        .filter((ev) => ev.args.hooks === zeroAddress)
+        .map((ev) => ev.args);
+
+      return { currency0, currency1, pools };
+    } catch (error) {
+      console.error("UniswapV4: Error fetching pools", error);
+      return { currency0, currency1, pools: [] };
     }
-
-    // Ignore pools with hooks, as we don't know what extra data they'd require for swaps.
-    const pools = poolCreationEvents
-      .filter((ev) => ev.args.hooks === zeroAddress)
-      .map((ev) => ev.args);
-
-    return { currency0, currency1, pools };
   }
 }
