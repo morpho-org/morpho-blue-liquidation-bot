@@ -1,5 +1,5 @@
-import nock from "nock";
 import { executorAbi } from "executooor-viem";
+import nock from "nock";
 import { Address, erc20Abi, parseUnits } from "viem";
 import { readContract, writeContract } from "viem/actions";
 import { describe, expect } from "vitest";
@@ -21,7 +21,7 @@ describe("LiquidSwap liquidity venue", () => {
     expect(liquidityVenue.supportsRoute(encoder, USDC, WHYPE)).toBe(true);
   });
 
-  liquidSwapTest.only(`should test convert encoding`, async ({ encoder }) => {
+  liquidSwapTest.sequential(`should test convert encoding`, async ({ encoder }) => {
     const srcAmount = parseUnits("1000", 18);
 
     await encoder.client.deal({
