@@ -268,8 +268,7 @@ export class LiquidationBot {
     ]);
 
     if (results[1].status !== "success") {
-      console.warn(`${this.logTag}Transaction failed in simulation: ${results[1].error}`);
-      return;
+      throw new Error(`$Transaction failed in simulation: ${results[1].error}`);
     }
 
     if (
