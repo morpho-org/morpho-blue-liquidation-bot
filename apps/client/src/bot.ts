@@ -99,7 +99,10 @@ export class LiquidationBot {
         try {
           this.fetchedVaults = await fetchWhitelistedVaults(this.chainId);
         } catch (error) {
-          console.error(`${this.logTag}Failed to fetch whitelisted vaults:`, error);
+          console.error(
+            `${this.logTag}Failed to fetch whitelisted vaults:`,
+            error instanceof Error ? error.message : String(error),
+          );
         }
         this.lastWhitelistFetch = Date.now() / 1000;
       }
@@ -178,7 +181,7 @@ export class LiquidationBot {
     } catch (error) {
       console.error(
         `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        error,
+        error instanceof Error ? error.message : String(error),
       );
     }
   }
@@ -228,7 +231,7 @@ export class LiquidationBot {
     } catch (error) {
       console.error(
         `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        error,
+        error instanceof Error ? error.message : String(error),
       );
     }
   }
@@ -268,7 +271,7 @@ export class LiquidationBot {
     ]);
 
     if (results[1].status !== "success") {
-      throw new Error(`$Transaction failed in simulation: ${results[1].error}`);
+      throw new Error(`Transaction failed in simulation: ${results[1].error}`);
     }
 
     if (
@@ -325,7 +328,10 @@ export class LiquidationBot {
         if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
           toConvert = await venue.convert(encoder, toConvert);
       } catch (error) {
-        console.error(`${this.logTag}Error converting ${toConvert.src} to ${toConvert.dst}`, error);
+        console.error(
+          `${this.logTag}Error converting ${toConvert.src} to ${toConvert.dst}`,
+          error instanceof Error ? error.message : String(error),
+        );
         continue;
       }
 
