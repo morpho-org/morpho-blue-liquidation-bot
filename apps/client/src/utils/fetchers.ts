@@ -41,7 +41,7 @@ export async function fetchLiquidatablePositions(chainId: number, marketIds: Hex
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
+    console.error(`Failed to fetch liquidatable positions: ${response.statusText}`);
   }
 
   const data = parseWithBigInt<{ results: IndexerAPIResponse[]; warnings: string[] }>(
