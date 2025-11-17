@@ -2,6 +2,8 @@ import { type ChildProcess, spawn } from "node:child_process";
 
 import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
 
+import { startHealthServer } from "./health";
+
 import { launchBot } from ".";
 
 async function sleep(ms: number) {
@@ -86,6 +88,9 @@ async function run() {
   try {
     await waitForIndexing(apiUrl);
     console.log("✅ Ponder is ready");
+
+    // Start health server
+    await startHealthServer();
 
     // biome-ignore lint/complexity/noForEach: <explanation>
     configs.forEach((config) => {
