@@ -8,7 +8,7 @@
     "prepare": "husky",
     "test:liquidity-venues": "pnpm build:config && vitest liquidityVenues",
     "test:pricers": "pnpm build:config && vitest pricers",
-    "test:execution": "pnpm build:config &&vitest execution",
+    "test:bot": "pnpm build:config &&vitest bot",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
     "deploy:executor": "pnpm build:config && tsx apps/client/src/deployExecutor.ts",
     "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env",
