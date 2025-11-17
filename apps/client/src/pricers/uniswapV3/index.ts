@@ -61,7 +61,10 @@ export class UniswapV3Pricer implements Pricer {
       )?.pool;
 
       if (!biggestPool) {
-        throw new Error("No Uniswap pool found");
+        console.error(
+          `No Uniswap pool found for asset: ${asset} and usdReference: ${usdReference}`,
+        );
+        return;
       }
 
       const token0 =
