@@ -119,10 +119,7 @@ async function run() {
   try {
     await waitForIndexing(apiUrl);
     console.log("✅ Ponder is ready");
-    Sentry.addBreadcrumb({
-      message: "Ponder is ready",
-      level: "info",
-    });
+    Sentry.logger.info("Ponder is ready");
 
     // Start health server
     await startHealthServer();

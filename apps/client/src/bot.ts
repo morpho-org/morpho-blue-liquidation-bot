@@ -178,27 +178,27 @@ export class LiquidationBot {
       const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
 
       if (success) {
-        console.log(
-          `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        );
-        Sentry.addBreadcrumb({
-          message: "Liquidation successful",
-          level: "info",
-          data: {
-            user: position.user,
+        const message = `${this.logTag} Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
+        console.log(message);
+        Sentry.logger.info(message, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "Liquidation",
+            success: true,
             marketId: MarketUtils.getMarketId(marketParams),
+            user: position.user,
           },
         });
       } else {
-        console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
-        );
-        Sentry.addBreadcrumb({
-          message: "Liquidation skipped (not profitable)",
-          level: "info",
-          data: {
-            user: position.user,
+        const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`;
+        console.log(message);
+        Sentry.logger.info(message, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "Liquidation",
+            success: false,
             marketId: MarketUtils.getMarketId(marketParams),
+            user: position.user,
           },
         });
       }
@@ -211,6 +211,7 @@ export class LiquidationBot {
         tags: {
           chainId: this.chainId.toString(),
           operation: "liquidate",
+          success: false,
           marketId: MarketUtils.getMarketId(marketParams),
           user: position.user,
         },
@@ -259,27 +260,27 @@ export class LiquidationBot {
       const success = await this.handleTx(encoder, calls, marketParams, false);
 
       if (success) {
-        console.log(
-          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        );
-        Sentry.addBreadcrumb({
-          message: "Pre-liquidation successful",
-          level: "info",
-          data: {
-            user: position.user,
+        const message = `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
+        console.log(message);
+        Sentry.logger.info(message, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "Pre-liquidation",
+            success: true,
             marketId: MarketUtils.getMarketId(marketParams),
+            user: position.user,
           },
         });
       } else {
-        console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
-        );
-        Sentry.addBreadcrumb({
-          message: "Pre-liquidation skipped (not profitable)",
-          level: "info",
-          data: {
-            user: position.user,
+        const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`;
+        console.log(message);
+        Sentry.logger.info(message, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "Pre-liquidation",
+            success: false,
             marketId: MarketUtils.getMarketId(marketParams),
+            user: position.user,
           },
         });
       }
