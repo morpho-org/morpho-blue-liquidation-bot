@@ -4,6 +4,7 @@ import {
   WHITELIST_FETCH_INTERVAL,
 } from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
+import * as Sentry from "@sentry/node";
 import { executorAbi } from "executooor-viem";
 import {
   erc20Abi,
@@ -99,10 +100,16 @@ export class LiquidationBot {
         try {
           this.fetchedVaults = await fetchWhitelistedVaults(this.chainId);
         } catch (error) {
-          console.error(
-            `${this.logTag}Failed to fetch whitelisted vaults:`,
-            error instanceof Error ? error.message : String(error),
+          const err = new Error(
+            `${this.logTag}Failed to fetch whitelisted vaults: ${error instanceof Error ? error.message : String(error)}`,
           );
+          console.error(err);
+          Sentry.captureException(err, {
+            tags: {
+              chainId: this.chainId.toString(),
+              operation: "Fetch Whitelisted Vaults",
+            },
+          });
         }
         this.lastWhitelistFetch = Date.now() / 1000;
       }
@@ -170,19 +177,50 @@ export class LiquidationBot {
     try {
       const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
 
-      if (success)
+      if (success) {
         console.log(
           `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
         );
-      else
+        Sentry.addBreadcrumb({
+          message: "Liquidation successful",
+          level: "info",
+          data: {
+            user: position.user,
+            marketId: MarketUtils.getMarketId(marketParams),
+          },
+        });
+      } else {
         console.log(
           `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
         );
+        Sentry.addBreadcrumb({
+          message: "Liquidation skipped (not profitable)",
+          level: "info",
+          data: {
+            user: position.user,
+            marketId: MarketUtils.getMarketId(marketParams),
+          },
+        });
+      }
     } catch (error) {
-      console.error(
-        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        error instanceof Error ? error.message : String(error),
+      const err = new Error(
+        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}: ${error instanceof Error ? error.message : String(error)}`,
       );
+      console.error(err);
+      Sentry.captureException(err, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "liquidate",
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+        },
+        contexts: {
+          position: {
+            seizableCollateral: position.seizableCollateral.toString(),
+            badDebt: badDebtPosition,
+          },
+        },
+      });
     }
   }
 
@@ -220,19 +258,49 @@ export class LiquidationBot {
     try {
       const success = await this.handleTx(encoder, calls, marketParams, false);
 
-      if (success)
+      if (success) {
         console.log(
           `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
         );
-      else
+        Sentry.addBreadcrumb({
+          message: "Pre-liquidation successful",
+          level: "info",
+          data: {
+            user: position.user,
+            marketId: MarketUtils.getMarketId(marketParams),
+          },
+        });
+      } else {
         console.log(
           `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
         );
+        Sentry.addBreadcrumb({
+          message: "Pre-liquidation skipped (not profitable)",
+          level: "info",
+          data: {
+            user: position.user,
+            marketId: MarketUtils.getMarketId(marketParams),
+          },
+        });
+      }
     } catch (error) {
       console.error(
         `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
         error instanceof Error ? error.message : String(error),
       );
+      Sentry.captureException(error, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "preLiquidate",
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+        },
+        contexts: {
+          position: {
+            seizableCollateral: position.seizableCollateral.toString(),
+          },
+        },
+      });
     }
   }
 
@@ -328,10 +396,24 @@ export class LiquidationBot {
         if (await venue.supportsRoute(encoder, toConvert.src, toConvert.dst))
           toConvert = await venue.convert(encoder, toConvert);
       } catch (error) {
-        console.error(
-          `${this.logTag}Error converting ${toConvert.src} to ${toConvert.dst}`,
-          error instanceof Error ? error.message : String(error),
+        const err = new Error(
+          `${this.logTag}Error converting ${toConvert.src} to ${toConvert.dst}: ${error instanceof Error ? error.message : String(error)}`,
         );
+        console.error(err);
+        Sentry.captureException(err, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "convert Collateral To Loan",
+            venue: venue.constructor.name,
+          },
+          contexts: {
+            conversion: {
+              src: toConvert.src,
+              dst: toConvert.dst,
+              srcAmount: toConvert.srcAmount.toString(),
+            },
+          },
+        });
         continue;
       }
 

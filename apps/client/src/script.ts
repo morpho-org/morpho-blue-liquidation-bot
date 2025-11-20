@@ -1,10 +1,41 @@
 import { type ChildProcess, spawn } from "node:child_process";
+import * as Sentry from "@sentry/node";
 
 import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
 
 import { startHealthServer } from "./health";
 
 import { launchBot } from ".";
+
+// Initialize Sentry as early as possible
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV || "development",
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  debug: process.env.NODE_ENV === "development",
+  integrations: [
+    // Automatically instrument Node.js libraries and frameworks
+    Sentry.httpIntegration(),
+  ],
+});
+
+// Capture unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  Sentry.captureException(reason, {
+    contexts: {
+      unhandledRejection: {
+        promise: promise.toString(),
+      },
+    },
+  });
+});
+
+// Capture uncaught exceptions
+process.on("uncaughtException", (error) => {
+  Sentry.captureException(error);
+  // Re-throw to maintain default behavior
+  throw error;
+});
 
 async function sleep(ms: number) {
   return new Promise<void>((resolve) =>
@@ -88,6 +119,10 @@ async function run() {
   try {
     await waitForIndexing(apiUrl);
     console.log("✅ Ponder is ready");
+    Sentry.addBreadcrumb({
+      message: "Ponder is ready",
+      level: "info",
+    });
 
     // Start health server
     await startHealthServer();
@@ -98,6 +133,7 @@ async function run() {
     });
   } catch (err) {
     console.error(err);
+    Sentry.captureException(err);
     if (ponder) ponder.kill("SIGTERM");
     process.exit(1);
   }

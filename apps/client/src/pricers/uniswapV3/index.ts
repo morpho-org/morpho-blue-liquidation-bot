@@ -15,6 +15,7 @@ import {
   fromHex,
   zeroAddress,
 } from "viem";
+import * as Sentry from "@sentry/node";
 import { readContract } from "viem/actions";
 
 import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
@@ -93,6 +94,13 @@ export class UniswapV3Pricer implements Pricer {
     } catch (error) {
       console.log(`Error pricing ${asset} on UniswapV3`);
       console.error(error);
+      Sentry.captureException(error, {
+        tags: {
+          chainId: client.chain.id.toString(),
+          operation: "price",
+          asset,
+        },
+      });
       return;
     }
   }
@@ -130,6 +138,14 @@ export class UniswapV3Pricer implements Pricer {
         `Error fetching UniswapV3 pools for src: ${src} and dst: ${dst}. Check if the factory address is correct.`,
       );
       console.error(error);
+      Sentry.captureException(error, {
+        tags: {
+          chainId: client.chain.id.toString(),
+          operation: "fetchPools",
+          src,
+          dst,
+        },
+      });
       return [];
     }
   }
