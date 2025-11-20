@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import type { Account, Address, Chain, Client, Transport } from "viem";
 
 import type { Pricer } from "../pricer";
@@ -32,6 +33,13 @@ export class MorphoApi implements Pricer {
       return priceUsd ?? undefined;
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error, {
+        tags: {
+          chainId: client.chain.id.toString(),
+          operation: "price: MorphoApi",
+          asset,
+        },
+      });
       return undefined;
     }
   }
@@ -57,6 +65,11 @@ export class MorphoApi implements Pricer {
       this.initialized = true;
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error, {
+        tags: {
+          operation: "initialize: MorphoApi",
+        },
+      });
     }
   }
 

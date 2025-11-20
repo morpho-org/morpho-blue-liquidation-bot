@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import {
   formatUnits,
   type Account,
@@ -95,6 +96,13 @@ export class ChainlinkPricer implements Pricer {
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error fetching Chainlink price for ${asset}:`, error);
+        Sentry.captureException(error, {
+          tags: {
+            chainId: client.chain.id.toString(),
+            operation: "price: Chainlink",
+            asset,
+          },
+        });
       } else {
         console.error(`Error fetching Chainlink price for ${asset}:`, String(error));
       }

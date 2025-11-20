@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
 
@@ -28,6 +29,17 @@ class HealthServer {
       console.log(`🚀 Health server listening on http://${this.host}:${this.port}`);
     } catch (err) {
       this.fastify.log.error(err);
+      Sentry.captureException(err, {
+        tags: {
+          operation: "healthServerStart",
+        },
+        contexts: {
+          healthServer: {
+            port: this.port,
+            host: this.host,
+          },
+        },
+      });
       throw err;
     }
   }
