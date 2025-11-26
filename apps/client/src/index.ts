@@ -1,4 +1,5 @@
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import * as Sentry from "@sentry/node";
 import dotenv from "dotenv";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -24,6 +25,12 @@ export const launchBot = (config: ChainConfig) => {
 
   const logTag = `[${config.chain.name} client]: `;
   console.log(`${logTag}Starting up`);
+
+  // Set Sentry context for this chain
+  Sentry.setContext("chain", {
+    name: config.chain.name,
+    chainId: config.chainId,
+  });
 
   const client = createWalletClient({
     chain: config.chain,
@@ -89,6 +96,12 @@ export const launchBot = (config: ChainConfig) => {
           void bot.run();
         } catch (e) {
           console.error(`${logTag} uncaught error in bot.run():`, e);
+          Sentry.captureException(e, {
+            tags: {
+              chain: config.chain.name,
+              chainId: config.chainId.toString(),
+            },
+          });
         }
       }
       count++;
