@@ -92,7 +92,11 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 **Flashbots (optional)**:
 
-- `options.useFlashbots`: `true` if you want to use flashbots for this chain (in that case, you will have to set the `FLASHBOTS_PRIVATE_KEY`), `false` otherwise.
+- `options.useFlashbots`: `true` if you want to use flashbots for this chain (in that case, you will have to set the `FLASHBOTS_PRIVATE_KEY` secret), `false` otherwise.
+
+**Tenderly (optional)**:
+
+- `options.useTenderly`: `true` if you want to generate links to a tenderly simulation for each failing liquidation (in that case, you will have to set the `TENDERLY_ACCOUNT` and `TENDERLY_PROJECT` secrets), `false` otherwise.
 
 **Liquidation buffer**:
 
@@ -106,13 +110,17 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 **Ponder Service Secrets (optional):**
 
--`PONDER_SERVICE_URL`: The url of an external ponder service that will be used by the bot (This ponder service's endpoints should be the same as the ones from this repo's `ponder` package). If not set, the bot will launch a local ponder process.
-
--`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the local ponder process. If not set, the bot will launch a docker container with a local postgres database.
+- `PONDER_SERVICE_URL`: The url of an external ponder service that will be used by the bot (This ponder service's endpoints should be the same as the ones from this repo's `ponder` package). If not set, the bot will launch a local ponder process.
+- `POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the local ponder process. If not set, the bot will launch a docker container with a local postgres database.
 
 **Flashbot Secrets (optional):**
 
--`FLASHBOTS_PRIVATE_KEY`: The Flashbots private key. Only needs to be set if you intend to use Flashbots on some of your chains.
+- `FLASHBOTS_PRIVATE_KEY`: The Flashbots private key. Only needs to be set if you intend to use Flashbots on some of your chains.
+
+**Tenderly Secrets (optional):**
+
+- `TENDERLY_ACCOUNT`: Your tenderly account name. Only needs to be set if you intend to use Tenderly simulations on some of your chains.
+- `TENDERLY_PROJECT`: The name of the tenderly project you want to use. Only needs to be set if you intend to use Tenderly simulations on some of your chains.
 
 **Chain secrets:**
 

@@ -1,4 +1,3 @@
-import { AnvilTestClient } from "@morpho-org/test";
 import { executorAbi } from "executooor-viem";
 import nock from "nock";
 import { Address, erc20Abi, Hex, maxUint256, parseUnits } from "viem";
@@ -7,6 +6,7 @@ import { afterEach, describe, expect, vi } from "vitest";
 
 import { PendlePTVenue } from "../../../src/liquidityVenues/pendlePT";
 import { USDC, WBTC } from "../../constants";
+import { syncTimestamp } from "../../helpers";
 import { pendlePTTest } from "../../setup";
 
 const collateral = "0x62C6E813b9589C3631Ba0Cdb013acdB8544038B7" as Address; // PT-USDE-27NOV2025 (maturity not reached)
@@ -308,16 +308,3 @@ afterEach(() => {
   // restoring date after each test run
   vi.useRealTimers();
 });
-
-const syncTimestamp = async (client: AnvilTestClient, timestamp?: bigint) => {
-  timestamp ??= (await client.timestamp()) + 60n;
-
-  vi.useFakeTimers({
-    now: Number(timestamp) * 1000,
-    toFake: ["Date"], // Avoid faking setTimeout, used to delay retries.
-  });
-
-  await client.setNextBlockTimestamp({ timestamp });
-
-  return timestamp;
-};

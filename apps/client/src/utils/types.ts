@@ -23,3 +23,8 @@ export interface IndexerAPIResponse {
   positionsLiq: LiquidatablePosition[];
   positionsPreLiq: PreLiquidatablePosition[];
 }
+
+export type TenderlyConfig = {
+  tenderlyAccount: string;
+  tenderlyProject: string;
+};

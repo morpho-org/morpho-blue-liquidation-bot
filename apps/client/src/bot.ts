@@ -7,6 +7,7 @@ import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-
 import * as Sentry from "@sentry/node";
 import { executorAbi } from "executooor-viem";
 import {
+  encodeFunctionData,
   erc20Abi,
   formatUnits,
   getAddress,
@@ -39,6 +40,7 @@ import type {
   IndexerAPIResponse,
   LiquidatablePosition,
   PreLiquidatablePosition,
+  TenderlyConfig,
 } from "./utils/types.js";
 import { Flashbots } from "./utils/flashbots.js";
 
@@ -56,6 +58,9 @@ export interface LiquidationBotInputs {
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
   flashbotAccount?: LocalAccount;
+  tenderlyAccount?: string;
+  tenderlyProject?: string;
+  tenderlyConfig?: TenderlyConfig;
 }
 
 export class LiquidationBot {
@@ -74,6 +79,7 @@ export class LiquidationBot {
   private lastWhitelistFetch: number;
   private fetchedVaults: Address[] = [];
   private flashbotAccount?: LocalAccount;
+  private tenderlyConfig?: TenderlyConfig;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -91,6 +97,7 @@ export class LiquidationBot {
     this.fetchedVaults = [];
     this.lastWhitelistFetch = 0;
     this.flashbotAccount = inputs.flashbotAccount;
+    this.tenderlyConfig = inputs.tenderlyConfig;
   }
 
   async run() {
@@ -203,10 +210,18 @@ export class LiquidationBot {
         });
       }
     } catch (error) {
-      const err = new Error(
-        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      const errorMessage = `${this.logTag} Liquidation failed: ${error instanceof Error ? error.message : String(error)}.${await this.getTenderlySimulationUrl(
+        encodeFunctionData({
+          abi: executorAbi,
+          functionName: "exec_606BaXt",
+          args: [calls],
+        }),
+      )}
+      }`;
+
+      const err = new Error(errorMessage);
       console.error(err);
+
       Sentry.captureException(err, {
         tags: {
           chainId: this.chainId.toString(),
@@ -214,6 +229,7 @@ export class LiquidationBot {
           success: false,
           marketId: MarketUtils.getMarketId(marketParams),
           user: position.user,
+          error: error instanceof Error ? error.message : String(error),
         },
         contexts: {
           position: {
@@ -285,16 +301,24 @@ export class LiquidationBot {
         });
       }
     } catch (error) {
-      console.error(
-        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        error instanceof Error ? error.message : String(error),
-      );
+      const errorMessage = `${this.logTag} Pre-liquidation failed: ${error instanceof Error ? error.message : String(error)}.${await this.getTenderlySimulationUrl(
+        encodeFunctionData({
+          abi: executorAbi,
+          functionName: "exec_606BaXt",
+          args: [calls],
+        }),
+      )}`;
+
+      const err = new Error(errorMessage);
+      console.error(err);
+
       Sentry.captureException(error, {
         tags: {
           chainId: this.chainId.toString(),
           operation: "preLiquidate",
           marketId: MarketUtils.getMarketId(marketParams),
           user: position.user,
+          error: error instanceof Error ? error.message : String(error),
         },
         contexts: {
           position: {
@@ -340,7 +364,13 @@ export class LiquidationBot {
     ]);
 
     if (results[1].status !== "success") {
-      throw new Error(`Transaction failed in simulation: ${results[1].error}`);
+      const error = results[1].error;
+      if (!error) {
+        throw new Error("Simulation failed: Unknown error");
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const cleanMessage = errorMessage.split("Contract Call:")[0]?.trim() ?? errorMessage;
+      throw new Error(`Simulation failed: ${cleanMessage}`);
     }
 
     if (
@@ -497,5 +527,30 @@ export class LiquidationBot {
       return false;
     }
     return true;
+  }
+
+  private async getTenderlySimulationUrl(data: Hex): Promise<string> {
+    if (!this.tenderlyConfig) {
+      return "";
+    }
+
+    const blockNumber = (await getBlockNumber(this.client)) + 1n;
+
+    const params = new URLSearchParams({
+      block: blockNumber.toString(),
+      blockIndex: "0",
+      from: this.client.account.address,
+      gas: "8000000",
+      gasPrice: "0",
+      value: "0",
+      contractAddress: this.executorAddress,
+      headerBlockNumber: "",
+      headerTimestamp: "",
+      network: this.chainId.toString(),
+      rawFunctionInput: data,
+    });
+
+    const url = `https://dashboard.tenderly.co/${this.tenderlyConfig.tenderlyAccount}/${this.tenderlyConfig.tenderlyProject}/simulator/new?${params.toString()}`;
+    return `\nTenderly simulation URL: ${url}`;
   }
 }
