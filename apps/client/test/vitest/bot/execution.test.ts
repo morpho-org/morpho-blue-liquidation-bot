@@ -9,7 +9,7 @@ import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3Venue, Erc4626, PendlePTVenue } from "../../../src/liquidityVenues/index.js";
 import { MorphoApi } from "../../../src/pricers/index.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
-import { OneInchTest, setupPosition, mockEtherPrice } from "../../helpers.js";
+import { OneInchTest, setupPosition, mockEtherPrice, syncTimestamp } from "../../helpers.js";
 import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
 
 describe("execute liquidation swapping on Uniswap V3", () => {
@@ -160,6 +160,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
 
   pendleOneInchExecutionTest.sequential("should execute liquidation", async ({ encoder }) => {
     const { client } = encoder;
+    await syncTimestamp(client);
 
     const collateralAmount = parseUnits("10000", 18);
     const borrowAmount = parseUnits("9000", 6);
