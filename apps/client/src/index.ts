@@ -19,6 +19,7 @@ import {
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
 import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
+import { TenderlyConfig } from "./utils/types";
 
 export const launchBot = (config: ChainConfig) => {
   dotenv.config();
@@ -69,6 +70,17 @@ export const launchBot = (config: ChainConfig) => {
     flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
   }
 
+  let tenderlyConfig: TenderlyConfig | undefined;
+  if (config.useTenderly) {
+    if (!process.env.TENDERLY_ACCOUNT || !process.env.TENDERLY_PROJECT) {
+      throw new Error(`${logTag} TENDERLY_ACCOUNT or TENDERLY_PROJECT is not set`);
+    }
+    tenderlyConfig = {
+      tenderlyAccount: process.env.TENDERLY_ACCOUNT as string,
+      tenderlyProject: process.env.TENDERLY_PROJECT as string,
+    };
+  }
+
   const inputs: LiquidationBotInputs = {
     logTag,
     chainId: config.chainId,
@@ -82,6 +94,7 @@ export const launchBot = (config: ChainConfig) => {
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
     flashbotAccount,
+    tenderlyConfig,
   };
 
   const bot = new LiquidationBot(inputs);
