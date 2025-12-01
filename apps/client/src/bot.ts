@@ -221,8 +221,7 @@ export class LiquidationBot {
         this.tenderlyConfig,
         this.executorAddress,
         this.client.account.address,
-      )}
-      }`;
+      )}`;
 
       const err = new Error(errorMessage);
       console.error(err);
