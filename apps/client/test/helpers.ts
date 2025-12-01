@@ -14,6 +14,7 @@ import {
   toHex,
 } from "viem";
 import { getStorageAt, readContract } from "viem/actions";
+import { vi } from "vitest";
 
 import { morphoBlueAbi } from "../../ponder/abis/MorphoBlue";
 import { OneInch } from "../src/liquidityVenues";
@@ -220,3 +221,16 @@ function modifyCollateralSlot(value: Hex, amount: bigint) {
 function replaceBigInts<T>(value: T) {
   return replaceBigIntsBase(value, (x) => `${String(x)}n`);
 }
+
+export const syncTimestamp = async (client: AnvilTestClient, timestamp?: bigint) => {
+  timestamp ??= (await client.timestamp()) + 60n;
+
+  vi.useFakeTimers({
+    now: Number(timestamp) * 1000,
+    toFake: ["Date"], // Avoid faking setTimeout, used to delay retries.
+  });
+
+  await client.setNextBlockTimestamp({ timestamp });
+
+  return timestamp;
+};
