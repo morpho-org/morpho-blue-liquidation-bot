@@ -39,6 +39,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: true,
       blockInterval: 2,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
   [base.id]: {
@@ -71,6 +72,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: false,
       blockInterval: 10,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
   [unichain.id]: {
@@ -97,6 +99,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: false,
       blockInterval: 5,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
   [katana.id]: {
@@ -123,6 +126,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: false,
       blockInterval: 5,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
   [arbitrum.id]: {
@@ -148,6 +152,7 @@ export const chainConfigs: Record<number, Config> = {
       liquidationBufferBps: 50,
       useFlashbots: false,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
   /* [worldchain.id]: {
@@ -202,6 +207,7 @@ export const chainConfigs: Record<number, Config> = {
       useFlashbots: false,
       blockInterval: 10,
       slackNotifications: true,
+      useTenderly: true,
     },
   },
 };

@@ -22,7 +22,7 @@ export async function fetchMarketsForVaults(chainId: number, vaults: Address[]):
   const response = await fetch(url, { method: "POST", body: JSON.stringify({ vaults }) });
 
   if (!response.ok) {
-    const err = new Error(`Failed to fetch ${vaults} whitelisted markets: ${response.statusText}`);
+    const err = new Error(`Failed to fetch whitelisted markets: ${response.statusText}`);
     console.error(err);
     Sentry.captureException(err, {
       tags: {

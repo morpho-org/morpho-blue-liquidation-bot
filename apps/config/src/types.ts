@@ -31,6 +31,7 @@ export interface Options {
   useFlashbots: boolean;
   slackNotifications: boolean;
   blockInterval?: number;
+  useTenderly: boolean;
 }
 
 export type ChainConfig = Omit<Config, "options"> &
