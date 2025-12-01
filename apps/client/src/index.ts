@@ -72,7 +72,7 @@ export const launchBot = (config: ChainConfig) => {
   }
 
   let tenderlyConfig: TenderlyConfig | undefined;
-  
+
   if (config.useTenderly) {
     if (!process.env.TENDERLY_ACCOUNT || !process.env.TENDERLY_PROJECT) {
       throw new Error(`${logTag} TENDERLY_ACCOUNT or TENDERLY_PROJECT is not set`);
@@ -81,6 +81,7 @@ export const launchBot = (config: ChainConfig) => {
       tenderlyAccount: process.env.TENDERLY_ACCOUNT as string,
       tenderlyProject: process.env.TENDERLY_PROJECT as string,
     };
+  }
 
   let slack: Slack | undefined = undefined;
 
@@ -95,7 +96,6 @@ export const launchBot = (config: ChainConfig) => {
       throw new Error(`${logTag} SLACK_CHANNEL is not set altough slack notifications are enabled`);
     }
     slack = new Slack(slackToken, slackChannel);
-  
   }
 
   const inputs: LiquidationBotInputs = {

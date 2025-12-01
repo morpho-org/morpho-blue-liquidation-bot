@@ -579,7 +579,22 @@ export class LiquidationBot {
 
   private async slackNotification(params: NotifyLiquidationParams) {
     if (this.slack) {
-      await this.slack.notifyLiquidation(params);
+      try {
+        await this.slack.notifyLiquidation(params);
+      } catch (error) {
+        const err = new Error(
+          `${this.logTag}Error sending slack notification: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        console.error(err);
+        Sentry.captureException(err, {
+          tags: {
+            chainId: this.chainId.toString(),
+            operation: "Slack Notification",
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
+      }
     }
   }
 }
