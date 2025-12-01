@@ -102,6 +102,10 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 
 - `options.blockInterval`: Controls how often the bot executes liquidation checks. The bot watches every new block, but only runs the liquidation logic every N blocks (where N is the value of `blockInterval`). This can be useful to reduce RPC calls and gas costs on chains with high block frequencies, or to throttle execution on less active chains. If not set, the bot will run at every new block.
 
+**Slack Notifications (optional)**:
+
+- `options.slackNotifications`: `true` if you want to send slack notifications after successful notifications on this chain (in that case, you will have to set the `SLACK_TOKEN` and `SLACK_CHANNEL` secrets), `false` otherwise.
+
 ### Secrets
 
 **Ponder Service Secrets (optional):**
@@ -113,6 +117,11 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 **Flashbot Secrets (optional):**
 
 -`FLASHBOTS_PRIVATE_KEY`: The Flashbots private key. Only needs to be set if you intend to use Flashbots on some of your chains.
+
+**Slack Notification Secrets (optional):**
+
+- `SLACK_TOKEN`: The token of the Slack bot. Only needs to be set if you intend to use Slack Notifications on some of your chains.
+- `SLACK_CHANNEL`: The slack channel where you want to receive liquidation notifications. Only needs to be set if you intend to use Slack Notifications on some of your chains.
 
 **Chain secrets:**
 

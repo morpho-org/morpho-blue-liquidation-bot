@@ -41,6 +41,7 @@ import type {
   PreLiquidatablePosition,
 } from "./utils/types.js";
 import { Flashbots } from "./utils/flashbots.js";
+import Slack, { NotifyLiquidationParams } from "./utils/slack.js";
 
 export interface LiquidationBotInputs {
   logTag: string;
@@ -56,6 +57,7 @@ export interface LiquidationBotInputs {
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
   flashbotAccount?: LocalAccount;
+  slack?: Slack;
 }
 
 export class LiquidationBot {
@@ -74,6 +76,7 @@ export class LiquidationBot {
   private lastWhitelistFetch: number;
   private fetchedVaults: Address[] = [];
   private flashbotAccount?: LocalAccount;
+  private slack?: Slack;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -91,6 +94,7 @@ export class LiquidationBot {
     this.fetchedVaults = [];
     this.lastWhitelistFetch = 0;
     this.flashbotAccount = inputs.flashbotAccount;
+    this.slack = inputs.slack;
   }
 
   async run() {
@@ -175,7 +179,12 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
+      const { success, txHash, estimatedProfit } = await this.handleTx(
+        encoder,
+        calls,
+        marketParams,
+        badDebtPosition,
+      );
 
       if (success) {
         const message = `${this.logTag} Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
@@ -188,6 +197,16 @@ export class LiquidationBot {
             marketId: MarketUtils.getMarketId(marketParams),
             user: position.user,
           },
+        });
+
+        await this.slackNotification({
+          chainName: client.chain.name,
+          operation: "liquidation",
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+          txHash,
+          badDebtPosition,
+          estimatedUSDProfit: estimatedProfit,
         });
       } else {
         const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`;
@@ -257,7 +276,12 @@ export class LiquidationBot {
     const calls = encoder.flush();
 
     try {
-      const success = await this.handleTx(encoder, calls, marketParams, false);
+      const { success, txHash, estimatedProfit } = await this.handleTx(
+        encoder,
+        calls,
+        marketParams,
+        false,
+      );
 
       if (success) {
         const message = `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
@@ -282,6 +306,15 @@ export class LiquidationBot {
             marketId: MarketUtils.getMarketId(marketParams),
             user: position.user,
           },
+        });
+        await this.slackNotification({
+          chainName: client.chain.name,
+          operation: "pre-liquidation",
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+          txHash,
+          badDebtPosition: false,
+          estimatedUSDProfit: estimatedProfit,
         });
       }
     } catch (error) {
@@ -343,21 +376,22 @@ export class LiquidationBot {
       throw new Error(`Transaction failed in simulation: ${results[1].error}`);
     }
 
-    if (
-      !(await this.checkProfit(
-        marketParams.loanToken,
-        {
-          beforeTx: results[0].result,
-          afterTx: results[2].result,
-        },
-        {
-          used: results[1].gasUsed,
-          price: gasPrice,
-        },
-        badDebtPosition,
-      ))
-    )
-      return false;
+    const { executeTx, estimatedProfit } = await this.checkProfit(
+      marketParams.loanToken,
+      {
+        beforeTx: results[0].result,
+        afterTx: results[2].result,
+      },
+      {
+        used: results[1].gasUsed,
+        price: gasPrice,
+      },
+      badDebtPosition,
+    );
+
+    if (!executeTx) {
+      return { success: false, txHash: undefined, estimatedProfit };
+    }
 
     // TX EXECUTION
 
@@ -369,16 +403,20 @@ export class LiquidationBot {
         },
       ]);
 
-      return await Flashbots.sendRawBundle(
+      await Flashbots.sendRawBundle(
         signedBundle,
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-    } else {
-      await writeContract(this.client, { address: encoder.address, ...functionData });
-    }
 
-    return true;
+      return { success: true, txHash: undefined, estimatedProfit };
+    } else {
+      const txHash = await writeContract(this.client, {
+        address: encoder.address,
+        ...functionData,
+      });
+      return { success: true, txHash: txHash as Hex, estimatedProfit };
+    }
   }
 
   private async convertCollateralToLoan(
@@ -458,26 +496,28 @@ export class LiquidationBot {
     },
     badDebtPosition: boolean,
   ) {
-    if (ALWAYS_REALIZE_BAD_DEBT && badDebtPosition) return true;
-    if (this.pricers === undefined) return true;
+    if (ALWAYS_REALIZE_BAD_DEBT && badDebtPosition)
+      return { executeTx: true, estimatedProfit: undefined };
+    if (this.pricers === undefined) return { executeTx: true, estimatedProfit: undefined };
 
     if (loanAssetBalance.beforeTx === undefined || loanAssetBalance.afterTx === undefined)
-      return false;
+      return { executeTx: false, estimatedProfit: undefined };
 
     const loanAssetProfit = loanAssetBalance.afterTx - loanAssetBalance.beforeTx;
 
-    if (loanAssetProfit <= 0n) return false;
+    if (loanAssetProfit <= 0n) return { executeTx: false, estimatedProfit: undefined };
 
     const [loanAssetProfitUsd, gasUsedUsd] = await Promise.all([
       this.price(loanAsset, loanAssetProfit, this.pricers),
       this.price(this.wNative, gas.used * gas.price, this.pricers),
     ]);
 
-    if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined) return false;
+    if (loanAssetProfitUsd === undefined || gasUsedUsd === undefined)
+      return { executeTx: false, estimatedProfit: undefined };
 
     const profitUsd = loanAssetProfitUsd - gasUsedUsd;
 
-    return profitUsd > 0;
+    return { executeTx: profitUsd > 0, estimatedProfit: profitUsd };
   }
 
   private decreaseSeizableCollateral(seizableCollateral: bigint, badDebtPosition: boolean) {
@@ -497,5 +537,11 @@ export class LiquidationBot {
       return false;
     }
     return true;
+  }
+
+  private async slackNotification(params: NotifyLiquidationParams) {
+    if (this.slack) {
+      await this.slack.notifyLiquidation(params);
+    }
   }
 }

@@ -29,6 +29,7 @@ export interface Options {
   treasuryAddress?: Address;
   liquidationBufferBps?: number;
   useFlashbots: boolean;
+  slackNotifications: boolean;
   blockInterval?: number;
 }
 

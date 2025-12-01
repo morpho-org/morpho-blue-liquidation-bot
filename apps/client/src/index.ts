@@ -19,6 +19,7 @@ import {
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
 import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
+import Slack from "./utils/slack";
 
 export const launchBot = (config: ChainConfig) => {
   dotenv.config();
@@ -69,6 +70,21 @@ export const launchBot = (config: ChainConfig) => {
     flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
   }
 
+  let slack: Slack | undefined = undefined;
+
+  if (config.slackNotifications) {
+    const slackToken = process.env.SLACK_TOKEN;
+    const slackChannel = process.env.SLACK_CHANNEL;
+
+    if (slackToken === undefined) {
+      throw new Error(`${logTag} SLACK_TOKEN is not set altough slack notifications are enabled`);
+    }
+    if (slackChannel === undefined) {
+      throw new Error(`${logTag} SLACK_CHANNEL is not set altough slack notifications are enabled`);
+    }
+    slack = new Slack(slackToken, slackChannel);
+  }
+
   const inputs: LiquidationBotInputs = {
     logTag,
     chainId: config.chainId,
@@ -82,6 +98,7 @@ export const launchBot = (config: ChainConfig) => {
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
     flashbotAccount,
+    slack,
   };
 
   const bot = new LiquidationBot(inputs);
