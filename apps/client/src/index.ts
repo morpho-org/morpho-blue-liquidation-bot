@@ -19,6 +19,7 @@ import {
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
 import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
 import type { Pricer } from "./pricers/pricer";
+import Slack from "./utils/slack";
 import { TenderlyConfig } from "./utils/types";
 
 export const launchBot = (config: ChainConfig) => {
@@ -71,6 +72,7 @@ export const launchBot = (config: ChainConfig) => {
   }
 
   let tenderlyConfig: TenderlyConfig | undefined;
+
   if (config.useTenderly) {
     if (!process.env.TENDERLY_ACCOUNT || !process.env.TENDERLY_PROJECT) {
       throw new Error(`${logTag} TENDERLY_ACCOUNT or TENDERLY_PROJECT is not set`);
@@ -79,6 +81,21 @@ export const launchBot = (config: ChainConfig) => {
       tenderlyAccount: process.env.TENDERLY_ACCOUNT as string,
       tenderlyProject: process.env.TENDERLY_PROJECT as string,
     };
+  }
+
+  let slack: Slack | undefined = undefined;
+
+  if (config.slackNotifications) {
+    const slackToken = process.env.SLACK_TOKEN;
+    const slackChannel = process.env.SLACK_CHANNEL;
+
+    if (slackToken === undefined) {
+      throw new Error(`${logTag} SLACK_TOKEN is not set altough slack notifications are enabled`);
+    }
+    if (slackChannel === undefined) {
+      throw new Error(`${logTag} SLACK_CHANNEL is not set altough slack notifications are enabled`);
+    }
+    slack = new Slack(slackToken, slackChannel);
   }
 
   const inputs: LiquidationBotInputs = {
@@ -94,6 +111,7 @@ export const launchBot = (config: ChainConfig) => {
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
     flashbotAccount,
+    slack,
     tenderlyConfig,
   };
 
