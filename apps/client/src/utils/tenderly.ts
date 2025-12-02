@@ -1,6 +1,7 @@
 import { Account, Address, Chain, Hex, Transport, WalletClient } from "viem";
-import { TenderlyConfig } from "./types";
 import { getBlockNumber } from "viem/actions";
+
+import { TenderlyConfig } from "./types";
 
 export async function getTenderlySimulationUrl(
   data: Hex,
@@ -30,5 +31,5 @@ export async function getTenderlySimulationUrl(
   });
 
   const url = `https://dashboard.tenderly.co/${tenderlyConfig.tenderlyAccount}/${tenderlyConfig.tenderlyProject}/simulator/new?${params.toString()}`;
-  return `\nTenderly simulation URL: ${url}`;
+  return `\n<${url}|Tenderly simulation URL>`;
 }
