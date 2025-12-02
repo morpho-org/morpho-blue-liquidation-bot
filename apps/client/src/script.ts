@@ -17,7 +17,9 @@ Sentry.init({
   integrations: [
     // Automatically instrument Node.js libraries and frameworks
     Sentry.httpIntegration(),
+    Sentry.consoleLoggingIntegration({ levels: ["info"] }),
   ],
+  enableLogs: true,
 });
 
 // Capture unhandled promise rejections
