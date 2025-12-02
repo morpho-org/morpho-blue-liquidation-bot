@@ -211,7 +211,7 @@ export class LiquidationBot {
         });
       }
     } catch (error) {
-      const errorMessage = `${this.logTag} Liquidation failed: ${error instanceof Error ? error.message : String(error)}.${await getTenderlySimulationUrl(
+      const tenderlyUrl = await getTenderlySimulationUrl(
         encodeFunctionData({
           abi: executorAbi,
           functionName: "exec_606BaXt",
@@ -221,7 +221,8 @@ export class LiquidationBot {
         this.tenderlyConfig,
         this.executorAddress,
         this.client.account.address,
-      )}`;
+      );
+      const errorMessage = `${this.logTag} Liquidation failed: ${error instanceof Error ? error.message : String(error)}.`;
 
       const err = new Error(errorMessage);
       console.error(err);
@@ -239,6 +240,9 @@ export class LiquidationBot {
           position: {
             seizableCollateral: position.seizableCollateral.toString(),
             badDebt: badDebtPosition,
+          },
+          tenderlySimulation: {
+            url: tenderlyUrl,
           },
         },
       });
@@ -305,7 +309,7 @@ export class LiquidationBot {
         });
       }
     } catch (error) {
-      const errorMessage = `${this.logTag} Pre-liquidation failed: ${error instanceof Error ? error.message : String(error)}.${await getTenderlySimulationUrl(
+      const tenderlyUrl = await getTenderlySimulationUrl(
         encodeFunctionData({
           abi: executorAbi,
           functionName: "exec_606BaXt",
@@ -315,7 +319,8 @@ export class LiquidationBot {
         this.tenderlyConfig,
         this.executorAddress,
         this.client.account.address,
-      )}`;
+      );
+      const errorMessage = `${this.logTag} Pre-liquidation failed: ${error instanceof Error ? error.message : String(error)}.`;
 
       const err = new Error(errorMessage);
       console.error(err);
@@ -331,6 +336,9 @@ export class LiquidationBot {
         contexts: {
           position: {
             seizableCollateral: position.seizableCollateral.toString(),
+          },
+          tenderlySimulation: {
+            url: tenderlyUrl,
           },
         },
       });

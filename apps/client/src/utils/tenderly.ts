@@ -11,25 +11,28 @@ export async function getTenderlySimulationUrl(
   eoaAddress: Address,
 ): Promise<string> {
   if (!tenderlyConfig) {
-    return "";
+    return "no url (missing tenderly config)";
   }
 
-  const blockNumber = (await getBlockNumber(client)) + 1n;
+  try {
+    const blockNumber = (await getBlockNumber(client)) + 1n;
 
-  const params = new URLSearchParams({
-    block: blockNumber.toString(),
-    blockIndex: "0",
-    from: eoaAddress,
-    gas: "8000000",
-    gasPrice: "0",
-    value: "0",
-    contractAddress: executorAddress,
-    headerBlockNumber: "",
-    headerTimestamp: "",
-    network: client.chain.id.toString(),
-    rawFunctionInput: data,
-  });
+    const params = new URLSearchParams({
+      block: blockNumber.toString(),
+      blockIndex: "0",
+      from: eoaAddress,
+      gas: "8000000",
+      gasPrice: "0",
+      value: "0",
+      contractAddress: executorAddress,
+      headerBlockNumber: "",
+      headerTimestamp: "",
+      network: client.chain.id.toString(),
+      rawFunctionInput: data,
+    });
 
-  const url = `https://dashboard.tenderly.co/${tenderlyConfig.tenderlyAccount}/${tenderlyConfig.tenderlyProject}/simulator/new?${params.toString()}`;
-  return `\n<${url}|Tenderly simulation URL>`;
+    return `https://dashboard.tenderly.co/${tenderlyConfig.tenderlyAccount}/${tenderlyConfig.tenderlyProject}/simulator/new?${params.toString()}`;
+  } catch (error) {
+    return "no url (error getting block number)";
+  }
 }
