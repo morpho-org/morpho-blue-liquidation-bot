@@ -32,7 +32,7 @@ export async function getTenderlySimulationUrl(
     });
 
     return `https://dashboard.tenderly.co/${tenderlyConfig.tenderlyAccount}/${tenderlyConfig.tenderlyProject}/simulator/new?${params.toString()}`;
-  } catch (error) {
+  } catch (err) {
     return "no url (error getting block number)";
   }
 }
