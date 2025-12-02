@@ -385,7 +385,7 @@ export class LiquidationBot {
         throw new Error("Simulation failed: Unknown error");
       }
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const cleanMessage = errorMessage.split("Contract Call:")[0]?.trim() ?? errorMessage;
+      const cleanMessage = errorMessage.split("Contract Call:")[0]?.trimEnd() ?? errorMessage;
       throw new Error(`Simulation failed: ${cleanMessage}`);
     }
 
