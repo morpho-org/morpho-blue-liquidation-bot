@@ -15,6 +15,8 @@ import {
   zora,
 } from "viem/chains";
 
+import { monad } from "../chains";
+
 type Contracts = "PoolManager" | "Quoter" | "StateView" | "UniversalRouter" | "Permit2" | "Native";
 
 export const DEPLOYMENTS: Record<
@@ -127,5 +129,13 @@ export const DEPLOYMENTS: Record<
     UniversalRouter: { address: "0x1906c1d672b88cd1b9ac7593301ca990f94eae07" },
     Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
     Native: { address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c" },
+  },
+  [monad.id]: {
+    PoolManager: { address: "0x188d586ddcf52439676ca21a244753fa19f9ea8e", fromBlock: 29255895n },
+    Quoter: { address: "0xa222dd357a9076d1091ed6aa2e16c9742dd26891" },
+    StateView: { address: "0x77395f3b2e73ae90843717371294fa97cc419d64" },
+    UniversalRouter: { address: "0x0d97dc33264bfc1c226207428a79b26757fb9dc3" },
+    Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
+    Native: { address: "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A" },
   },
 };

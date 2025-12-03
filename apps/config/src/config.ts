@@ -1,6 +1,6 @@
 import { base, mainnet, unichain, katana, arbitrum } from "viem/chains";
 
-import { hyperevm } from "./chains";
+import { hyperevm, monad } from "./chains";
 import type { Config } from "./types";
 
 export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
@@ -195,6 +195,31 @@ export const chainConfigs: Record<number, Config> = {
       startBlock: 1988956,
     },
     wNative: "0x5555555555555555555555555555555555555555",
+    options: {
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      checkProfit: false,
+      useFlashbots: false,
+      blockInterval: 10,
+      useTenderly: true,
+    },
+  },
+  [monad.id]: {
+    chain: monad,
+    morpho: { address: "0xD5D960E8C380B724a48AC59E2DfF1b2CB4a1eAee", startBlock: 31907457 },
+    adaptiveCurveIrm: {
+      address: "0x09475a3D6eA8c314c592b1a3799bDE044E2F400F",
+      startBlock: 31907457,
+    },
+    metaMorphoFactories: {
+      addresses: ["0x33f20973275B2F574488b18929cd7DCBf1AbF275"],
+      startBlock: 32320327,
+    },
+    preLiquidationFactory: {
+      address: "0xB5b3e541abD19799E0c65905a5a42BD37d6c94c0",
+      startBlock: 32321504,
+    },
+    wNative: "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
     options: {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
