@@ -75,6 +75,7 @@ async function isPonderReady(apiUrl: string) {
 }
 
 async function waitForIndexing(apiUrl: string) {
+  Sentry.logger.info("Waiting for ponder to be ready");
   while (!(await isPonderReady(apiUrl))) {
     console.log("⏳ Ponder is indexing");
     await sleep(1000);
