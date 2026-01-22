@@ -1,4 +1,8 @@
-import { ALWAYS_REALIZE_BAD_DEBT, chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import {
+  ALWAYS_REALIZE_BAD_DEBT,
+  chainConfigs,
+  READ_ONLY as DEFAULT_READ_ONLY,
+} from "@morpho-blue-liquidation-bot/config";
 import { type IMarket, type IMarketParams, MarketUtils } from "@morpho-org/blue-sdk";
 import { executorAbi } from "executooor-viem";
 import {
@@ -51,6 +55,7 @@ export interface LiquidationBotInputs {
   pricers?: Pricer[];
   cooldownMechanism?: CooldownMechanism;
   flashbotAccount?: LocalAccount;
+  readOnly?: boolean;
 }
 
 export class LiquidationBot {
@@ -67,6 +72,7 @@ export class LiquidationBot {
   private pricers?: Pricer[];
   private cooldownMechanism?: CooldownMechanism;
   private flashbotAccount?: LocalAccount;
+  private readOnly: boolean;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -82,6 +88,7 @@ export class LiquidationBot {
     this.pricers = inputs.pricers;
     this.cooldownMechanism = inputs.cooldownMechanism;
     this.flashbotAccount = inputs.flashbotAccount;
+    this.readOnly = inputs.readOnly ?? DEFAULT_READ_ONLY;
   }
 
   async run() {
@@ -153,11 +160,17 @@ export class LiquidationBot {
     try {
       const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
 
-      if (success)
-        console.log(
-          `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        );
-      else
+      if (success) {
+        if (this.readOnly) {
+          console.log(
+            `${this.logTag}👓 Read-only mode: Opportunity found for ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          );
+        } else {
+          console.log(
+            `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          );
+        }
+      } else
         console.log(
           `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
         );
@@ -203,11 +216,17 @@ export class LiquidationBot {
     try {
       const success = await this.handleTx(encoder, calls, marketParams, false);
 
-      if (success)
-        console.log(
-          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
-        );
-      else
+      if (success) {
+        if (this.readOnly) {
+          console.log(
+            `${this.logTag}👓 Read-only mode: Opportunity found for ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          );
+        } else {
+          console.log(
+            `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          );
+        }
+      } else
         console.log(
           `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
         );
@@ -273,6 +292,8 @@ export class LiquidationBot {
       ))
     )
       return false;
+
+    if (this.readOnly) return true;
 
     // TX EXECUTION
 

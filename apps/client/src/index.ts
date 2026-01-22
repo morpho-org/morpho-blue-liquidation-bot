@@ -1,4 +1,5 @@
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import { READ_ONLY } from "@morpho-blue-liquidation-bot/config";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
@@ -62,6 +63,7 @@ export const launchBot = (config: ChainConfig) => {
     liquidityVenues,
     pricers: config.checkProfit ? pricers : undefined,
     flashbotAccount,
+    readOnly: READ_ONLY,
   };
 
   const bot = new LiquidationBot(inputs);

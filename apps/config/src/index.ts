@@ -58,3 +58,8 @@ export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
 export * from "./pricers";
 export { COOLDOWN_PERIOD, COOLDOWN_ENABLED, ALWAYS_REALIZE_BAD_DEBT } from "./config";
+import { READ_ONLY as _READ_ONLY } from "./config";
+
+export const READ_ONLY = process.env.READ_ONLY !== undefined
+  ? process.env.READ_ONLY === "true"
+  : _READ_ONLY;
