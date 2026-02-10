@@ -1,0 +1,44 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 639e19e933a6f163ec20195e3f5812480f1a0098..eb66066f81082a05c3c23f49b33f13ee7deb5e30 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -63,6 +63,17 @@ var getLogsRetryHelper = ({
+       };
+     }
+   }
++  match = sError.match(/ranges over (\d+) blocks are not supported/);
++  if (match !== null) {
++    const ranges = chunk({ params, range: BigInt(match[1]) - 1n });
++    if (isRangeUnchanged(params, ranges) === false) {
++      return {
++        shouldRetry: true,
++        ranges,
++        isSuggestedRange: true
++      };
++    }
++  }
+   match = sError.match("block range is too wide");
+   if (match !== null && error.code === -32600) {
+     const ranges = chunk({ params, range: 3000n });
+diff --git a/dist/index.js b/dist/index.js
+index 0504960c8b58bb86617e29f8d3c38b819a685ee2..026cda41f8814ceb3b4b1f9a249667516adcb848 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -63,6 +63,17 @@ var getLogsRetryHelper = ({
+       };
+     }
+   }
++  match = sError.match(/ranges over (\d+) blocks are not supported/);
++  if (match !== null) {
++    const ranges = chunk({ params, range: BigInt(match[1]) - 1n });
++    if (isRangeUnchanged(params, ranges) === false) {
++      return {
++        shouldRetry: true,
++        ranges,
++        isSuggestedRange: true
++      };
++    }
++  }
+   match = sError.match("block range is too wide");
+   if (match !== null && error.code === -32600) {
+     const ranges = chunk({ params, range: 3000n });

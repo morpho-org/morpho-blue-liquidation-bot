@@ -6,6 +6,14 @@ settings:
 
 packageExtensionsChecksum: b15e09649e3a96b1b8ba63631ff337dc
 
+patchedDependencies:
+  '@ponder/utils':
+    hash: ccem6dcvpuy743so7bsldzpxl4
+    path: patches/@ponder__utils.patch
+  ponder:
+    hash: cjz6bopm6snx6lqgqmw6ytepiy
+    path: patches/ponder.patch
+
 importers:
 
   .:
@@ -15,7 +23,7 @@ importers:
         version: 3.0.9(@morpho-org/morpho-ts@2.3.0)
       ponder:
         specifier: ^0.13.6
-        version: 0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 0.13.7(patch_hash=cjz6bopm6snx6lqgqmw6ytepiy)(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -2371,7 +2379,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
@@ -5067,7 +5075,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@ponder/utils@0.2.13(typescript@5.8.2)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@ponder/utils@0.2.13(patch_hash=ccem6dcvpuy743so7bsldzpxl4)(typescript@5.8.2)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
     dependencies:
       viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -7376,7 +7384,7 @@ snapshots:
       fsevents: 2.3.2
     optional: true
 
-  ponder@0.13.7(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  ponder@0.13.7(patch_hash=cjz6bopm6snx6lqgqmw6ytepiy)(@opentelemetry/api@1.9.0)(@types/node@20.17.28)(bufferutil@4.0.9)(hono@4.7.5)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
       '@babel/code-frame': 7.26.2
       '@commander-js/extra-typings': 12.1.0(commander@12.1.0)
@@ -7385,7 +7393,7 @@ snapshots:
       '@escape.tech/graphql-armor-max-depth': 2.4.0
       '@escape.tech/graphql-armor-max-tokens': 2.5.0
       '@hono/node-server': 1.13.3(hono@4.7.5)
-      '@ponder/utils': 0.2.13(typescript@5.8.2)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@ponder/utils': 0.2.13(patch_hash=ccem6dcvpuy743so7bsldzpxl4)(typescript@5.8.2)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
       abitype: 0.10.3(typescript@5.8.2)
       ansi-escapes: 7.0.0
       commander: 12.1.0

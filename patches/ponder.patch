@@ -1,0 +1,13 @@
+diff --git a/dist/esm/utils/rpc.js b/dist/esm/utils/rpc.js
+index ea57d1ec56822b17686f8b927dd74ac7ca1e3fab..78bc112d575ff15d549ae0a26f37c9986189fb56 100644
+--- a/dist/esm/utils/rpc.js
++++ b/dist/esm/utils/rpc.js
+@@ -604,7 +604,7 @@ export const standardizeTransaction = (transaction) => {
+         throw new Error("'transaction.from' is a required property");
+     }
+     if (transaction.to === undefined) {
+-        throw new Error("'transaction.to' is a required property");
++        transaction.to = null;
+     }
+     // non-required properties
+     if (transaction.input === undefined) {
