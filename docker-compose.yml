@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ponder
       POSTGRES_DB: ponder
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - morpho_blue_liquidation_bot_postgres:/var/lib/postgres/data
 

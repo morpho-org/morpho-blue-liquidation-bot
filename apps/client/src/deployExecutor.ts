@@ -18,10 +18,12 @@ async function run() {
     const privateKey = process.env[`LIQUIDATION_PRIVATE_KEY_${id}`];
 
     if (!rpcUrl) {
-      throw new Error(`RPC_URL_${id} is not set`);
+      console.log(`Skipping chain ${id}: RPC_URL_${id} is not set`);
+      continue;
     }
     if (!privateKey) {
-      throw new Error(`LIQUIDATION_PRIVATE_KEY_${id} is not set`);
+      console.log(`Skipping chain ${id}: LIQUIDATION_PRIVATE_KEY_${id} is not set`);
+      continue;
     }
 
     const client = createWalletClient({

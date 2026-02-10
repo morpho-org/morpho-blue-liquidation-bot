@@ -8,7 +8,15 @@ import { metaMorphoFactoryAbi } from "./abis/MetaMorphoFactory";
 import { morphoBlueAbi } from "./abis/MorphoBlue";
 import { preLiquidationFactoryAbi } from "./abis/PreLiquidationFactory";
 
-const configs = Object.values(chainConfigs).map((config) => chainConfig(config.chain.id));
+const configs = Object.values(chainConfigs)
+  .map((config) => {
+    try {
+      return chainConfig(config.chain.id);
+    } catch {
+      return undefined;
+    }
+  })
+  .filter((config) => config !== undefined);
 
 const chains = Object.fromEntries(
   configs.map((config) => [
@@ -16,6 +24,7 @@ const chains = Object.fromEntries(
     {
       id: config.chain.id,
       rpc: config.rpcUrl,
+      disableCache: false,
     },
   ]),
 );
