@@ -11,11 +11,41 @@ interface DecodedLog {
   logIndex: number;
 }
 
+export class MissingEventError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MissingEventError";
+  }
+}
+
 function getOrCreatePosition(state: IndexerState, key: string): IndexedPositionState {
   let pos = state.positions.get(key);
   if (!pos) {
     pos = { supplyShares: 0n, borrowShares: 0n, collateral: 0n };
     state.positions.set(key, pos);
+  }
+  return pos;
+}
+
+function requireMarket(state: IndexerState, id: Hex, eventName: string) {
+  const market = state.markets.get(id);
+  if (!market) {
+    throw new MissingEventError(
+      `${eventName} cannot precede CreateMarket (market ${id} not found). ` +
+        "This indicates a missed CreateMarket event.",
+    );
+  }
+  return market;
+}
+
+function requirePosition(state: IndexerState, id: Hex, user: Address, eventName: string) {
+  const key = positionKey(id, user);
+  const pos = state.positions.get(key);
+  if (!pos) {
+    throw new MissingEventError(
+      `${eventName} for position ${key} requires a prior Supply/SupplyCollateral event. ` +
+        "This indicates a missed event.",
+    );
   }
   return pos;
 }
@@ -55,8 +85,7 @@ export function handleCreateMarket(
 
 export function handleSetFee(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  const market = requireMarket(state, id, "SetFee");
   market.fee = log.args.newFee as bigint;
   market.lastUpdate = blockTimestamp;
 }
@@ -67,8 +96,7 @@ export function handleAccrueInterest(
   blockTimestamp: bigint,
 ): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  const market = requireMarket(state, id, "AccrueInterest");
   const interest = log.args.interest as bigint;
   const feeShares = log.args.feeShares as bigint;
   market.totalSupplyAssets += interest;
@@ -79,14 +107,15 @@ export function handleAccrueInterest(
 
 export function handleSupply(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  // Row must exist because Supply cannot precede CreateMarket.
+  const market = requireMarket(state, id, "Supply");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalSupplyAssets += assets;
   market.totalSupplyShares += shares;
   market.lastUpdate = blockTimestamp;
 
+  // Row may or may not exist because Supply could be user's first action.
   const user = log.args.onBehalf as Address;
   const pos = getOrCreatePosition(state, positionKey(id, user));
   pos.supplyShares += shares;
@@ -98,53 +127,57 @@ export function handleWithdraw(
   blockTimestamp: bigint,
 ): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  // Row must exist because Withdraw cannot precede CreateMarket.
+  const market = requireMarket(state, id, "Withdraw");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalSupplyAssets -= assets;
   market.totalSupplyShares -= shares;
   market.lastUpdate = blockTimestamp;
 
+  // Row must exist because Withdraw cannot precede Supply.
   const user = log.args.onBehalf as Address;
-  const pos = state.positions.get(positionKey(id, user));
-  if (pos) pos.supplyShares -= shares;
+  const pos = requirePosition(state, id, user, "Withdraw");
+  pos.supplyShares -= shares;
 }
 
 export function handleBorrow(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  // Row must exist because Borrow cannot precede CreateMarket.
+  const market = requireMarket(state, id, "Borrow");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalBorrowAssets += assets;
   market.totalBorrowShares += shares;
   market.lastUpdate = blockTimestamp;
 
+  // Row must exist because Borrow cannot precede SupplyCollateral.
   const user = log.args.onBehalf as Address;
-  const pos = getOrCreatePosition(state, positionKey(id, user));
+  const pos = requirePosition(state, id, user, "Borrow");
   pos.borrowShares += shares;
 }
 
 export function handleRepay(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  // Row must exist because Repay cannot precede CreateMarket.
+  const market = requireMarket(state, id, "Repay");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalBorrowAssets -= assets;
   market.totalBorrowShares -= shares;
   market.lastUpdate = blockTimestamp;
 
+  // Row must exist because Repay cannot precede Borrow.
   const user = log.args.onBehalf as Address;
-  const pos = state.positions.get(positionKey(id, user));
-  if (pos) pos.borrowShares -= shares;
+  const pos = requirePosition(state, id, user, "Repay");
+  pos.borrowShares -= shares;
 }
 
 export function handleSupplyCollateral(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
   const user = log.args.onBehalf as Address;
   const assets = log.args.assets as bigint;
+  // Row may or may not exist because SupplyCollateral could be user's first action.
   const pos = getOrCreatePosition(state, positionKey(id, user));
   pos.collateral += assets;
 }
@@ -153,8 +186,9 @@ export function handleWithdrawCollateral(state: IndexerState, log: DecodedLog): 
   const id = log.args.id as Hex;
   const user = log.args.onBehalf as Address;
   const assets = log.args.assets as bigint;
-  const pos = state.positions.get(positionKey(id, user));
-  if (pos) pos.collateral -= assets;
+  // Row must exist because WithdrawCollateral cannot precede SupplyCollateral.
+  const pos = requirePosition(state, id, user, "WithdrawCollateral");
+  pos.collateral -= assets;
 }
 
 export function handleLiquidate(
@@ -163,8 +197,8 @@ export function handleLiquidate(
   blockTimestamp: bigint,
 ): void {
   const id = log.args.id as Hex;
-  const market = state.markets.get(id);
-  if (!market) return;
+  // Row must exist because Liquidate cannot precede CreateMarket.
+  const market = requireMarket(state, id, "Liquidate");
 
   const repaidAssets = log.args.repaidAssets as bigint;
   const repaidShares = log.args.repaidShares as bigint;
@@ -178,12 +212,11 @@ export function handleLiquidate(
   market.totalSupplyShares -= badDebtShares;
   market.lastUpdate = blockTimestamp;
 
+  // Row must exist because Liquidate cannot precede SupplyCollateral.
   const borrower = log.args.borrower as Address;
-  const pos = state.positions.get(positionKey(id, borrower));
-  if (pos) {
-    pos.collateral -= seizedAssets;
-    pos.borrowShares -= repaidShares + badDebtShares;
-  }
+  const pos = requirePosition(state, id, borrower, "Liquidate");
+  pos.collateral -= seizedAssets;
+  pos.borrowShares -= repaidShares + badDebtShares;
 }
 
 export function handleSetAuthorization(state: IndexerState, log: DecodedLog): void {

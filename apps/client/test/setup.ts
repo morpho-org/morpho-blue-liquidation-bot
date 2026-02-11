@@ -48,6 +48,16 @@ export const test = createViemTest(mainnet, {
   forkBlockNumber: 21_000_000,
 });
 
+/// INDEXER TESTS
+
+export const indexerTest = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
+  forkBlockNumber: 19_200_000,
+  timeout: 600_000,
+});
+
+/// LIQUIDITY VENUES TESTS
+
 export const oneInchTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
   forkBlockNumber: 23_474_754,
