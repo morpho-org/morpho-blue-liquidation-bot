@@ -29,6 +29,17 @@ export interface Options {
   liquidationBufferBps?: number;
   useFlashbots: boolean;
   blockInterval?: number;
+  rebuild?: RebuildConfig;
+}
+
+export interface RebuildConfig {
+  intervalMs?: number;
+  spotCheck?: SpotCheckConfig;
+}
+
+export interface SpotCheckConfig {
+  intervalMs: number;
+  sampleSize?: number;
 }
 
 export type ChainConfig = Omit<Config, "options"> &

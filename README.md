@@ -1,6 +1,6 @@
 # Morpho Blue Liquidation Bot
 
-A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** protocol. This bot is entirely based on **RPC calls** and is designed to be **easy to configure**, **customizable**, and **ready to deploy** on any EVM-compatible chain.
+A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** protocol. This bot is entirely based on **RPC calls** — it uses a **built-in event-sourced indexer** instead of external indexing services — and is designed to be **easy to configure**, **customizable**, and **ready to deploy** on any EVM-compatible chain.
 
 ## Visual Architecture
 
@@ -85,6 +85,10 @@ For each chain, here are the parameters that needs to be configured:
 
 - `options.blockInterval`: Controls how often the bot executes liquidation checks. The bot watches every new block, but only runs the liquidation logic every N blocks (where N is the value of `blockInterval`). This can be useful to reduce RPC calls and gas costs on chains with high block frequencies, or to throttle execution on less active chains. If not set, the bot will run at every new block.
 
+**Rebuild (optional)**:
+
+- `options.rebuild`: Configuration for the indexer's self-healing mechanisms. See [Indexer Resilience](#indexer-resilience) for details.
+
 ### Secrets
 
 **Flashbot Secrets (optional):**
@@ -148,6 +152,45 @@ This is done by configuring `POSITION_LIQUIDATION_COOLDOWN_ENABLED` (set it to `
 It's possible to ensure bad debt position are always fully liquidated by the bot (even if not profitable) to realize bad debt.
 
 This is done by configuring `ALWAYS_REALIZE_BAD_DEBT` (set it to `true` to always realize bad debt, `false` otherwise) in the `apps/config/config.ts` file.
+
+## Built-in Indexer
+
+The bot includes a built-in event-sourced indexer that reconstructs on-chain state (markets, positions, authorizations, vault withdraw queues) by replaying Morpho Blue event logs via RPC. This removes the need for any external indexing service.
+
+On startup, the indexer replays all events from `startBlock` to the latest block. After initialization, it incrementally syncs new events on each block. The only RPC calls made at liquidation time are oracle price fetches — all market and position data comes from the indexed state, with interest accrued client-side using the Morpho SDK.
+
+### Start Block
+
+- `startBlock`: The block number from which the indexer starts replaying events. This should be set to the Morpho Blue deployment block (or later) for the chain. If not set, defaults to block 0.
+
+### Max Block Range
+
+- `maxBlockRange`: The maximum number of blocks fetched per `eth_getLogs` RPC call. The indexer processes events in chunks of this size. Set this according to your RPC provider's limits. If not set, defaults to 10,000.
+
+### Indexer Resilience
+
+RPC providers can occasionally miss logs, which corrupts the indexer's event-sourced state. The bot provides three complementary self-healing mechanisms, all configured via `options.rebuild`:
+
+**Periodic rebuild** (`rebuild.intervalMs`): Fully reconstructs the indexer state from scratch at a configurable interval (in milliseconds) by replaying all events from `startBlock`. Disabled if not set.
+
+**Spot-check validation** (`rebuild.spotCheck`): Periodically samples random markets and positions from the indexed state, compares them against on-chain reads via multicall, and triggers a full rebuild if any mismatch is found.
+
+- `rebuild.spotCheck.intervalMs`: How often to run the spot-check (in milliseconds).
+- `rebuild.spotCheck.sampleSize`: Number of markets and positions to sample per check. Defaults to 10 if not set.
+
+**Error-triggered rebuild**: When the indexer detects an impossible state transition during sync (e.g., a withdraw on a market that was never created), it throws a `MissingEventError` and automatically triggers a full rebuild instead of retrying.
+
+Example configuration:
+
+```typescript
+rebuild: {
+  intervalMs: 1000 * 60 * 60, // Rebuild from scratch every hour
+  spotCheck: {
+    intervalMs: 1000 * 60 * 5, // Spot-check every 5 minutes
+    sampleSize: 20,            // Sample 20 markets and 20 positions
+  },
+}
+```
 
 ## Executor Contract Deployment
 

@@ -35,7 +35,6 @@ export class OneInchTest extends OneInch {
     this.supportedNetworks = supportedNetworks;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   supportsRoute(encoder: ExecutorEncoder, _src: Address, _dst: Address) {
     return this.supportedNetworks.includes(encoder.client.chain.id);
   }
@@ -149,7 +148,7 @@ async function overwriteCollateral(
   await client.setStorageAt({
     address: MORPHO,
     index: slot,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     value: modifyCollateralSlot(value!, amount),
   });
 }
@@ -195,6 +194,9 @@ export const syncTimestamp = async (client: AnvilTestClient, timestamp?: bigint)
     now: Number(timestamp) * 1000,
     toFake: ["Date"], // Avoid faking setTimeout, used to delay retries.
   });
+
+  // Also set system time to ensure Time.timestamp() uses the mocked time
+  vi.setSystemTime(Number(timestamp) * 1000);
 
   await client.setNextBlockTimestamp({ timestamp });
 
@@ -270,8 +272,8 @@ export class MockIndexer {
           ],
           allowFailure: true,
         });
-        if (results[0]!.status === "success") {
-          rateAtTarget = results[0]!.result as bigint;
+        if (results[0].status === "success") {
+          rateAtTarget = results[0].result;
         }
       } catch {
         // IRM may not be adaptive curve

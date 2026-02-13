@@ -27,8 +27,24 @@ export default tseslint.config({ ignores: ["dist"] }, eslint.configs.recommended
   },
   rules: {
     "@typescript-eslint/no-floating-promises": "error",
-    "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
-    "@typescript-eslint/restrict-template-expressions": ["off"],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { ignoreRestSiblings: true, argsIgnorePattern: "^_" },
+    ],
+    "@typescript-eslint/restrict-template-expressions": "off",
+    // Viem ABI types require `any` casts and non-null assertions in iteration patterns
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    // Spreading SDK class instances into plain objects is intentional
+    "@typescript-eslint/no-misused-spread": "off",
+    // False positives from ABI .find() and config checks
+    "@typescript-eslint/no-unnecessary-condition": "off",
+    // Used in test mocks and deprecated vitest APIs
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-deprecated": "off",
     "import-x/no-unresolved": [
       "error",
       { ignore: ["ponder:api", "ponder:registry", "ponder:schema"] },

@@ -1,17 +1,17 @@
-import type { Account, Address, Chain, Client, Hex, Log, Transport } from "viem";
+import { adaptiveCurveIrmAbi, metaMorphoAbi } from "@morpho-org/blue-sdk-viem";
+import type { Account, Address, Chain, Client, Log, Transport } from "viem";
 import { getBlock, getLogs } from "viem/actions";
 
 import { morphoBlueAbi } from "../abis/morpho/morphoBlue";
 import { preLiquidationFactoryAbi } from "../abis/morpho/preLiquidationFactory";
-import { adaptiveCurveIrmAbi, metaMorphoAbi } from "@morpho-org/blue-sdk-viem";
 
-import type { IndexerState } from "./state";
 import {
   getMorphoHandler,
   handleBorrowRateUpdate,
   handleCreatePreLiquidation,
   handleSetWithdrawQueue,
 } from "./handlers";
+import type { IndexerState } from "./state";
 
 // Extract event ABIs we care about from morphoBlueAbi
 const MORPHO_EVENT_NAMES = new Set([
@@ -44,12 +44,16 @@ const setWithdrawQueueEvent = metaMorphoAbi.find(
   (e) => e.type === "event" && e.name === "SetWithdrawQueue",
 )!;
 
+export interface ContractAddresses {
+  morpho: Address;
+  adaptiveCurveIrm: Address;
+  preLiquidationFactory: Address | undefined;
+  vaults: Address[];
+}
+
 export interface SyncConfig {
   client: Client<Transport, Chain, Account>;
-  morphoAddress: Address;
-  adaptiveCurveIrmAddress: Address;
-  preLiquidationFactoryAddress: Address | undefined;
-  vaultAddresses: Address[];
+  addresses: ContractAddresses;
 }
 
 interface TaggedLog {
@@ -72,7 +76,7 @@ export async function syncRange(
   // All Morpho Blue events in one call
   fetches.push(
     getLogs(config.client, {
-      address: config.morphoAddress,
+      address: config.addresses.morpho,
       events: morphoEventAbis as any,
       fromBlock,
       toBlock,
@@ -82,7 +86,7 @@ export async function syncRange(
   // BorrowRateUpdate from AdaptiveCurveIRM
   fetches.push(
     getLogs(config.client, {
-      address: config.adaptiveCurveIrmAddress,
+      address: config.addresses.adaptiveCurveIrm,
       event: borrowRateUpdateEvent as any,
       fromBlock,
       toBlock,
@@ -90,10 +94,10 @@ export async function syncRange(
   );
 
   // CreatePreLiquidation from factory
-  if (config.preLiquidationFactoryAddress) {
+  if (config.addresses.preLiquidationFactory) {
     fetches.push(
       getLogs(config.client, {
-        address: config.preLiquidationFactoryAddress,
+        address: config.addresses.preLiquidationFactory,
         event: createPreLiquidationEvent as any,
         fromBlock,
         toBlock,
@@ -102,7 +106,7 @@ export async function syncRange(
   }
 
   // SetWithdrawQueue per vault
-  for (const vault of config.vaultAddresses) {
+  for (const vault of config.addresses.vaults) {
     fetches.push(
       getLogs(config.client, {
         address: vault,

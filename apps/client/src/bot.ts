@@ -30,6 +30,7 @@ import {
   writeContract,
 } from "viem/actions";
 
+import type { Indexer } from "./indexer/Indexer.js";
 import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
 import type { Pricer } from "./pricers/pricer.js";
 import {
@@ -38,7 +39,6 @@ import {
 } from "./utils/cooldownMechanisms.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { Flashbots } from "./utils/flashbots.js";
-import type { Indexer } from "./indexer/Indexer.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
 
@@ -115,8 +115,7 @@ export class LiquidationBot {
 
   private async liquidate(position: AccrualPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = this.decreaseSeizableCollateral(position.seizableCollateral!, false);
-
+    const seizableCollateral = position.seizableCollateral!;
     const badDebtPosition = seizableCollateral === position.collateral;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
@@ -125,7 +124,14 @@ export class LiquidationBot {
 
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder))) return;
+    if (
+      !(await this.convertCollateralToLoan(
+        marketParams,
+        this.decreaseSeizableCollateral(seizableCollateral, badDebtPosition),
+        encoder,
+      ))
+    )
+      return;
 
     encoder.erc20Approve(marketParams.loanToken, this.chainAddresses.morpho, maxUint256);
 

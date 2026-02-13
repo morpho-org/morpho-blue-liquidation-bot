@@ -3,7 +3,7 @@ import nock from "nock";
 import { erc20Abi, parseUnits } from "viem";
 import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
-import { beforeEach, describe, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { morphoBlueAbi } from "../../../src/abis/morpho/morphoBlue.js";
 import { LiquidationBot } from "../../../src/bot.js";
@@ -11,7 +11,13 @@ import { UniswapV3Venue, Erc4626, PendlePTVenue } from "../../../src/liquidityVe
 import { MorphoApi } from "../../../src/pricers/index.js";
 import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
-import { MockIndexer, OneInchTest, setupPosition, mockEtherPrice, syncTimestamp } from "../../helpers.js";
+import {
+  MockIndexer,
+  OneInchTest,
+  setupPosition,
+  mockEtherPrice,
+  syncTimestamp,
+} from "../../helpers.js";
 import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
 
 describe("execute liquidation swapping on Uniswap V3", () => {
@@ -20,6 +26,10 @@ describe("execute liquidation swapping on Uniswap V3", () => {
 
   beforeEach(() => {
     nock.cleanAll();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   encoderTest.sequential("should execute liquidation", async ({ encoder }) => {
@@ -68,6 +78,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       indexer: mockIndexer.asIndexer(),
     });
 
+    await syncTimestamp(client);
     await bot.run();
 
     const positionPostLiquidation = await readContract(client, {
@@ -138,6 +149,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
         indexer: mockIndexer.asIndexer(),
       });
 
+      await syncTimestamp(client);
       await bot.run();
 
       const positionPostLiquidation = await readContract(client, {
@@ -160,11 +172,87 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       expect(positionPostLiquidation[2]).toBe(collateralAmount / 2n);
     },
   );
+
+  encoderTest.sequential(
+    "should execute liquidation even without profit and alwaysRealizeBadDebt is true",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
+
+      const { client } = encoder;
+      const collateralAmount = parseUnits("0.0001", 8);
+      const borrowAmount = parseUnits("5", 6);
+
+      const _marketParams = await readContract(encoder.client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "idToMarketParams",
+        args: [wbtcUSDC],
+      });
+
+      const marketParams = {
+        loanToken: _marketParams[0],
+        collateralToken: _marketParams[1],
+        oracle: _marketParams[2],
+        irm: _marketParams[3],
+        lltv: _marketParams[4],
+      };
+
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      mockEtherPrice(2640, marketParams);
+
+      const mockIndexer = new MockIndexer(client, MORPHO);
+      mockIndexer.addPosition(wbtcUSDC, borrower.address);
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+        alwaysRealizeBadDebt: true,
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        indexer: mockIndexer.asIndexer(),
+      });
+
+      await syncTimestamp(client);
+      await bot.run();
+
+      const positionPostLiquidation = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      const accountBalance = await readContract(client, {
+        address: marketParams.loanToken,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [client.account.address],
+      });
+
+      expect(accountBalance).toBeGreaterThan(0n);
+      expect(positionPostLiquidation[0]).toBe(0n);
+      expect(positionPostLiquidation[1]).toBe(0n);
+      expect(positionPostLiquidation[2]).toBe(0n);
+    },
+  );
 });
 
 describe("execute liquidation combining Pendle PT and 1inch liquidity venues", () => {
   beforeEach(() => {
     nock.cleanAll();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const pendlePT = new PendlePTVenue();
@@ -253,7 +341,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
         ],
       })
       .get(
-        "/v2/sdk/1/markets/0xb6ac3d5da138918ac4e84441e924a20daa60dbdd/swap?receiver=0x2d493cde51adc74d4494b3dc146759cf32957a23&slippage=0.04&tokenIn=0xe6a934089bbee34f832060ce98848359883749b3&tokenOut=0x9d39a5de30e57443bff2a8307a4256c8797a3497&amountIn=4975000000000000000000",
+        "/v2/sdk/1/markets/0xb6ac3d5da138918ac4e84441e924a20daa60dbdd/swap?receiver=0x2d493cde51adc74d4494b3dc146759cf32957a23&slippage=0.04&tokenIn=0xe6a934089bbee34f832060ce98848359883749b3&tokenOut=0x9d39a5de30e57443bff2a8307a4256c8797a3497&amountIn=5000000000000000000000",
       )
       .reply(200, {
         method: "swapExactPtForToken",
@@ -333,6 +421,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       args: [client.account.address],
     });
 
+    await syncTimestamp(client, 1760013015n);
     await bot.run();
 
     const accountLoanTokenBalanceAfterLiquidation = await readContract(encoder.client, {

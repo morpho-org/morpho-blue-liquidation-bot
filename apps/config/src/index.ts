@@ -2,7 +2,13 @@ import dotenv from "dotenv";
 import type { Address, Chain, Hex } from "viem";
 
 import { chainConfigs } from "./config";
-import type { ChainConfig, LiquidityVenueName, PricerName } from "./types";
+import type {
+  ChainConfig,
+  LiquidityVenueName,
+  PricerName,
+  RebuildConfig,
+  SpotCheckConfig,
+} from "./types";
 
 dotenv.config();
 
@@ -54,7 +60,14 @@ export function getSecrets(chainId: number, chain?: Chain) {
 }
 
 export * from "./chains";
-export { chainConfigs, type ChainConfig, type LiquidityVenueName, type PricerName };
+export {
+  chainConfigs,
+  type ChainConfig,
+  type LiquidityVenueName,
+  type PricerName,
+  type RebuildConfig,
+  type SpotCheckConfig,
+};
 export * from "./liquidityVenues";
 export * from "./pricers";
 export {

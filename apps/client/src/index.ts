@@ -11,8 +11,8 @@ import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import { Indexer } from "./indexer/Indexer";
-import { createPricer } from "./pricers";
 import { createLiquidityVenue } from "./liquidityVenues";
+import { createPricer } from "./pricers";
 import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
@@ -69,17 +69,14 @@ export const launchBot = async (config: ChainConfig) => {
     config.vaultWhitelist === "morpho-api" ? [] : config.vaultWhitelist;
 
   const indexer = new Indexer({
-    chainId: config.chainId,
     client,
     startBlock: config.startBlock ?? 0n,
     maxBlockRange: config.maxBlockRange,
     vaultAddresses: initialVaultAddresses,
-    logTag,
+    rebuild: config.rebuild,
   });
 
-  console.log(`${logTag}Performing initial indexer sync...`);
   await indexer.init();
-  console.log(`${logTag}Indexer ready`);
 
   const inputs: LiquidationBotInputs = {
     logTag,

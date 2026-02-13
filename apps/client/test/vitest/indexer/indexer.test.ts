@@ -1,8 +1,8 @@
-import { describe, expect } from "vitest";
-import { zeroAddress, type Address, type Hex } from "viem";
-import { multicall } from "viem/actions";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { adaptiveCurveIrmAbi } from "@morpho-org/blue-sdk-viem";
+import { zeroAddress, type Address, type Hex } from "viem";
+import { multicall } from "viem/actions";
+import { describe, expect } from "vitest";
 
 import { morphoBlueAbi } from "../../../src/abis/morpho/morphoBlue";
 import { createEmptyState } from "../../../src/indexer/state";
@@ -20,10 +20,12 @@ describe("Indexer", () => {
 
       const config: SyncConfig = {
         client: client as any,
-        morphoAddress: MORPHO_ADDRESS,
-        adaptiveCurveIrmAddress: chainAddresses.adaptiveCurveIrm,
-        preLiquidationFactoryAddress: chainAddresses.preLiquidationFactory,
-        vaultAddresses: [],
+        addresses: {
+          morpho: MORPHO_ADDRESS,
+          adaptiveCurveIrm: chainAddresses.adaptiveCurveIrm,
+          preLiquidationFactory: chainAddresses.preLiquidationFactory,
+          vaults: [],
+        },
       };
 
       const state = createEmptyState();
@@ -76,10 +78,12 @@ describe("Indexer", () => {
 
       const config: SyncConfig = {
         client: client as any,
-        morphoAddress: MORPHO_ADDRESS,
-        adaptiveCurveIrmAddress: chainAddresses.adaptiveCurveIrm,
-        preLiquidationFactoryAddress: chainAddresses.preLiquidationFactory,
-        vaultAddresses: [],
+        addresses: {
+          morpho: MORPHO_ADDRESS,
+          adaptiveCurveIrm: chainAddresses.adaptiveCurveIrm,
+          preLiquidationFactory: chainAddresses.preLiquidationFactory,
+          vaults: [],
+        },
       };
 
       const state = createEmptyState();
@@ -104,7 +108,7 @@ describe("Indexer", () => {
         const marketId = key.slice(0, separatorIndex) as Hex;
         const user = key.slice(separatorIndex + 1) as Address;
         return {
-          address: MORPHO_ADDRESS as Address,
+          address: MORPHO_ADDRESS,
           abi: morphoBlueAbi,
           functionName: "position" as const,
           args: [marketId, user] as [Hex, Address],
@@ -135,10 +139,12 @@ describe("Indexer", () => {
 
       const config: SyncConfig = {
         client: client as any,
-        morphoAddress: MORPHO_ADDRESS,
-        adaptiveCurveIrmAddress: chainAddresses.adaptiveCurveIrm,
-        preLiquidationFactoryAddress: chainAddresses.preLiquidationFactory,
-        vaultAddresses: [],
+        addresses: {
+          morpho: MORPHO_ADDRESS,
+          adaptiveCurveIrm: chainAddresses.adaptiveCurveIrm,
+          preLiquidationFactory: chainAddresses.preLiquidationFactory,
+          vaults: [],
+        },
       };
 
       const state = createEmptyState();
@@ -156,7 +162,7 @@ describe("Indexer", () => {
       const authCalls = sampled.map(([key]) => {
         const [authorizer, authorizee] = key.split("-") as [Address, Address];
         return {
-          address: MORPHO_ADDRESS as Address,
+          address: MORPHO_ADDRESS,
           abi: morphoBlueAbi,
           functionName: "isAuthorized" as const,
           args: [authorizer, authorizee] as [Address, Address],
@@ -170,7 +176,7 @@ describe("Indexer", () => {
 
       for (let i = 0; i < sampled.length; i++) {
         const [key, indexed] = sampled[i]!;
-        const onchain = results[i] as boolean;
+        const onchain = results[i]!;
         expect(indexed, `authorization mismatch for ${key}`).toEqual(onchain);
       }
     },
@@ -184,10 +190,12 @@ describe("Indexer", () => {
 
       const config: SyncConfig = {
         client: client as any,
-        morphoAddress: MORPHO_ADDRESS,
-        adaptiveCurveIrmAddress: chainAddresses.adaptiveCurveIrm,
-        preLiquidationFactoryAddress: chainAddresses.preLiquidationFactory,
-        vaultAddresses: [],
+        addresses: {
+          morpho: MORPHO_ADDRESS,
+          adaptiveCurveIrm: chainAddresses.adaptiveCurveIrm,
+          preLiquidationFactory: chainAddresses.preLiquidationFactory,
+          vaults: [],
+        },
       };
 
       const state = createEmptyState();
@@ -220,7 +228,7 @@ describe("Indexer", () => {
 
         for (let j = 0; j < batch.length; j++) {
           const [id, indexed] = batch[j]!;
-          const onchain = results[j] as bigint;
+          const onchain = results[j]!;
           expect(indexed.rateAtTarget, `rateAtTarget mismatch for market ${id}`).toEqual(onchain);
         }
       }
