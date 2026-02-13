@@ -48,7 +48,7 @@ export const chainConfigs: Record<number, Config> = {
   [base.id]: {
     chain: base,
     wNative: "0x4200000000000000000000000000000000000006",
-    maxBlockRange: 10_000,
+    maxBlockRange: Number.POSITIVE_INFINITY,
     startBlock: 13977148n,
     options: {
       vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],

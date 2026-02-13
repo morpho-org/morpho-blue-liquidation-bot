@@ -33,7 +33,6 @@ export class Indexer {
   private state: IndexerState;
   private lastSyncedBlock: bigint;
   private startBlock: bigint;
-  private maxBlockRange: bigint;
   private addresses: ContractAddresses;
   private trackedVaults: Set<string>;
   private isSyncing = false;
@@ -43,15 +42,11 @@ export class Indexer {
   constructor(options: {
     client: Client<Transport, Chain, Account>;
     startBlock: bigint;
-    maxBlockRange?: number;
     vaultAddresses: Address[];
     rebuild?: RebuildConfig;
   }) {
     this.client = options.client;
     this.startBlock = options.startBlock;
-
-    const range = options.maxBlockRange ?? 10_000;
-    this.maxBlockRange = Number.isFinite(range) ? BigInt(range) : 100_000_000n;
 
     this.trackedVaults = new Set(options.vaultAddresses.map((v) => v.toLowerCase()));
     this.rebuildConfig = options.rebuild;
@@ -123,18 +118,8 @@ export class Indexer {
 
     const startFrom = this.lastSyncedBlock + 1n;
 
-    // Process in chunks of maxBlockRange to respect RPC limits
     try {
-      let chunkFrom = startFrom;
-      while (chunkFrom <= latestBlock) {
-        const chunkTo =
-          chunkFrom + this.maxBlockRange - 1n < latestBlock
-            ? chunkFrom + this.maxBlockRange - 1n
-            : latestBlock;
-
-        await this.syncChunkWithRetry(chunkFrom, chunkTo);
-        chunkFrom = chunkTo + 1n;
-      }
+      await this.syncChunkWithRetry(startFrom, latestBlock);
     } catch (error) {
       if (error instanceof MissingEventError) {
         await this.rebuild();
@@ -181,17 +166,7 @@ export class Indexer {
     const latestBlock = await getBlockNumber(this.client);
     const freshState = createEmptyState();
 
-    // Replay all cached logs from startBlock to latestBlock in chunks
-    let chunkFrom = this.startBlock;
-    while (chunkFrom <= latestBlock) {
-      const chunkTo =
-        chunkFrom + this.maxBlockRange - 1n < latestBlock
-          ? chunkFrom + this.maxBlockRange - 1n
-          : latestBlock;
-
-      await syncRange(this.getSyncConfig(), freshState, chunkFrom, chunkTo);
-      chunkFrom = chunkTo + 1n;
-    }
+    await syncRange(this.getSyncConfig(), freshState, this.startBlock, latestBlock);
 
     this.state = freshState;
     this.lastSyncedBlock = latestBlock;

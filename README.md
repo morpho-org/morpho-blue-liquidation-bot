@@ -48,7 +48,7 @@ For each chain, here are the parameters that needs to be configured:
 
 ### Chain Max Block Range
 
-- `maxBlockRange`: The maximum `eth_getLogs` block range supported by your RPC for this chain.
+- `maxBlockRange`: The maximum `eth_getLogs` block range supported by your RPC provider. This is passed to the viem-dlc caching layer which automatically splits large log fetches into chunks of this size. If not set, defaults to 10,000.
 
 ### Options
 
@@ -162,10 +162,6 @@ On startup, the indexer replays all events from `startBlock` to the latest block
 ### Start Block
 
 - `startBlock`: The block number from which the indexer starts replaying events. This should be set to the Morpho Blue deployment block (or later) for the chain. If not set, defaults to block 0.
-
-### Max Block Range
-
-- `maxBlockRange`: The maximum number of blocks fetched per `eth_getLogs` RPC call. The indexer processes events in chunks of this size. Set this according to your RPC provider's limits. If not set, defaults to 10,000.
 
 ### Indexer Resilience
 

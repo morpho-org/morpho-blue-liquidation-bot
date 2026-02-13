@@ -71,7 +71,6 @@ export const launchBot = async (config: ChainConfig) => {
   const indexer = new Indexer({
     client,
     startBlock: config.startBlock ?? 0n,
-    maxBlockRange: config.maxBlockRange,
     vaultAddresses: initialVaultAddresses,
     rebuild: config.rebuild,
   });
