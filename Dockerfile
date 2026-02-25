@@ -47,4 +47,4 @@ CMD ["sh", "-lc", "{ \
     echo \"LIQUIDATION_PRIVATE_KEY_${CHAIN}=$(printenv LIQUIDATION_PRIVATE_KEY)\"; \
   done; \
   echo \"RAILWAY_DEPLOYMENT_ID=$(printenv RAILWAY_DEPLOYMENT_ID)\"; \
-} > .env && pnpm run liquidate"]
+} > .env && NODE_OPTIONS='--max-old-space-size=8192' pnpm run liquidate"]

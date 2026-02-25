@@ -27,6 +27,12 @@ function getOrCreatePosition(state: IndexerState, key: string): IndexedPositionS
   return pos;
 }
 
+function pruneIfEmpty(state: IndexerState, key: string, pos: IndexedPositionState): void {
+  if (pos.supplyShares === 0n && pos.borrowShares === 0n && pos.collateral === 0n) {
+    state.positions.delete(key);
+  }
+}
+
 function requireMarket(state: IndexerState, id: Hex, eventName: string) {
   const market = state.markets.get(id);
   if (!market) {
@@ -52,11 +58,7 @@ function requirePosition(state: IndexerState, id: Hex, user: Address, eventName:
 
 // ---- Morpho Blue event handlers ----
 
-export function handleCreateMarket(
-  state: IndexerState,
-  log: DecodedLog,
-  blockTimestamp: bigint,
-): void {
+export function handleCreateMarket(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
   const mp = log.args.marketParams as {
     loanToken: Address;
@@ -77,17 +79,16 @@ export function handleCreateMarket(
     totalSupplyShares: 0n,
     totalBorrowAssets: 0n,
     totalBorrowShares: 0n,
-    lastUpdate: blockTimestamp,
+    lastUpdate: 0n,
     fee: 0n,
     rateAtTarget: undefined,
   });
 }
 
-export function handleSetFee(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
+export function handleSetFee(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
   const market = requireMarket(state, id, "SetFee");
   market.fee = log.args.newFee as bigint;
-  market.lastUpdate = blockTimestamp;
 }
 
 export function handleAccrueInterest(
@@ -102,82 +103,69 @@ export function handleAccrueInterest(
   market.totalSupplyAssets += interest;
   market.totalBorrowAssets += interest;
   market.totalSupplyShares += feeShares;
-  market.lastUpdate = blockTimestamp;
+  if (blockTimestamp !== 0n) market.lastUpdate = blockTimestamp;
 }
 
-export function handleSupply(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
+export function handleSupply(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
-  // Row must exist because Supply cannot precede CreateMarket.
   const market = requireMarket(state, id, "Supply");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalSupplyAssets += assets;
   market.totalSupplyShares += shares;
-  market.lastUpdate = blockTimestamp;
 
-  // Row may or may not exist because Supply could be user's first action.
   const user = log.args.onBehalf as Address;
   const pos = getOrCreatePosition(state, positionKey(id, user));
   pos.supplyShares += shares;
 }
 
-export function handleWithdraw(
-  state: IndexerState,
-  log: DecodedLog,
-  blockTimestamp: bigint,
-): void {
+export function handleWithdraw(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
-  // Row must exist because Withdraw cannot precede CreateMarket.
   const market = requireMarket(state, id, "Withdraw");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalSupplyAssets -= assets;
   market.totalSupplyShares -= shares;
-  market.lastUpdate = blockTimestamp;
 
-  // Row must exist because Withdraw cannot precede Supply.
   const user = log.args.onBehalf as Address;
+  const key = positionKey(id, user);
   const pos = requirePosition(state, id, user, "Withdraw");
   pos.supplyShares -= shares;
+  pruneIfEmpty(state, key, pos);
 }
 
-export function handleBorrow(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
+export function handleBorrow(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
-  // Row must exist because Borrow cannot precede CreateMarket.
   const market = requireMarket(state, id, "Borrow");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalBorrowAssets += assets;
   market.totalBorrowShares += shares;
-  market.lastUpdate = blockTimestamp;
 
-  // Row must exist because Borrow cannot precede SupplyCollateral.
   const user = log.args.onBehalf as Address;
   const pos = requirePosition(state, id, user, "Borrow");
   pos.borrowShares += shares;
 }
 
-export function handleRepay(state: IndexerState, log: DecodedLog, blockTimestamp: bigint): void {
+export function handleRepay(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
-  // Row must exist because Repay cannot precede CreateMarket.
   const market = requireMarket(state, id, "Repay");
   const assets = log.args.assets as bigint;
   const shares = log.args.shares as bigint;
   market.totalBorrowAssets -= assets;
   market.totalBorrowShares -= shares;
-  market.lastUpdate = blockTimestamp;
 
-  // Row must exist because Repay cannot precede Borrow.
   const user = log.args.onBehalf as Address;
+  const key = positionKey(id, user);
   const pos = requirePosition(state, id, user, "Repay");
   pos.borrowShares -= shares;
+  pruneIfEmpty(state, key, pos);
 }
 
 export function handleSupplyCollateral(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
   const user = log.args.onBehalf as Address;
   const assets = log.args.assets as bigint;
-  // Row may or may not exist because SupplyCollateral could be user's first action.
   const pos = getOrCreatePosition(state, positionKey(id, user));
   pos.collateral += assets;
 }
@@ -186,18 +174,14 @@ export function handleWithdrawCollateral(state: IndexerState, log: DecodedLog): 
   const id = log.args.id as Hex;
   const user = log.args.onBehalf as Address;
   const assets = log.args.assets as bigint;
-  // Row must exist because WithdrawCollateral cannot precede SupplyCollateral.
+  const key = positionKey(id, user);
   const pos = requirePosition(state, id, user, "WithdrawCollateral");
   pos.collateral -= assets;
+  pruneIfEmpty(state, key, pos);
 }
 
-export function handleLiquidate(
-  state: IndexerState,
-  log: DecodedLog,
-  blockTimestamp: bigint,
-): void {
+export function handleLiquidate(state: IndexerState, log: DecodedLog): void {
   const id = log.args.id as Hex;
-  // Row must exist because Liquidate cannot precede CreateMarket.
   const market = requireMarket(state, id, "Liquidate");
 
   const repaidAssets = log.args.repaidAssets as bigint;
@@ -210,20 +194,25 @@ export function handleLiquidate(
   market.totalBorrowShares -= repaidShares;
   market.totalSupplyAssets -= badDebtAssets;
   market.totalSupplyShares -= badDebtShares;
-  market.lastUpdate = blockTimestamp;
 
-  // Row must exist because Liquidate cannot precede SupplyCollateral.
   const borrower = log.args.borrower as Address;
+  const key = positionKey(id, borrower);
   const pos = requirePosition(state, id, borrower, "Liquidate");
   pos.collateral -= seizedAssets;
   pos.borrowShares -= repaidShares + badDebtShares;
+  pruneIfEmpty(state, key, pos);
 }
 
 export function handleSetAuthorization(state: IndexerState, log: DecodedLog): void {
   const authorizer = log.args.authorizer as Address;
   const authorized = log.args.authorized as Address;
   const isAuth = log.args.newIsAuthorized as boolean;
-  state.authorizations.set(authorizationKey(authorizer, authorized), isAuth);
+  const key = authorizationKey(authorizer, authorized);
+  if (isAuth) {
+    state.authorizations.set(key, true);
+  } else {
+    state.authorizations.delete(key);
+  }
 }
 
 // ---- AdaptiveCurveIRM event handler ----
@@ -270,17 +259,37 @@ export function handleSetWithdrawQueue(
 type MorphoHandler = (state: IndexerState, log: DecodedLog, blockTimestamp: bigint) => void;
 
 const MORPHO_HANDLERS: Record<string, MorphoHandler> = {
-  CreateMarket: handleCreateMarket,
-  SetFee: handleSetFee,
+  CreateMarket: (state, log) => {
+    handleCreateMarket(state, log);
+  },
+  SetFee: (state, log) => {
+    handleSetFee(state, log);
+  },
   AccrueInterest: handleAccrueInterest,
-  Supply: handleSupply,
-  Withdraw: handleWithdraw,
-  Borrow: handleBorrow,
-  Repay: handleRepay,
-  SupplyCollateral: (state, log) => handleSupplyCollateral(state, log),
-  WithdrawCollateral: (state, log) => handleWithdrawCollateral(state, log),
-  Liquidate: handleLiquidate,
-  SetAuthorization: (state, log) => handleSetAuthorization(state, log),
+  Supply: (state, log) => {
+    handleSupply(state, log);
+  },
+  Withdraw: (state, log) => {
+    handleWithdraw(state, log);
+  },
+  Borrow: (state, log) => {
+    handleBorrow(state, log);
+  },
+  Repay: (state, log) => {
+    handleRepay(state, log);
+  },
+  SupplyCollateral: (state, log) => {
+    handleSupplyCollateral(state, log);
+  },
+  WithdrawCollateral: (state, log) => {
+    handleWithdrawCollateral(state, log);
+  },
+  Liquidate: (state, log) => {
+    handleLiquidate(state, log);
+  },
+  SetAuthorization: (state, log) => {
+    handleSetAuthorization(state, log);
+  },
 };
 
 export function getMorphoHandler(eventName: string): MorphoHandler | undefined {

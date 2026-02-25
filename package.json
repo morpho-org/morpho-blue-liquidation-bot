@@ -11,7 +11,7 @@
     "test:bot": "pnpm build:config &&vitest bot",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
     "deploy:executor": "pnpm build:config && tsx apps/client/src/deployExecutor.ts",
-    "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env",
+    "liquidate": "pnpm build:config && NODE_OPTIONS='--max-old-space-size=8192' tsx apps/client/src/script.ts --env-file=.env",
     "skim": "pnpm build:config && tsx apps/client/src/skim.ts --env-file=.env"
   },
   "lint-staged": {

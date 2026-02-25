@@ -23,7 +23,7 @@ import {
   type IndexerState,
   type IndexedMarketState,
 } from "./state";
-import { syncRange, type SyncConfig, type ContractAddresses } from "./sync";
+import { syncRange, resolveLastUpdates, type SyncConfig, type ContractAddresses } from "./sync";
 
 const MAX_RETRIES = 5;
 const INITIAL_BACKOFF_MS = 1000;
@@ -73,7 +73,6 @@ export class Indexer {
     this.isSyncing = true;
     try {
       await this.syncWithRetry();
-      await this.rebuildIfNeeded();
     } finally {
       this.isSyncing = false;
     }
@@ -166,7 +165,17 @@ export class Indexer {
     const latestBlock = await getBlockNumber(this.client);
     const freshState = createEmptyState();
 
-    await syncRange(this.getSyncConfig(), freshState, this.startBlock, latestBlock);
+    const start = performance.now();
+    await syncRange(this.getSyncConfig(), freshState, this.startBlock, latestBlock, {
+      skipTimestamps: true,
+    });
+    await resolveLastUpdates(this.getSyncConfig(), freshState);
+    const elapsed = performance.now() - start;
+
+    const blockRange = latestBlock - this.startBlock;
+    console.log(
+      `[Indexer] Indexed from scratch in ${(elapsed / 1000).toFixed(2)}s (${blockRange} blocks, ${freshState.markets.size} markets, ${freshState.positions.size} positions)`,
+    );
 
     this.state = freshState;
     this.lastSyncedBlock = latestBlock;

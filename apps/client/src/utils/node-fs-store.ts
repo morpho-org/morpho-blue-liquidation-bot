@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { access, mkdir, readFile, rename, unlink, writeFile } from "fs/promises";
 import { dirname, join } from "path";
 
-import { DebouncedStore, HierarchicalStore, MemoryStore, type Store } from "@morpho-org/viem-dlc";
+import { DebouncedStore, type Store } from "@morpho-org/viem-dlc";
 import { CompressedStore } from "@morpho-org/viem-dlc/stores/compressed";
 
 export class NodeFsStore implements Store {
@@ -50,13 +50,10 @@ export class NodeFsStore implements Store {
 export function createOptimizedNodeFsStore(options: { base: string; maxWritesPerSecond: number }) {
   const remote = new NodeFsStore(options.base);
 
-  return new HierarchicalStore([
-    new MemoryStore(),
-    new DebouncedStore(new CompressedStore(remote), {
-      debounceMs: 2000,
-      maxStalenessMs: 10000,
-      maxWritesBurst: options.maxWritesPerSecond,
-      maxWritesPerSecond: options.maxWritesPerSecond,
-    }),
-  ]);
+  return new DebouncedStore(new CompressedStore(remote), {
+    debounceMs: 2000,
+    maxStalenessMs: 10000,
+    maxWritesBurst: options.maxWritesPerSecond,
+    maxWritesPerSecond: options.maxWritesPerSecond,
+  });
 }
