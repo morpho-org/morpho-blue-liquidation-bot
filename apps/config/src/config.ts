@@ -1,4 +1,13 @@
-import { arbitrum, base, katana, mainnet, optimism, unichain, worldchain } from "viem/chains";
+import {
+  arbitrum,
+  base,
+  katana,
+  mainnet,
+  optimism,
+  polygon,
+  unichain,
+  worldchain,
+} from "viem/chains";
 
 import { hyperevm, monad } from "./chains";
 import type { Config } from "./types";
@@ -127,6 +136,19 @@ export const chainConfigs: Record<number, Config> = {
   [optimism.id]: {
     chain: optimism,
     wNative: "0x4200000000000000000000000000000000000006",
+    options: {
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      liquidityVenues: ["erc20Wrapper", "erc4626", "1inch", "uniswapV3", "uniswapV4"],
+      liquidationBufferBps: 50,
+      useFlashbots: false,
+      blockInterval: 30,
+      useTenderly: true,
+    },
+  },
+  [polygon.id]: {
+    chain: polygon,
+    wNative: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
     options: {
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
