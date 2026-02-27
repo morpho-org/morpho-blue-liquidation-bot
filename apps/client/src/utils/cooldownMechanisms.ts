@@ -1,6 +1,6 @@
 import { Address, Hex } from "viem";
 
-export class CooldownMechanism {
+export class PositionLiquidationCooldownMechanism {
   private cooldownPeriod: number;
   private positionReadyAt: Record<Hex, Record<Address, number>>;
 
@@ -23,6 +23,24 @@ export class CooldownMechanism {
     }
 
     this.positionReadyAt[marketId][account] = Date.now() / 1000 + this.cooldownPeriod;
+    return true;
+  }
+}
+
+export class MarketsFetchingCooldownMechanism {
+  private cooldownPeriod: number;
+  private readyAt: number;
+
+  constructor(cooldownPeriod: number) {
+    this.cooldownPeriod = cooldownPeriod;
+    this.readyAt = 0;
+  }
+
+  isFetchingReady() {
+    if (this.readyAt > Date.now() / 1000) {
+      return false;
+    }
+    this.readyAt = Date.now() / 1000 + this.cooldownPeriod;
     return true;
   }
 }

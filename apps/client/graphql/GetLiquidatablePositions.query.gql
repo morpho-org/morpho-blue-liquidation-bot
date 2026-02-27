@@ -1,0 +1,40 @@
+query getLiquidatablePositions(
+  $chainId: Int!
+  $marketIds: [String!]
+  $skip: Int
+  $first: Int = 100
+  $orderBy: MarketPositionOrderBy
+  $orderDirection: OrderDirection
+) {
+  marketPositions(
+    skip: $skip
+    first: $first
+    where: { chainId_in: [$chainId], marketUniqueKey_in: $marketIds, healthFactor_lte: 1 }
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    pageInfo {
+      count
+      countTotal
+      limit
+      skip
+    }
+    items {
+      healthFactor
+      user {
+        address
+      }
+      market {
+        uniqueKey
+        oracle {
+          address
+        }
+      }
+      state {
+        borrowShares
+        collateral
+        supplyShares
+      }
+    }
+  }
+}

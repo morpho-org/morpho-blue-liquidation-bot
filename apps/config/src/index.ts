@@ -57,4 +57,9 @@ export * from "./chains";
 export { chainConfigs, type ChainConfig, type LiquidityVenueName, type PricerName };
 export * from "./liquidityVenues";
 export * from "./pricers";
-export { COOLDOWN_PERIOD, COOLDOWN_ENABLED, ALWAYS_REALIZE_BAD_DEBT } from "./config";
+export {
+  POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+  POSITION_LIQUIDATION_COOLDOWN_ENABLED,
+  MARKETS_FETCHING_COOLDOWN_PERIOD,
+  ALWAYS_REALIZE_BAD_DEBT,
+} from "./config";

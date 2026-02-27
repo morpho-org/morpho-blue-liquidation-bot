@@ -4,19 +4,19 @@ import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { beforeEach, describe, expect } from "vitest";
 
-import { morphoBlueAbi } from "../../../../ponder/abis/MorphoBlue.js";
+import { morphoBlueAbi } from "../../../src/abis/morpho/morphoBlue.js";
 import { LiquidationBot } from "../../../src/bot.js";
 import { UniswapV3Venue, Erc4626, PendlePTVenue } from "../../../src/liquidityVenues/index.js";
 import { MorphoApi } from "../../../src/pricers/index.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
 import { OneInchTest, setupPosition, mockEtherPrice, syncTimestamp } from "../../helpers.js";
 import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
+import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
+import { MARKETS_FETCHING_COOLDOWN_PERIOD } from "@morpho-blue-liquidation-bot/config";
 
 describe("execute liquidation swapping on Uniswap V3", () => {
   const erc4626 = new Erc4626();
   const uniswapV3 = new UniswapV3Venue();
-
-  process.env.PONDER_SERVICE_URL = "http://localhost:42069";
 
   beforeEach(() => {
     nock.cleanAll();
@@ -51,14 +51,16 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       logTag: "test client",
       chainId: mainnet.id,
       client,
-      morphoAddress: MORPHO,
       wNative: WETH,
       vaultWhitelist: [],
-      additionalMarketsWhitelist: [],
+      additionalMarketsWhitelist: [wbtcUSDC],
       executorAddress: encoder.address,
       treasuryAddress: client.account.address,
       liquidityVenues: [erc4626, uniswapV3],
       pricers: [pricer],
+      marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+        MARKETS_FETCHING_COOLDOWN_PERIOD,
+      ),
       alwaysRealizeBadDebt: false,
     });
 
@@ -115,14 +117,16 @@ describe("execute liquidation swapping on Uniswap V3", () => {
         logTag: "test client",
         chainId: mainnet.id,
         client,
-        morphoAddress: MORPHO,
         wNative: WETH,
         vaultWhitelist: [],
-        additionalMarketsWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDC],
         executorAddress: encoder.address,
         treasuryAddress: client.account.address,
         liquidityVenues: [erc4626, uniswapV3],
         pricers: [pricer],
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
         alwaysRealizeBadDebt: false,
       });
 
@@ -188,13 +192,15 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       logTag: "test client",
       chainId: mainnet.id,
       client,
-      morphoAddress: MORPHO,
       wNative: WETH,
       vaultWhitelist: [],
-      additionalMarketsWhitelist: [],
+      additionalMarketsWhitelist: [ptsUSDeUSDC],
       executorAddress: encoder.address,
       treasuryAddress: client.account.address,
       liquidityVenues: [pendlePT, oneInch],
+      marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+        MARKETS_FETCHING_COOLDOWN_PERIOD,
+      ),
       alwaysRealizeBadDebt: false,
     });
 
@@ -237,7 +243,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
         ],
       })
       .get(
-        "/v2/sdk/1/markets/0xb6ac3d5da138918ac4e84441e924a20daa60dbdd/swap?receiver=0x2d493cde51adc74d4494b3dc146759cf32957a23&slippage=0.04&tokenIn=0xe6a934089bbee34f832060ce98848359883749b3&tokenOut=0x9d39a5de30e57443bff2a8307a4256c8797a3497&amountIn=4975000000000000000000",
+        "/v2/sdk/1/markets/0xb6ac3d5da138918ac4e84441e924a20daa60dbdd/swap?receiver=0x2d493cde51adc74d4494b3dc146759cf32957a23&slippage=0.04&tokenIn=0xe6a934089bbee34f832060ce98848359883749b3&tokenOut=0x9d39a5de30e57443bff2a8307a4256c8797a3497&amountIn=5000000000000000000000",
       )
       .reply(200, {
         method: "swapExactPtForToken",
@@ -317,6 +323,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       args: [client.account.address],
     });
 
+    await syncTimestamp(client, 1760013015n);
     await bot.run();
 
     const accountLoanTokenBalanceAfterLiquidation = await readContract(encoder.client, {

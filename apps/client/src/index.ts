@@ -1,4 +1,10 @@
-import { ALWAYS_REALIZE_BAD_DEBT, type ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import {
+  MARKETS_FETCHING_COOLDOWN_PERIOD,
+  POSITION_LIQUIDATION_COOLDOWN_ENABLED,
+  POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+  ALWAYS_REALIZE_BAD_DEBT,
+  type ChainConfig,
+} from "@morpho-blue-liquidation-bot/config";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
@@ -6,6 +12,10 @@ import { watchBlocks } from "viem/actions";
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import { createPricer } from "./pricers";
 import { createLiquidityVenue } from "./liquidityVenues";
+import {
+  MarketsFetchingCooldownMechanism,
+  PositionLiquidationCooldownMechanism,
+} from "./utils/cooldownMechanisms";
 
 export const launchBot = (config: ChainConfig) => {
   const logTag = `[${config.chain.name} client]: `;
@@ -40,11 +50,21 @@ export const launchBot = (config: ChainConfig) => {
     flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
   }
 
+  let positionLiquidationCooldownMechanism = undefined;
+  if (POSITION_LIQUIDATION_COOLDOWN_ENABLED) {
+    positionLiquidationCooldownMechanism = new PositionLiquidationCooldownMechanism(
+      POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+    );
+  }
+
+  const marketsFetchingCooldownMechanism = new MarketsFetchingCooldownMechanism(
+    MARKETS_FETCHING_COOLDOWN_PERIOD,
+  );
+
   const inputs: LiquidationBotInputs = {
     logTag,
     chainId: config.chainId,
     client,
-    morphoAddress: config.morpho.address,
     wNative: config.wNative,
     vaultWhitelist: config.vaultWhitelist,
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
@@ -52,6 +72,8 @@ export const launchBot = (config: ChainConfig) => {
     treasuryAddress: config.treasuryAddress ?? client.account.address,
     liquidityVenues,
     pricers,
+    marketsFetchingCooldownMechanism,
+    positionLiquidationCooldownMechanism,
     flashbotAccount,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
   };

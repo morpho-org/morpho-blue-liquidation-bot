@@ -20,8 +20,7 @@
     ]
   },
   "dependencies": {
-    "@morpho-org/blue-sdk": "^3.0.9",
-    "ponder": "^0.13.6",
+    "@morpho-org/blue-sdk": "^5.12.1",
     "tsx": "^4.19.3",
     "viem": "^2.37.0"
   },

@@ -9,7 +9,6 @@ A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** pr
 ## Features
 
 - Automatically detects liquidatable positions and executes the liquidations.
-- Also supports Morpho Blue pre liquidations.
 - Multi-chain compatible.
 - Configurable liquidity venues.
 - Profit evaluation thanks to configurable pricers.
@@ -25,7 +24,6 @@ Use at your own risk.
 
 - Node.js >= 20
 - [pnpm](https://pnpm.io/) (this repo uses `pnpm` as package manager)
-- [Docker](https://www.docker.com/) (optional, only needed if you want to run the database locally)
 - A valid RPC URL (via Alchemy, Infura, etc)
 - The private key of an EOA with enough funds to pay for gas.
 - An executor contract deployed for this EOA (see [Executor Contract Deployment](#executor-contract-deployment)).
@@ -42,30 +40,6 @@ pnpm install
 
 The bot can be configured to run on any EVM-compatible chain where the Morpho stack has been deployed. The chain configuration is done in the `apps/config/config.ts` file.
 For each chain, here are the parameters that needs to be configured:
-
-### Morpho Stack parameters (addresses and start blocks)
-
-Morpho Blue:
-
-- `morpho.address`: The address of the Morpho contract.
-- `morpho.startBlock`: The block number of the Morpho contract deployment.
-
-Adaptive Curve IRM:
-
-- `adaptiveCurveIrm.address`: The address of the Adaptive Curve IRM contract.
-- `adaptiveCurveIrm.startBlock`: The block number of the Adaptive Curve IRM contract deployment.
-
-Meta Morpho Factories:
-
-- `metaMorphoFactories.addresses`: The addresses of the MetaMorpho factories.
-- `metaMorphoFactories.startBlock`: The block number of the oldest MetaMorpho factory deployment.
-
-PreLiquidation Factory:
-
-- `preLiquidationFactory.address`: The address of the PreLiquidation factory.
-- `preLiquidationFactory.startBlock`: The block number of the PreLiquidation factory deployment.
-
-You may find the addresses in [Morpho documentation](https://docs.morpho.org/get-started/resources/addresses/), and you should use the contracts deployment blocks as start block (the contracts deployment blocks can be found on the chain explorers).
 
 ### Chain Wrapped Native Asset
 
@@ -107,12 +81,6 @@ You may find the addresses in [Morpho documentation](https://docs.morpho.org/get
 - `options.blockInterval`: Controls how often the bot executes liquidation checks. The bot watches every new block, but only runs the liquidation logic every N blocks (where N is the value of `blockInterval`). This can be useful to reduce RPC calls and gas costs on chains with high block frequencies, or to throttle execution on less active chains. If not set, the bot will run at every new block.
 
 ### Secrets
-
-**Ponder Service Secrets (optional):**
-
--`PONDER_SERVICE_URL`: The url of an external ponder service that will be used by the bot (This ponder service's endpoints should be the same as the ones from this repo's `ponder` package). If not set, the bot will launch a local ponder process.
-
--`POSTGRES_DATABASE_URL`: The url of the postgres database that will be used by the local ponder process. If not set, the bot will launch a docker container with a local postgres database.
 
 **Flashbot Secrets (optional):**
 
@@ -156,11 +124,19 @@ Some pricers require chain-specific configuration. This is done in the `apps/con
 
 For example, the `uniswapV3` pricer has different factory addresses for some chains (although most of the time the factory is the default one). If you want to support a chain where the default address is not working, you have to set the correct factory address in the `specificFactoryAddresses` mapping in `apps/config/src/pricers/uniswapV3.ts`.
 
-### Cooldown Mechanism Configuration
+### Cooldown Mechanisms Configuration
 
-It's possible to configure a cooldown mechanism, allowing the bot to wait a configurable time before attempting to liquidate a position that it has failed to liquidate. This mechanism is useful if some liquidity venue relies on an API with a low rate-limit (ex: 1inch).
+**Markets fetching cooldown:**
 
-This is done by configuring `COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
+To avoid refetching vaults underlying markets every run (as vaults don't list new markets on the same time scale), the bot uses a cooldown mechanism.
+
+You can configure `MARKETS_FETCHING_COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
+
+**Position liquidation cooldown:**
+
+It's possible to configure a liquidation cooldown mechanism, allowing the bot to wait a configurable time before attempting to liquidate a position that it has failed to liquidate. This mechanism is useful if some liquidity venue relies on an API with a low rate-limit (ex: 1inch).
+
+This is done by configuring `POSITION_LIQUIDATION_COOLDOWN_ENABLED` (set it to `true` to enable the cooldown mechanism, `false` otherwise) and `POSITION_LIQUIDATION_COOLDOWN_PERIOD` (cooldown period in seconds) in the `apps/config/config.ts` file.
 
 ### Bad Debt Realization
 
@@ -301,28 +277,3 @@ The script accepts the following arguments:
 ## Liquidation Process
 
 ![Process](./img/liquidation-process-high-level.png)
-
-## Config Changes
-
-Unfortunately, Ponder doesn't allow the same schema to be used with different configs.
-In this project, the config changes only if you add, remove, or modify a chain.
-
-So, if you try to run the bot with a set of chains that's different from the one used in your initial run, indexing will fail.
-There are two ways to handle this:
-
-### Reset the postgres database
-
-This is the easiest and most direct solution, but you will lose the indexed data for the previous chains.
-
-If you're using Docker to run the local Postgres database, you can simply stop and remove the container and its volume:
-
-```bash
-docker compose down -v
-```
-
-### Use a new database
-
-This way you can have different containers storing different indexing data for different sets of chains.
-
-- If you're using Docker to run the local Postgres database, just change the port both in the postgres url given to ponder (line 93 in `apps/ponder/ponder.config.ts`, the current port being `5432`) and in `docker-compose.yml` (make sure to set the same port, and to remember the port used by each config).
-- If you are using an external postgres database, you just need to change the `POSTGRES_DATABASE_URL`.

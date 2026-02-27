@@ -1,53 +1,242 @@
-import type { Address, Hex } from "viem";
+import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
+import {
+  AccrualPosition,
+  ChainId,
+  MarketId,
+  PreLiquidationParams,
+  PreLiquidationPosition,
+} from "@morpho-org/blue-sdk";
+import "@morpho-org/blue-sdk-viem/lib/augment";
+import { Time } from "@morpho-org/morpho-ts";
 
-import type { IndexerAPIResponse } from "./types";
+import { getLogs, readContract } from "viem/actions";
+import { morphoBlueAbi } from "../abis/morpho/morphoBlue";
+import { preLiquidationFactoryAbi } from "../abis/morpho/preLiquidationFactory";
+import { PreLiquidationContract } from "./types";
+import { oracleAbi } from "../abis/morpho/oracle";
+import { fetchMarket, metaMorphoAbi } from "@morpho-org/blue-sdk-viem";
+import { apiSdk } from "../api/index";
 
-const PONDER_SERVICE_URL = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+export async function fetchMarketsForVaults(
+  client: Client<Transport, Chain, Account>,
+  vaults: Address[],
+): Promise<Hex[]> {
+  try {
+    const vaultV1Markets = await Promise.all(
+      vaults.map(async (vault) => fetchVaultV1Markets(client, vault)),
+    );
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-export function parseWithBigInt<T = unknown>(jsonText: string): T {
-  return JSON.parse(jsonText, (_key, value) => {
-    if (typeof value === "string" && /^-?\d+n$/.test(value)) {
-      return BigInt(value.slice(0, -1));
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return value;
-  }) as T;
+    return [...new Set(vaultV1Markets.flat())];
+  } catch (error) {
+    console.error(`Error fetching markets for vaults: ${error}`);
+    return [];
+  }
 }
 
-export async function fetchMarketsForVaults(chainId: number, vaults: Address[]): Promise<Hex[]> {
-  const url = new URL(`/chain/${chainId}/withdraw-queue-set`, PONDER_SERVICE_URL);
+export async function fetchLiquidatablePositions(
+  client: Client<Transport, Chain, Account>,
+  marketIds: Hex[],
+) {
+  try {
+    const positionsQuery = await apiSdk.getLiquidatablePositions({
+      chainId: client.chain.id,
+      marketIds,
+      skip: 0,
+      first: 100,
+    });
 
-  const response = await fetch(url, { method: "POST", body: JSON.stringify({ vaults }) });
+    const positions = positionsQuery.marketPositions.items?.filter(
+      (position) =>
+        position.market.uniqueKey !== undefined &&
+        position.market.oracle !== null &&
+        position.state !== null,
+    );
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${vaults} whitelisted markets: ${response.statusText}`);
+    if (positions === undefined) return [];
+
+    const marketsMap = new Map(
+      await Promise.all(
+        [...marketIds].map(async (marketId) => {
+          const market = await fetchMarket(marketId as MarketId, client, {
+            chainId: client.chain.id,
+            // Disable `deployless` so that viem multicall aggregates fetches
+            deployless: false,
+          });
+
+          return [marketId, market.accrueInterest(Time.timestamp())] as const;
+        }),
+      ),
+    );
+
+    const accruedPositions = (positions ?? [])
+      .map((position) => {
+        const market = marketsMap.get(position.market.uniqueKey);
+        if (!market) return;
+
+        const accrualPosition = new AccrualPosition(
+          {
+            user: position.user.address,
+            // NOTE: These come as strings when mocking GraphQL response in tests, so we cast manually
+            supplyShares: BigInt(position.state?.supplyShares ?? "0"),
+            borrowShares: BigInt(position.state?.borrowShares ?? "0"),
+            collateral: BigInt(position.state?.collateral ?? "0"),
+          },
+          market,
+        );
+
+        return accrualPosition;
+      })
+      .filter((position) => position !== undefined);
+
+    return accruedPositions.filter((position) => position.seizableCollateral !== undefined);
+  } catch (error) {
+    console.error(`Error fetching liquidatable positions: ${error}`);
+    return [];
   }
-
-  const markets = (await response.json()) as Hex[];
-
-  return markets;
 }
 
-export async function fetchLiquidatablePositions(chainId: number, marketIds: Hex[]) {
-  const url = new URL(`/chain/${chainId}/liquidatable-positions`, PONDER_SERVICE_URL);
+async function fetchVaultV1Markets(
+  client: Client<Transport, Chain, Account>,
+  vaultAddress: Address,
+): Promise<Hex[]> {
+  try {
+    const withdrawQueueLength = await readContract(client, {
+      address: vaultAddress,
+      abi: metaMorphoAbi,
+      functionName: "withdrawQueueLength",
+    });
 
-  const response = await fetch(url, {
-    method: "POST",
-    body: JSON.stringify({ marketIds }),
-  });
+    const indices = Array.from({ length: Number(withdrawQueueLength) }, (_, i) => BigInt(i));
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch liquidatable positions: ${response.statusText}`);
+    return await Promise.all(
+      indices.map(async (index) => {
+        const marketId = await readContract(client, {
+          address: vaultAddress,
+          abi: metaMorphoAbi,
+          functionName: "withdrawQueue",
+          args: [index],
+        });
+        return marketId as Hex;
+      }),
+    );
+  } catch (error) {
+    console.error(`Error fetching vault v1 markets: ${error}`);
+    return [];
   }
+}
 
-  const data = parseWithBigInt<{ results: IndexerAPIResponse[]; warnings: string[] }>(
-    await response.text(),
-  );
+async function getPreLiquidationContracts(
+  client: Client<Transport, Chain, Account>,
+  preLiquidationFactoryAddress: Address | undefined,
+  marketIds: Hex[],
+) {
+  try {
+    if (!preLiquidationFactoryAddress) return [];
+    const logs = await getLogs(client, {
+      address: preLiquidationFactoryAddress,
+      event: preLiquidationFactoryAbi.find(
+        (entry) => entry.type === "event" && entry.name === "CreatePreLiquidation",
+      )!,
+    });
 
-  if (data.warnings.length > 0) {
-    console.warn(data.warnings);
+    return logs
+      .filter((log) => marketIds.includes(log.args.id as Hex))
+      .map((log) => {
+        return {
+          marketId: log.args.id as Hex,
+          address: log.args.preLiquidation as Address,
+          preLiquidationParams: log.args.preLiquidationParams as PreLiquidationParams,
+        };
+      });
+  } catch (error) {
+    throw new Error(`Error getting PreLiquidation logs: ${error}`);
   }
+}
 
-  return data.results;
+async function getPositionsForMarket(
+  client: Client<Transport, Chain, Account>,
+  marketId: Hex,
+  borrowers: Address[],
+) {
+  try {
+    const positions = await Promise.all(
+      borrowers.map(async (borrower) =>
+        AccrualPosition.fetch(borrower, marketId as MarketId, client),
+      ),
+    );
+
+    return positions.map((position) => position.accrueInterest(Time.timestamp()));
+  } catch (error) {
+    throw new Error(`Error fetching positions data for market ${marketId}: ${error}`);
+  }
+}
+
+async function getPreLiquidatablePositions(
+  client: Client<Transport, Chain, Account>,
+  preLiquidationContracts: PreLiquidationContract[],
+  positions: AccrualPosition[],
+  morphoAddress: Address,
+) {
+  try {
+    const preLiquidatablePositions = await Promise.all(
+      positions.map(async (position) => {
+        const preLiquidationContract = preLiquidationContracts.find(
+          (contract) => contract.marketId === position.marketId,
+        );
+
+        if (!preLiquidationContract) return null;
+
+        const [preLiquidationOraclePrice, isPreLiquidationContractAuthorized] = await Promise.all([
+          getPreLiquidationOraclePrice(client, preLiquidationContract, position),
+          readContract(client, {
+            address: morphoAddress,
+            abi: morphoBlueAbi,
+            functionName: "isAuthorized",
+            args: [position.user, preLiquidationContract.address],
+          }),
+        ]);
+
+        if (isPreLiquidationContractAuthorized === false) return null;
+
+        const preLiquidatablePosition = new PreLiquidationPosition(
+          {
+            preLiquidationParams: preLiquidationContract.preLiquidationParams,
+            preLiquidation: preLiquidationContract.address,
+            preLiquidationOraclePrice: preLiquidationOraclePrice,
+            ...position,
+          },
+          position.market,
+        );
+        const preSeizableCollateral = preLiquidatablePosition.seizableCollateral;
+
+        if (preSeizableCollateral === undefined || preSeizableCollateral === 0n) return null;
+
+        return preLiquidatablePosition;
+      }),
+    );
+
+    return preLiquidatablePositions.filter(
+      (position) => position !== null,
+    ) as PreLiquidationPosition[];
+  } catch (error) {
+    throw new Error(`Error fetching pre-liquidatable positions: ${error}`);
+  }
+}
+
+async function getPreLiquidationOraclePrice(
+  client: Client<Transport, Chain, Account>,
+  preLiquidationContract: PreLiquidationContract,
+  position: AccrualPosition,
+) {
+  const preLiquidationOraclePrice =
+    preLiquidationContract.preLiquidationParams.preLiquidationOracle ===
+    position.market.params.oracle
+      ? position.market.price
+      : await readContract(client, {
+          address: preLiquidationContract.preLiquidationParams.preLiquidationOracle,
+          abi: oracleAbi,
+          functionName: "price",
+        });
+
+  return preLiquidationOraclePrice;
 }

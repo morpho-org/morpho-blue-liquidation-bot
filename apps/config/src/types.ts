@@ -14,22 +14,6 @@ export type PricerName = "chainlink" | "defillama" | "morphoApi" | "uniswapV3";
 
 export interface Config {
   chain: Chain;
-  morpho: {
-    address: Address;
-    startBlock: number;
-  };
-  adaptiveCurveIrm: {
-    address: Address;
-    startBlock: number;
-  };
-  metaMorphoFactories: {
-    addresses: Address[];
-    startBlock: number;
-  };
-  preLiquidationFactory: {
-    address: Address;
-    startBlock: number;
-  };
   wNative: Address;
   options: Options;
 }
