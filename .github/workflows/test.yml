@@ -30,6 +30,7 @@ jobs:
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
           RPC_URL_99: ${{ secrets.RPC_URL_99 }}
+          RPC_URL_999: ${{ secrets.RPC_URL_999 }}
 
   pricers:
     runs-on: ubuntu-latest
