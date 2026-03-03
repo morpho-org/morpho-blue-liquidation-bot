@@ -6,3 +6,4 @@ export * from "./liquidSwap";
 export * from "./1inch";
 export * from "./pendlePT";
 export * from "./midas";
+export * from "./factory";
