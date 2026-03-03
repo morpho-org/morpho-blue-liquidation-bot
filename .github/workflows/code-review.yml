@@ -1,0 +1,88 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: code-review-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Seed Claude settings
+        run: |
+          mkdir -p ~/.claude
+          cp .claude/ci-settings.json ~/.claude/settings.json
+          cp -R .claude/skills ~/.claude/skills
+
+      - name: Collect changed files
+        id: changed-files
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+          changed=$(git diff --name-only "$base_sha" "$head_sha" -- ':!node_modules/**' ':!dist/**' ':!generated/**')
+          printf 'files<<EOF\n%s\nEOF\n' "$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch existing review comments
+        id: existing-comments
+        run: |
+          comments=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+            --jq '[.[] | {path: .path, line: .line, body: .body}]')
+          printf 'comments<<EOF\n%s\nEOF\n' "$comments" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Run Claude Code Review
+        if: steps.changed-files.outputs.files != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          show_full_output: true
+          prompt: |
+            Run `/review` to review this PR against CLAUDE.md standards.
+
+            GitHub Context:
+            - Repository: ${{ github.repository }}
+            - PR Number: ${{ github.event.pull_request.number }}
+            - Commit SHA: ${{ github.event.pull_request.head.sha }}
+
+            Changed files: ${{ steps.changed-files.outputs.files }}
+
+            Existing inline comments on this PR (do NOT duplicate these):
+            ${{ steps.existing-comments.outputs.comments }}
+
+            After running the review, for each issue found, post an inline comment on the PR.
+            IMPORTANT: Before posting, check if a similar comment already exists at the same file and line. Skip posting if an existing comment already covers the same issue.
+
+            Comment format:
+            ```
+            gh api --method POST /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+              -f commit_id="${{ github.event.pull_request.head.sha }}" \
+              -f path="{file}" \
+              -F line={line} \
+              -f body="**[P{N}] {TITLE}**
+
+            Standard: {SECTION} > {RULE}
+
+            {DESCRIPTION}"
+            ```
+
+            Do NOT post any summary comment. Only inline comments on specific lines.
+          claude_args: |
+            --model claude-sonnet-4-20250514
+            --max-turns 32
