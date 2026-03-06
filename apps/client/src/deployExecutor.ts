@@ -37,7 +37,7 @@ async function run() {
 export const deploy = async (client: WalletClient, account: Address) => {
   const hash = await client.deployContract({
     abi: executorAbi,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     account: client.account!,
     bytecode,
     args: [account],

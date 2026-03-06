@@ -1,3 +1,11 @@
+import { MARKETS_FETCHING_COOLDOWN_PERIOD } from "@morpho-blue-liquidation-bot/config";
+import { MorphoApiDataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import {
+  UniswapV3Venue,
+  Erc4626,
+  PendlePTVenue,
+} from "@morpho-blue-liquidation-bot/liquidity-venues";
+import { MorphoApi } from "@morpho-blue-liquidation-bot/pricers";
 import nock from "nock";
 import { erc20Abi, parseUnits } from "viem";
 import { readContract } from "viem/actions";
@@ -6,13 +14,10 @@ import { beforeEach, describe, expect } from "vitest";
 
 import { morphoBlueAbi } from "../../../src/abis/morpho/morphoBlue.js";
 import { LiquidationBot } from "../../../src/bot.js";
-import { UniswapV3Venue, Erc4626, PendlePTVenue } from "../../../src/liquidityVenues/index.js";
-import { MorphoApi } from "../../../src/pricers/index.js";
+import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
 import { OneInchTest, setupPosition, mockEtherPrice, syncTimestamp } from "../../helpers.js";
 import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
-import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
-import { MARKETS_FETCHING_COOLDOWN_PERIOD } from "@morpho-blue-liquidation-bot/config";
 
 describe("execute liquidation swapping on Uniswap V3", () => {
   const erc4626 = new Erc4626();
@@ -56,6 +61,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
       additionalMarketsWhitelist: [wbtcUSDC],
       executorAddress: encoder.address,
       treasuryAddress: client.account.address,
+      dataProvider: new MorphoApiDataProvider(),
       liquidityVenues: [erc4626, uniswapV3],
       pricers: [pricer],
       marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
@@ -122,6 +128,7 @@ describe("execute liquidation swapping on Uniswap V3", () => {
         additionalMarketsWhitelist: [wbtcUSDC],
         executorAddress: encoder.address,
         treasuryAddress: client.account.address,
+        dataProvider: new MorphoApiDataProvider(),
         liquidityVenues: [erc4626, uniswapV3],
         pricers: [pricer],
         marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
@@ -197,6 +204,7 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       additionalMarketsWhitelist: [ptsUSDeUSDC],
       executorAddress: encoder.address,
       treasuryAddress: client.account.address,
+      dataProvider: new MorphoApiDataProvider(),
       liquidityVenues: [pendlePT, oneInch],
       marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
         MARKETS_FETCHING_COOLDOWN_PERIOD,

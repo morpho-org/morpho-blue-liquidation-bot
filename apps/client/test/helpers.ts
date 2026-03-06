@@ -1,3 +1,4 @@
+import { OneInch } from "@morpho-blue-liquidation-bot/liquidity-venues";
 import { MarketUtils } from "@morpho-org/blue-sdk";
 import type { AnvilTestClient } from "@morpho-org/test";
 import { ExecutorEncoder } from "executooor-viem";
@@ -16,7 +17,6 @@ import { getStorageAt, readContract } from "viem/actions";
 import { vi } from "vitest";
 
 import { morphoBlueAbi } from "../src/abis/morpho/morphoBlue";
-import { OneInch } from "../src/liquidityVenues";
 
 import { BORROW_SHARES_AND_COLLATERAL_OFFSET, borrower, MORPHO, POSITION_SLOT } from "./constants";
 
@@ -30,7 +30,6 @@ export class OneInchTest extends OneInch {
     this.supportedNetworks = supportedNetworks;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   supportsRoute(encoder: ExecutorEncoder, _src: Address, _dst: Address) {
     return this.supportedNetworks.includes(encoder.client.chain.id);
   }
@@ -201,7 +200,7 @@ async function overwriteCollateral(
   await client.setStorageAt({
     address: MORPHO,
     index: slot,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     value: modifyCollateralSlot(value!, amount),
   });
 }

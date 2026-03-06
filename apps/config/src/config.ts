@@ -20,6 +20,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: mainnet,
     wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: [
         "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
         "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
@@ -47,6 +48,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: base,
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
       additionalMarketsWhitelist: [],
       liquidityVenues: [
@@ -68,6 +70,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: unichain,
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       liquidityVenues: ["1inch", "erc20Wrapper", "erc4626", "uniswapV3", "uniswapV4"],
@@ -80,6 +83,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: katana,
     wNative: "0xEE7D8BCFb72bC1880D0Cf19822eB0A2e6577aB62",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       liquidityVenues: ["erc20Wrapper", "erc4626", "uniswapV3", "uniswapV4"],
@@ -92,6 +96,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: arbitrum,
     wNative: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       liquidityVenues: ["pendlePT", "1inch", "erc20Wrapper", "erc4626", "uniswapV3", "uniswapV4"],
@@ -103,6 +108,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: worldchain,
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: [
         "0xb1E80387EbE53Ff75a89736097D34dC8D9E9045B", // Re7 USDC
         "0x348831b46876d3dF2Db98BdEc5E3B4083329Ab9f", // Re7 WLD
@@ -120,6 +126,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: worldchain,
     wNative: "0x5555555555555555555555555555555555555555",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: [
         "0x8A862fD6c12f9ad34C9c2ff45AB2b6712e8CEa27", // Felix USDC
         "0xFc5126377F0efc0041C0969Ef9BA903Ce67d151e", // Felix USDT
@@ -135,6 +142,7 @@ export const chainConfigs: Record<number, Config> = {
     chain: monad,
     wNative: "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
     options: {
+      dataProvider: "morphoApi",
       vaultWhitelist: "morpho-api",
       additionalMarketsWhitelist: [],
       liquidityVenues: ["erc20Wrapper", "erc4626", "uniswapV3"],

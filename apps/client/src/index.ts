@@ -5,13 +5,14 @@ import {
   ALWAYS_REALIZE_BAD_DEBT,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
+import { createDataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
+import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-import { createPricer } from "./pricers";
-import { createLiquidityVenue } from "./liquidityVenues";
 import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
@@ -26,6 +27,9 @@ export const launchBot = (config: ChainConfig) => {
     transport: http(config.rpcUrl),
     account: privateKeyToAccount(config.liquidationPrivateKey),
   });
+
+  // DATA PROVIDER
+  const dataProvider = createDataProvider(config.dataProvider);
 
   // LIQUIDITY VENUES
   const liquidityVenues = config.liquidityVenues.map((liquidityVenueName) =>
@@ -70,6 +74,7 @@ export const launchBot = (config: ChainConfig) => {
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
     treasuryAddress: config.treasuryAddress ?? client.account.address,
+    dataProvider,
     liquidityVenues,
     pricers,
     marketsFetchingCooldownMechanism,
