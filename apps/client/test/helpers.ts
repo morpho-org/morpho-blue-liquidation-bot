@@ -87,53 +87,48 @@ export async function setupPosition(
     args: [marketId, borrower.address],
   });
 
-  nock("https://api.morpho.org")
-    .post("/graphql", (body) => {
-      // Match the getLiquidatablePositions query
-      return (
-        body.query?.includes("getLiquidatablePositions") &&
-        body.variables?.chainId === 1 &&
-        (body.variables?.marketIds === undefined ||
-          body.variables?.marketIds?.includes(marketId) ||
-          body.variables?.marketIds?.length === 0)
-      );
+  const market = await readContract(client, {
+    address: MORPHO,
+    abi: morphoBlueAbi,
+    functionName: "market",
+    args: [marketId],
+  });
+
+  nock("http://localhost:8080")
+    .post("/v1/graphql", (body: { query?: string }) => {
+      return body.query?.includes("Position") && body.query?.includes("Market");
     })
     .reply(200, {
       data: {
-        marketPositions: {
-          __typename: "PaginatedMarketPositions",
-          pageInfo: {
-            __typename: "PageInfo",
-            count: 1,
-            countTotal: 1,
-            limit: 100,
-            skip: 0,
+        Position: [
+          {
+            user: borrower.address,
+            market_id: `1-${marketId}`,
+            supplyShares: position[0].toString(),
+            borrowShares: position[1].toString(),
+            collateral: position[2].toString(),
           },
-          items: [
-            {
-              __typename: "MarketPosition",
-              healthFactor: 0.5, // Less than 1 to indicate liquidatable
-              user: {
-                __typename: "User",
-                address: borrower.address,
-              },
-              market: {
-                __typename: "Market",
-                uniqueKey: marketId,
-                oracle: {
-                  __typename: "Oracle",
-                  address: marketParams.oracle,
-                },
-              },
-              state: {
-                __typename: "MarketPositionState",
-                borrowShares: position[1].toString(),
-                collateral: position[2].toString(),
-                supplyShares: position[0].toString(),
-              },
-            },
-          ],
-        },
+        ],
+        Market: [
+          {
+            id: `1-${marketId}`,
+            marketId,
+            loanToken: marketParams.loanToken,
+            collateralToken: marketParams.collateralToken,
+            oracle: marketParams.oracle,
+            irm: marketParams.irm,
+            lltv: marketParams.lltv.toString(),
+            totalSupplyAssets: market[0].toString(),
+            totalSupplyShares: market[1].toString(),
+            totalBorrowAssets: market[2].toString(),
+            totalBorrowShares: market[3].toString(),
+            lastUpdate: market[4].toString(),
+            fee: market[5].toString(),
+            rateAtTarget: "0",
+          },
+        ],
+        PreLiquidationContract: [],
+        Authorization: [],
       },
     });
 }
