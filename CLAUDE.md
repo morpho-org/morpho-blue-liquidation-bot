@@ -4,27 +4,28 @@ Multi-chain liquidation bot for the Morpho Blue lending protocol. Monitors posit
 
 ## Architecture
 
-Workspace monorepo with five packages:
+Workspace monorepo with six packages:
 
 - **`apps/config`** — Chain configurations, venue/pricer/data-provider registrations, and all tunable parameters. Single source of truth for what the bot does and how.
 - **`apps/client`** — Bot orchestration logic and on-chain execution. Contains no configuration or secrets — everything is injected from config.
-- **`apps/data-providers`** — Data provider interface and implementations for fetching market and position data.
+- **`apps/data-providers`** — Data provider interface and implementations (MorphoApi, HyperIndex) for fetching market and position data.
+- **`apps/hyperindex`** — Envio HyperIndex indexer package. Standalone service that indexes Morpho on-chain events. Used by the HyperIndex data provider.
 - **`apps/liquidity-venues`** — Liquidity venue interface and implementations for converting collateral to loan tokens.
 - **`apps/pricers`** — Pricer interface and implementations for pricing assets in USD.
 
 ### Key abstractions
 
-- **`DataProvider`** (`apps/data-providers/src/dataProvider.ts`) — Interface for fetching market and position data. Each chain is configured with a single data provider. Implements `fetchMarkets` and `fetchLiquidatablePositions`.
+- **`DataProvider`** (`apps/data-providers/src/dataProvider.ts`) — Interface for fetching market and position data. Multi-chain: a single instance is shared across all chains. Implements optional `init()`, `fetchMarkets`, and `fetchLiquidatablePositions`. Created in `script.ts` before bots launch.
 - **`LiquidityVenue`** (`apps/liquidity-venues/src/liquidityVenue.ts`) — Interface for converting collateral to loan token. Venues are tried in order defined by config. Each venue implements `supportsRoute` and `convert`.
 - **`Pricer`** (`apps/pricers/src/pricer.ts`) — Interface for pricing assets in USD. Used for profitability checks. Pricers are tried in order defined by config.
-- **Factories** (`apps/data-providers/src/factory.ts`, `apps/liquidity-venues/src/factory.ts`, `apps/pricers/src/factory.ts`) — Map config string identifiers to class instances. The config package exports only string names; the implementation packages own the classes.
+- **Factories** (`apps/data-providers/src/factory.ts`, `apps/liquidity-venues/src/factory.ts`, `apps/pricers/src/factory.ts`) — Map config string identifiers to class instances. The config package exports only string names; the implementation packages own the classes. The data provider factory (`createDataProviders`) takes chain IDs and returns a `Map<number, DataProvider>` with a shared instance.
 - **`LiquidationBot`** (`apps/client/src/bot.ts`) — Core orchestrator. Fetches markets, finds liquidatable positions, encodes liquidation calldata, simulates, checks profitability, and executes.
 - **`LiquidationEncoder`** (`apps/client/src/utils/LiquidationEncoder.ts`) — Builds batched calldata for the on-chain executor contract.
 
 ### Flow
 
 1. Config defines which chains, data provider, vaults, venues, and pricers to use
-2. `script.ts` reads all chain configs, resolves secrets from env vars, launches one bot per chain
+2. `script.ts` reads all chain configs, groups chains by data provider, creates shared providers (awaiting `init()` for backfill), then launches one bot per chain
 3. Each bot uses its data provider to fetch whitelisted markets and find liquidatable positions
 4. For each position: try liquidity venues in order to convert collateral → loan token
 5. Simulate the full liquidation, check profitability via pricers

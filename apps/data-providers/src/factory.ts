@@ -1,21 +1,38 @@
 import type { DataProviderName } from "@morpho-blue-liquidation-bot/config";
 
-import { DataProvider } from "./dataProvider";
+import type { DataProvider } from "./dataProvider";
 import { HyperIndexDataProvider } from "./hyperIndex";
 import { MorphoApiDataProvider } from "./morphoApi";
 
 /**
- * Creates a data provider instance based on the data provider name from config.
- * This factory function avoids circular dependencies by keeping data provider
- * class imports in the client package, while config only exports string identifiers.
+ * Creates data providers for the given chains.
+ * Returns a Map from chainId to DataProvider.
+ * Multi-chain providers (morphoApi, hyperIndex) share a single instance across all chains.
  */
-export function createDataProvider(dataProviderName: DataProviderName): DataProvider {
+export async function createDataProviders(
+  dataProviderName: DataProviderName,
+  chainIds: number[],
+): Promise<Map<number, DataProvider>> {
+  let provider: DataProvider;
+
   switch (dataProviderName) {
     case "morphoApi":
-      return new MorphoApiDataProvider();
+      provider = new MorphoApiDataProvider();
+      break;
     case "hyperIndex":
-      return new HyperIndexDataProvider();
+      provider = new HyperIndexDataProvider();
+      break;
     default:
       throw new Error(`Unknown data provider: ${dataProviderName}`);
   }
+
+  if (provider.init) {
+    await provider.init();
+  }
+
+  const map = new Map<number, DataProvider>();
+  for (const chainId of chainIds) {
+    map.set(chainId, provider);
+  }
+  return map;
 }

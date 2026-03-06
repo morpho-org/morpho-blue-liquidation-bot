@@ -5,7 +5,7 @@ import {
   ALWAYS_REALIZE_BAD_DEBT,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
-import { createDataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
 import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
 import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
 import { createWalletClient, Hex, http } from "viem";
@@ -18,7 +18,7 @@ import {
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms";
 
-export const launchBot = (config: ChainConfig) => {
+export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const logTag = `[${config.chain.name} client]: `;
   console.log(`${logTag}Starting up`);
 
@@ -27,9 +27,6 @@ export const launchBot = (config: ChainConfig) => {
     transport: http(config.rpcUrl),
     account: privateKeyToAccount(config.liquidationPrivateKey),
   });
-
-  // DATA PROVIDER
-  const dataProvider = createDataProvider(config.dataProvider);
 
   // LIQUIDITY VENUES
   const liquidityVenues = config.liquidityVenues.map((liquidityVenueName) =>

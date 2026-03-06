@@ -1,3 +1,5 @@
+import { exec, type ChildProcess } from "node:child_process";
+
 import { AccrualPosition, Market } from "@morpho-org/blue-sdk";
 import { GraphQLClient } from "graphql-request";
 import gql from "graphql-tag";
@@ -6,6 +8,8 @@ import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
 import type { DataProvider } from "../dataProvider";
 
 const DEFAULT_HYPERINDEX_URL = "http://localhost:8080/v1/graphql";
+const HEALTH_CHECK_INTERVAL_MS = 2000;
+const HEALTH_CHECK_TIMEOUT_MS = 120_000;
 
 const GET_LIQUIDATABLE_POSITIONS = gql`
   query GetLiquidatablePositions($marketIds: [String!]!, $chainId: Int!) {
@@ -83,18 +87,58 @@ interface VaultMarketsResponse {
   Vault: HyperIndexVault[];
 }
 
-export class HyperIndexDataProvider implements DataProvider {
-  private readonly client: GraphQLClient;
+export interface HyperIndexDataProviderOptions {
+  /** URL of an externally hosted HyperIndex instance. If set, selfhost is skipped. */
+  url?: string;
+}
 
-  constructor(url: string = DEFAULT_HYPERINDEX_URL) {
-    this.client = new GraphQLClient(url);
+export class HyperIndexDataProvider implements DataProvider {
+  private readonly graphqlClient: GraphQLClient;
+  private readonly url: string;
+  private readonly selfhost: boolean;
+  private indexerProcess?: ChildProcess;
+
+  constructor(options?: HyperIndexDataProviderOptions) {
+    this.url = options?.url ?? DEFAULT_HYPERINDEX_URL;
+    this.selfhost = !options?.url;
+    this.graphqlClient = new GraphQLClient(this.url);
+  }
+
+  async init(): Promise<void> {
+    if (!this.selfhost) {
+      console.log(`[HyperIndex] Using external instance at ${this.url}`);
+      await this.waitForReady();
+      return;
+    }
+
+    console.log("[HyperIndex] Starting local indexer...");
+    this.indexerProcess = exec("pnpm start", {
+      cwd: new URL("../../../../hyperindex", import.meta.url).pathname,
+    });
+
+    this.indexerProcess.stdout?.on("data", (data: string) => {
+      process.stdout.write(`[HyperIndex] ${data}`);
+    });
+
+    this.indexerProcess.stderr?.on("data", (data: string) => {
+      process.stderr.write(`[HyperIndex] ${data}`);
+    });
+
+    this.indexerProcess.on("exit", (code) => {
+      if (code !== null && code !== 0) {
+        console.error(`[HyperIndex] Indexer process exited with code ${code}`);
+      }
+    });
+
+    await this.waitForReady();
+    console.log("[HyperIndex] Indexer is ready");
   }
 
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
       const vaultIds = vaults.map((v) => `${client.chain.id}-${v.toLowerCase()}`);
 
-      const response = await this.client.request<VaultMarketsResponse>(GET_VAULT_MARKETS, {
+      const response = await this.graphqlClient.request<VaultMarketsResponse>(GET_VAULT_MARKETS, {
         vaultIds,
       });
 
@@ -113,7 +157,7 @@ export class HyperIndexDataProvider implements DataProvider {
     try {
       const indexedMarketIds = marketIds.map((id) => `${client.chain.id}-${id}`);
 
-      const response = await this.client.request<LiquidatablePositionsResponse>(
+      const response = await this.graphqlClient.request<LiquidatablePositionsResponse>(
         GET_LIQUIDATABLE_POSITIONS,
         { marketIds: indexedMarketIds, chainId: client.chain.id },
       );
@@ -145,7 +189,7 @@ export class HyperIndexDataProvider implements DataProvider {
         const market = marketsMap.get(p.market_id);
         if (!market) return;
 
-        const accrualPosition = new AccrualPosition(
+        return new AccrualPosition(
           {
             user: p.user as Address,
             supplyShares: BigInt(p.supplyShares),
@@ -154,8 +198,6 @@ export class HyperIndexDataProvider implements DataProvider {
           },
           market.accrueInterest(BigInt(Math.floor(Date.now() / 1000))),
         );
-
-        return accrualPosition;
       }).filter((position) => position !== undefined);
 
       return accruedPositions.filter((position) => position.seizableCollateral !== undefined);
@@ -163,5 +205,26 @@ export class HyperIndexDataProvider implements DataProvider {
       console.error(`Error fetching liquidatable positions from HyperIndex: ${error}`);
       return [];
     }
+  }
+
+  private async waitForReady(): Promise<void> {
+    const start = Date.now();
+
+    while (Date.now() - start < HEALTH_CHECK_TIMEOUT_MS) {
+      try {
+        await this.graphqlClient.request(gql`
+          {
+            __typename
+          }
+        `);
+        return;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, HEALTH_CHECK_INTERVAL_MS));
+      }
+    }
+
+    throw new Error(
+      `[HyperIndex] Timed out waiting for indexer at ${this.url} after ${HEALTH_CHECK_TIMEOUT_MS / 1000}s`,
+    );
   }
 }

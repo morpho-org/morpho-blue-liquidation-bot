@@ -1,4 +1,4 @@
 export * from "./morphoApi";
 export * from "./hyperIndex";
-export * from "./factory";
+export { createDataProviders } from "./factory";
 export type { DataProvider } from "./dataProvider";

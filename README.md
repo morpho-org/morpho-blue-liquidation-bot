@@ -27,6 +27,7 @@ Use at your own risk.
 | [`apps/config`](./apps/config) | Chain configurations, module registrations, and all tunable parameters |
 | [`apps/client`](./apps/client) | Bot orchestration, on-chain execution, and transaction management |
 | [`apps/data-providers`](./apps/data-providers) | Data provider implementations for fetching market and position data |
+| [`apps/hyperindex`](./apps/hyperindex) | Envio HyperIndex indexer for self-hosted on-chain data |
 | [`apps/liquidity-venues`](./apps/liquidity-venues) | Liquidity venue implementations for converting collateral to loan tokens |
 | [`apps/pricers`](./apps/pricers) | Pricer implementations for USD pricing and profitability checks |
 
@@ -58,7 +59,7 @@ For each chain, here are the parameters that need to be configured:
 
 ### Options
 
-- `options.dataProvider`: The [data provider](./apps/data-providers/README.md) to use for fetching market and position data. Currently supported: `"morphoApi"`.
+- `options.dataProvider`: The [data provider](./apps/data-providers/README.md) to use for fetching market and position data. Currently supported: `"morphoApi"`, `"hyperIndex"`.
 
 - `options.vaultWhitelist`: List of MetaMorpho vault addresses. All the markets listed by those vaults will be whitelisted. Can also be set to `"morpho-api"` to dynamically resolve whitelisted vaults.
 

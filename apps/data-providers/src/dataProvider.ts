@@ -7,6 +7,12 @@ import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
  */
 export interface DataProvider {
   /**
+   * Optional async initialization (e.g. spinning up an indexer, waiting for backfill).
+   * Called once before the provider is used.
+   */
+  init?(): Promise<void>;
+
+  /**
    * Fetch the market IDs for the given vaults.
    */
   fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]>;
