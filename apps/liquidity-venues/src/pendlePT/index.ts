@@ -16,7 +16,7 @@ import {
 
 const API_URL = "https://api-v2.pendle.finance/core/";
 
-async function getApiData<T extends object, U>(
+async function getApiData<T extends {}, U>(
   chainId: number,
   endpoint: string,
   params: T,
