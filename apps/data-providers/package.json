@@ -1,0 +1,26 @@
+{
+  "name": "@morpho-blue-liquidation-bot/data-providers",
+  "version": "2.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@morpho-blue-liquidation-bot/config": "workspace:*",
+    "@morpho-org/blue-sdk": "^5.12.1",
+    "@morpho-org/blue-sdk-viem": "^4.2.1",
+    "@morpho-org/blue-api-sdk": "^2.17.2",
+    "@morpho-org/morpho-ts": "^2.4.6",
+    "graphql": "^16.12.0",
+    "graphql-request": "^7.4.0",
+    "graphql-tag": "^2.12.6",
+    "viem": "^2.37.0"
+  }
+}

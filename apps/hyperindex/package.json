@@ -1,0 +1,26 @@
+{
+  "name": "@morpho-blue-liquidation-bot/hyperindex",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "envio dev",
+    "start": "envio start",
+    "codegen": "envio codegen",
+    "generate:config": "tsx scripts/generate-config.ts",
+    "stop": "envio stop"
+  },
+  "dependencies": {
+    "@morpho-org/blue-sdk": "^5.12.1",
+    "envio": "3.0.0-alpha.14",
+    "viem": "^2.37.0"
+  },
+  "optionalDependencies": {
+    "generated": "./generated"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "tsx": "^4.19.3",
+    "yaml": "^2.7.0"
+  }
+}

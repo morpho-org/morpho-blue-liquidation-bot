@@ -6,13 +6,17 @@
   "scripts": {
     "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
     "prepare": "husky",
-    "test:liquidity-venues": "pnpm build:config && vitest liquidityVenues",
-    "test:pricers": "pnpm build:config && vitest pricers",
-    "test:bot": "pnpm build:config &&vitest bot",
+    "test:liquidity-venues": "pnpm build && vitest --dir apps/liquidity-venues",
+    "test:pricers": "pnpm build && vitest --dir apps/pricers",
+    "test:bot": "pnpm build && vitest bot",
+    "build": "pnpm build:config && pnpm --parallel --filter @morpho-blue-liquidation-bot/data-providers --filter @morpho-blue-liquidation-bot/liquidity-venues --filter @morpho-blue-liquidation-bot/pricers build",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
-    "deploy:executor": "pnpm build:config && tsx apps/client/src/deployExecutor.ts",
-    "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env",
-    "skim": "pnpm build:config && tsx apps/client/src/skim.ts --env-file=.env"
+    "build:data-providers": "pnpm --filter @morpho-blue-liquidation-bot/data-providers build",
+    "build:liquidity-venues": "pnpm --filter @morpho-blue-liquidation-bot/liquidity-venues build",
+    "build:pricers": "pnpm --filter @morpho-blue-liquidation-bot/pricers build",
+    "deploy:executor": "pnpm build && tsx apps/client/src/deployExecutor.ts",
+    "liquidate": "pnpm build && tsx apps/client/src/script.ts --env-file=.env",
+    "skim": "pnpm build && tsx apps/client/src/skim.ts --env-file=.env"
   },
   "lint-staged": {
     "*.ts": [

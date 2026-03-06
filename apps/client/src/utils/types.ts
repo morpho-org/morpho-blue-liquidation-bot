@@ -21,10 +21,10 @@ export interface PreLiquidationContract {
   preLiquidationParams: PreLiquidationParams;
 }
 
-export type LiquidatablePosition = {
+export interface LiquidatablePosition {
   marketId: Hex;
   params: IMarketParams;
   collateral: bigint;
   borrowShares: bigint;
   seizableCollateral: bigint;
-};
+}

@@ -71,12 +71,18 @@ importers:
       '@morpho-blue-liquidation-bot/config':
         specifier: workspace:*
         version: link:../config
+      '@morpho-blue-liquidation-bot/data-providers':
+        specifier: workspace:*
+        version: link:../data-providers
+      '@morpho-blue-liquidation-bot/liquidity-venues':
+        specifier: workspace:*
+        version: link:../liquidity-venues
+      '@morpho-blue-liquidation-bot/pricers':
+        specifier: workspace:*
+        version: link:../pricers
       '@morpho-org/blue-sdk-viem':
         specifier: ^4.2.1
         version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      '@morpho-org/morpho-ts':
-        specifier: ^2.4.6
-        version: 2.4.6
       executooor-viem:
         specifier: ^1.3.3
         version: 1.3.3(evm-maths@7.0.1)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
@@ -86,16 +92,6 @@ importers:
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
-    optionalDependencies:
-      '@uniswap/sdk-core':
-        specifier: ^7.7.2
-        version: 7.7.2
-      '@uniswap/universal-router-sdk':
-        specifier: ^4.19.5
-        version: 4.19.5(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
-      '@uniswap/v4-sdk':
-        specifier: ^1.21.4
-        version: 1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
@@ -109,7 +105,37 @@ importers:
 
   apps/config: {}
 
-  apps/envio:
+  apps/data-providers:
+    dependencies:
+      '@morpho-blue-liquidation-bot/config':
+        specifier: workspace:*
+        version: link:../config
+      '@morpho-org/blue-api-sdk':
+        specifier: ^2.17.2
+        version: 2.17.3(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)
+      '@morpho-org/blue-sdk':
+        specifier: ^5.12.1
+        version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
+      '@morpho-org/blue-sdk-viem':
+        specifier: ^4.2.1
+        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@morpho-org/morpho-ts':
+        specifier: ^2.4.6
+        version: 2.4.6
+      graphql:
+        specifier: ^16.12.0
+        version: 16.12.0
+      graphql-request:
+        specifier: ^7.4.0
+        version: 7.4.0(graphql@16.12.0)
+      graphql-tag:
+        specifier: ^2.12.6
+        version: 2.12.6(graphql@16.12.0)
+      viem:
+        specifier: ^2.37.0
+        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+
+  apps/hyperindex:
     dependencies:
       '@morpho-org/blue-sdk':
         specifier: ^5.12.1
@@ -130,10 +156,61 @@ importers:
         version: 22.13.14
       tsx:
         specifier: ^4.19.3
-        version: 4.19.3
+        version: 4.21.0
       yaml:
         specifier: ^2.7.0
         version: 2.7.0
+
+  apps/liquidity-venues:
+    dependencies:
+      '@morpho-blue-liquidation-bot/config':
+        specifier: workspace:*
+        version: link:../config
+      '@morpho-org/blue-sdk':
+        specifier: ^5.12.1
+        version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
+      executooor-viem:
+        specifier: ^1.3.3
+        version: 1.3.3(evm-maths@7.0.1)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      viem:
+        specifier: ^2.37.0
+        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+    optionalDependencies:
+      '@uniswap/sdk-core':
+        specifier: ^7.7.2
+        version: 7.7.2
+      '@uniswap/universal-router-sdk':
+        specifier: ^4.19.5
+        version: 4.19.5(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@uniswap/v4-sdk':
+        specifier: ^1.21.4
+        version: 1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+    devDependencies:
+      '@morpho-org/test':
+        specifier: ^2.1.1
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+      nock:
+        specifier: ^14.0.2
+        version: 14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+
+  apps/pricers:
+    dependencies:
+      '@morpho-blue-liquidation-bot/config':
+        specifier: workspace:*
+        version: link:../config
+      viem:
+        specifier: ^2.37.0
+        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+    devDependencies:
+      '@morpho-org/test':
+        specifier: ^2.1.1
+        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
 
 packages:
 
@@ -840,6 +917,11 @@ packages:
   '@fastify/proxy-addr@5.1.0':
     resolution: {integrity: sha512-INS+6gh91cLUjB+PVHfu1UqcB76Sqtpyp7bnL+FYojhjygvOPA9ctiD/JDKsyD9Xgu4hUhCSJBPig/w7duNajw==}
 
+  '@graphql-typed-document-node/core@3.2.0':
+    resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
+    peerDependencies:
+      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -862,6 +944,12 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
+
+  '@morpho-org/blue-api-sdk@2.17.3':
+    resolution: {integrity: sha512-XYq46Ud8jw7VnPlTBkikNa/Jzuzp88sC8fhWhC6QUSK0wgOTql89SwdJcvijvVAauRO7gz9/JTcCM7XFVwI3NQ==}
+    peerDependencies:
+      '@morpho-org/blue-sdk': ^5.10.0
+      '@morpho-org/morpho-ts': ^2.4.6
 
   '@morpho-org/blue-sdk-viem@4.2.1':
     resolution: {integrity: sha512-Y3xuI1waR/V4+bHZfunFnNJhgZjS3n2uIKiQfHxBHP1B88hLPJ9qOCfr8J4SXF6y+3HduRmVm/WgaG/QkU7/Ew==}
@@ -1582,12 +1670,20 @@ packages:
     resolution: {integrity: sha512-7HSX4QQb4CspciLpVFwyRe79O3xsIZDDLER21kERQ71oaPodF8jL725AgJMFAYbooIqolJoRLuM81SpeUkpkvA==}
     engines: {node: '>=12'}
 
+  ansi-regex@6.2.2:
+    resolution: {integrity: sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg==}
+    engines: {node: '>=12'}
+
   ansi-styles@4.3.0:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
     engines: {node: '>=8'}
 
   ansi-styles@6.2.1:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
+    engines: {node: '>=12'}
+
+  ansi-styles@6.2.3:
+    resolution: {integrity: sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==}
     engines: {node: '>=12'}
 
   anymatch@3.1.3:
@@ -1768,8 +1864,8 @@ packages:
     resolution: {integrity: sha512-nPdaFdQ0h/GEigbPClz11D0v/ZJEwxmeVZGeMo3Z5StPtUTkA9o1lD6QwoirYiSDzbcwn2XcjwmCp68W1IS4TA==}
     engines: {node: '>=18'}
 
-  cli-truncate@5.1.1:
-    resolution: {integrity: sha512-SroPvNHxUnk+vIW/dOSfNqdy1sPEFkrTk6TUtqLCnBlo3N7TNYYkzzN7uSD6+jVjrdO4+p8nH7JzH6cIvUem6A==}
+  cli-truncate@5.2.0:
+    resolution: {integrity: sha512-xRwvIOMGrfOAnM1JYtqQImuaNtDEv9v6oIYAs4LIHwTiKee8uwvIi363igssOC0O5U04i4AlENs79LQLu9tEMw==}
     engines: {node: '>=20'}
 
   cliui@7.0.4:
@@ -2349,6 +2445,10 @@ packages:
     resolution: {integrity: sha512-vpeMIQKxczTD/0s2CdEWHcb0eeJe6TFjxb+J5xgX7hScxqrGuyjmv4c1D4A/gelKfyox0gJJwIHF+fLjeaM8kQ==}
     engines: {node: '>=18'}
 
+  get-east-asian-width@1.5.0:
+    resolution: {integrity: sha512-CQ+bEO+Tva/qlmw24dCejulK5pMzVnUOFOijVogd3KQs07HnRIgp8TGipvCCRT06xeYEbpbgwaCxglFyiuIcmA==}
+    engines: {node: '>=18'}
+
   get-intrinsic@1.3.0:
     resolution: {integrity: sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==}
     engines: {node: '>= 0.4'}
@@ -2390,6 +2490,21 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
+
+  graphql-request@7.4.0:
+    resolution: {integrity: sha512-xfr+zFb/QYbs4l4ty0dltqiXIp07U6sl+tOKAb0t50/EnQek6CVVBLjETXi+FghElytvgaAWtIOt3EV7zLzIAQ==}
+    peerDependencies:
+      graphql: 14 - 16
+
+  graphql-tag@2.12.6:
+    resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+
+  graphql@16.12.0:
+    resolution: {integrity: sha512-DKKrynuQRne0PNpEbzuEdHlYOMksHSUI8Zc9Unei5gTsMNA2/vMpoMz/yKba50pejK56qj98qM0SjYxAKi13gQ==}
+    engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
   hardhat-watcher@2.5.0:
     resolution: {integrity: sha512-Su2qcSMIo2YO2PrmJ0/tdkf+6pSt8zf9+4URR5edMVti6+ShI8T3xhPrwugdyTOFuyj8lKHrcTZNKUFYowYiyA==}
@@ -2580,8 +2695,8 @@ packages:
     resolution: {integrity: sha512-O4L094N2/dZ7xqVdrXhh9r1KODPJpFms8B5sGdJLPy664AgvXsreZUyCQQNItZRDlYug4xStLjNp/sz3HvBowQ==}
     engines: {node: '>=12'}
 
-  is-fullwidth-code-point@5.0.0:
-    resolution: {integrity: sha512-OVa3u9kkBbw7b8Xw5F9P+D/T9X+Z4+JruYVNapTjPYZYUznQ5YfWeFkOj606XYYW8yugTfC8Pj0hYqvi4ryAhA==}
+  is-fullwidth-code-point@5.1.0:
+    resolution: {integrity: sha512-5XHYaSyiqADb4RnZ1Bdad6cPp8Toise4TzEjcOYDHZkTCbKgiUl7WTUCpNWHuxmDt91wnsZBc9xinNzopv3JMQ==}
     engines: {node: '>=18'}
 
   is-glob@4.0.3:
@@ -3323,6 +3438,10 @@ packages:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
 
+  slice-ansi@8.0.0:
+    resolution: {integrity: sha512-stxByr12oeeOyY2BlviTNQlYV5xOj47GirPr4yA1hE9JCtxfQN0+tVbkxwCtYDQWhEKWFHsEK48ORg5jrouCAg==}
+    engines: {node: '>=20'}
+
   solc@0.8.26:
     resolution: {integrity: sha512-yiPQNVf5rBFHwN6SIf3TUUvVAFKcQqmSUFeq+fb6pNRCo0ZCgpYOZDi3BVoezCPIAcKrVYd/qXlBLUP9wVrZ9g==}
     engines: {node: '>=10.0.0'}
@@ -3386,8 +3505,8 @@ packages:
     resolution: {integrity: sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ==}
     engines: {node: '>=18'}
 
-  string-width@8.1.1:
-    resolution: {integrity: sha512-KpqHIdDL9KwYk22wEOg/VIqYbrnLeSApsKT/bSj6Ez7pn3CftUiLAv2Lccpq1ALcpLV9UX1Ppn92npZWu2w/aw==}
+  string-width@8.2.0:
+    resolution: {integrity: sha512-6hJPQ8N0V0P3SNmP6h2J99RLuzrWz2gvT7VnK5tKvrNqJoyS9W4/Fb8mo31UiPvy00z7DQXkP2hnKBVav76thw==}
     engines: {node: '>=20'}
 
   string_decoder@1.3.0:
@@ -3399,6 +3518,10 @@ packages:
 
   strip-ansi@7.1.0:
     resolution: {integrity: sha512-iq6eVVI64nQQTRYq2KtEg2d2uU7LElhTJwsH4YzIHZshxlgZms/wIc4VoDQTlG/IvVIrBKG06CrZnp0qv7hkcQ==}
+    engines: {node: '>=12'}
+
+  strip-ansi@7.2.0:
+    resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
 
   strip-final-newline@3.0.0:
@@ -3900,8 +4023,8 @@ snapshots:
 
   '@alcalzone/ansi-tokenize@0.2.5':
     dependencies:
-      ansi-styles: 6.2.1
-      is-fullwidth-code-point: 5.0.0
+      ansi-styles: 6.2.3
+      is-fullwidth-code-point: 5.1.0
 
   '@asamuzakjp/css-color@3.1.1':
     dependencies:
@@ -4817,6 +4940,10 @@ snapshots:
       '@fastify/forwarded': 3.0.1
       ipaddr.js: 2.2.0
 
+  '@graphql-typed-document-node/core@3.2.0(graphql@16.12.0)':
+    dependencies:
+      graphql: 16.12.0
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.6':
@@ -4831,6 +4958,11 @@ snapshots:
   '@humanwhocodes/retry@0.4.2': {}
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
+
+  '@morpho-org/blue-api-sdk@2.17.3(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)':
+    dependencies:
+      '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
+      '@morpho-org/morpho-ts': 2.4.6
 
   '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
     dependencies:
@@ -5642,11 +5774,15 @@ snapshots:
 
   ansi-regex@6.1.0: {}
 
+  ansi-regex@6.2.2: {}
+
   ansi-styles@4.3.0:
     dependencies:
       color-convert: 2.0.1
 
   ansi-styles@6.2.1: {}
+
+  ansi-styles@6.2.3: {}
 
   anymatch@3.1.3:
     dependencies:
@@ -5841,10 +5977,10 @@ snapshots:
       slice-ansi: 5.0.0
       string-width: 7.2.0
 
-  cli-truncate@5.1.1:
+  cli-truncate@5.2.0:
     dependencies:
-      slice-ansi: 7.1.0
-      string-width: 8.1.1
+      slice-ansi: 8.0.0
+      string-width: 8.2.0
 
   cliui@7.0.4:
     dependencies:
@@ -6633,6 +6769,8 @@ snapshots:
 
   get-east-asian-width@1.3.0: {}
 
+  get-east-asian-width@1.5.0: {}
+
   get-intrinsic@1.3.0:
     dependencies:
       call-bind-apply-helpers: 1.0.2
@@ -6682,6 +6820,18 @@ snapshots:
     optional: true
 
   graphemer@1.4.0: {}
+
+  graphql-request@7.4.0(graphql@16.12.0):
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.12.0)
+      graphql: 16.12.0
+
+  graphql-tag@2.12.6(graphql@16.12.0):
+    dependencies:
+      graphql: 16.12.0
+      tslib: 2.8.1
+
+  graphql@16.12.0: {}
 
   hardhat-watcher@2.5.0(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
     dependencies:
@@ -6858,12 +7008,12 @@ snapshots:
     dependencies:
       '@alcalzone/ansi-tokenize': 0.2.5
       ansi-escapes: 7.3.0
-      ansi-styles: 6.2.1
+      ansi-styles: 6.2.3
       auto-bind: 5.0.1
       chalk: 5.6.2
       cli-boxes: 3.0.0
       cli-cursor: 4.0.0
-      cli-truncate: 5.1.1
+      cli-truncate: 5.2.0
       code-excerpt: 4.0.0
       es-toolkit: 1.45.1
       indent-string: 5.0.0
@@ -6874,7 +7024,7 @@ snapshots:
       signal-exit: 3.0.7
       slice-ansi: 7.1.0
       stack-utils: 2.0.6
-      string-width: 8.1.1
+      string-width: 8.2.0
       type-fest: 4.41.0
       widest-line: 5.0.0
       wrap-ansi: 9.0.0
@@ -6927,9 +7077,9 @@ snapshots:
 
   is-fullwidth-code-point@4.0.0: {}
 
-  is-fullwidth-code-point@5.0.0:
+  is-fullwidth-code-point@5.1.0:
     dependencies:
-      get-east-asian-width: 1.3.0
+      get-east-asian-width: 1.5.0
 
   is-glob@4.0.3:
     dependencies:
@@ -7003,7 +7153,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -7712,8 +7862,13 @@ snapshots:
 
   slice-ansi@7.1.0:
     dependencies:
-      ansi-styles: 6.2.1
-      is-fullwidth-code-point: 5.0.0
+      ansi-styles: 6.2.3
+      is-fullwidth-code-point: 5.1.0
+
+  slice-ansi@8.0.0:
+    dependencies:
+      ansi-styles: 6.2.3
+      is-fullwidth-code-point: 5.1.0
 
   solc@0.8.26(debug@4.4.3):
     dependencies:
@@ -7780,10 +7935,10 @@ snapshots:
       get-east-asian-width: 1.3.0
       strip-ansi: 7.1.0
 
-  string-width@8.1.1:
+  string-width@8.2.0:
     dependencies:
-      get-east-asian-width: 1.3.0
-      strip-ansi: 7.1.0
+      get-east-asian-width: 1.5.0
+      strip-ansi: 7.2.0
 
   string_decoder@1.3.0:
     dependencies:
@@ -7797,6 +7952,10 @@ snapshots:
   strip-ansi@7.1.0:
     dependencies:
       ansi-regex: 6.1.0
+
+  strip-ansi@7.2.0:
+    dependencies:
+      ansi-regex: 6.2.2
 
   strip-final-newline@3.0.0: {}
 
