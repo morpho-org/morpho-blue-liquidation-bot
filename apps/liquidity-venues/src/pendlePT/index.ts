@@ -23,7 +23,8 @@ async function getApiData<T extends {}, U>(
   api: "sdk" | "non-sdk" = "sdk",
 ) {
   const queryParams = new URLSearchParams(
-    Object.entries(params).map(([key, value]) => [key, String(value)]),
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    Object.entries(params).map(([key, value]) => [key, String(value)]) as [string, string][],
   ).toString();
 
   const apiPath = api === "sdk" ? `v2/sdk/${chainId}` : `v2/${chainId}`;

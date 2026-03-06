@@ -9,7 +9,7 @@
     "test:liquidity-venues": "pnpm build && vitest --dir apps/liquidity-venues",
     "test:pricers": "pnpm build && vitest --dir apps/pricers",
     "test:bot": "pnpm build && vitest bot",
-    "build": "pnpm --parallel --filter @morpho-blue-liquidation-bot/data-providers --filter @morpho-blue-liquidation-bot/liquidity-venues --filter @morpho-blue-liquidation-bot/pricers build && pnpm build:config",
+    "build": "pnpm build:config && pnpm --parallel --filter @morpho-blue-liquidation-bot/data-providers --filter @morpho-blue-liquidation-bot/liquidity-venues --filter @morpho-blue-liquidation-bot/pricers build",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
     "build:data-providers": "pnpm --filter @morpho-blue-liquidation-bot/data-providers build",
     "build:liquidity-venues": "pnpm --filter @morpho-blue-liquidation-bot/liquidity-venues build",
