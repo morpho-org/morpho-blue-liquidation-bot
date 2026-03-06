@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
     "prepare": "husky",
-    "test:liquidity-venues": "pnpm build:liquidity-venues && vitest --dir apps/liquidity-venues",
-    "test:pricers": "pnpm build:pricers && vitest --dir apps/pricers",
+    "test:liquidity-venues": "pnpm build:config && pnpm build:liquidity-venues && vitest --dir apps/liquidity-venues",
+    "test:pricers": "pnpm build:config && pnpm build:pricers && vitest --dir apps/pricers",
     "test:bot": "pnpm build && vitest bot",
     "build": "pnpm build:config && pnpm build:data-providers && pnpm build:liquidity-venues && pnpm build:pricers",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",

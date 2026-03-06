@@ -16,10 +16,10 @@ import {
 
 const API_URL = "https://api-v2.pendle.finance/core/";
 
-async function getApiData<U>(
+async function getApiData<T extends object, U>(
   chainId: number,
   endpoint: string,
-  params: Record<string, unknown>,
+  params: T,
   api: "sdk" | "non-sdk" = "sdk",
 ) {
   const queryParams = new URLSearchParams(
