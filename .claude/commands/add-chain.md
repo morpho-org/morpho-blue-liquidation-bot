@@ -17,9 +17,10 @@ Ask the user for:
 4. **Vault whitelist** — list of vault addresses, or `"morpho-api"` for API-based discovery
 5. **Which liquidity venues to enable** (ordered list from existing `LiquidityVenueName` values)
 6. **Which pricers to enable** (ordered list from existing `PricerName` values, optional)
-7. **Flashbots toggle** (`useFlashbots`)
-8. **Block interval** (optional)
-9. **Liquidation buffer bps** (optional, default 50)
+7. **Which data provider to use** (`"morphoApi"` or `"hyperIndex"`)
+8. **Flashbots toggle** (`useFlashbots`)
+9. **Block interval** (optional)
+10. **Liquidation buffer bps** (optional, default 50)
 
 ## Steps
 
@@ -73,6 +74,7 @@ Add an entry to `chainConfigs` in `apps/config/src/config.ts`:
   chain: <chainImport>,
   wNative: "<wNativeAddress>",
   options: {
+    dataProvider: "<dataProviderName>",
     vaultWhitelist: <whitelist>,
     additionalMarketsWhitelist: [],
     liquidityVenues: [<ordered venue list>],
@@ -97,7 +99,22 @@ Check and update per-chain config files that have `Record<number, ...>` mappings
 
 For each enabled venue/pricer, add the chain ID entry with the correct addresses. Ask the user for any chain-specific addresses needed.
 
-### 4. Reminder
+### 4. Add HyperIndex config (if using hyperIndex data provider)
+
+Add the chain to `apps/config/src/dataProviders/hyperindex.ts`:
+
+```typescript
+[<chainId>]: {
+  morphoStartBlock: <block>,
+  metaMorphoFactoryStartBlock: <block>,
+  adaptiveCurveIrmStartBlock: <block>,
+  preLiquidationFactoryStartBlock: <block>,
+},
+```
+
+Ask the user for the deployment block numbers.
+
+### 5. Reminder
 
 After scaffolding, remind the user:
 - Set up environment variables:

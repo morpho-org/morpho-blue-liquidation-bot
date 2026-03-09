@@ -22,9 +22,9 @@ Ask the user for:
 - Include all chains from `apps/config/src/config.ts`
 - Export from `apps/config/src/pricers/index.ts`
 
-### 2. Client package (`apps/client`)
+### 2. Pricers package (`apps/pricers`)
 
-**a) Create pricer implementation** at `apps/client/src/pricers/<name>/index.ts`:
+**a) Create pricer implementation** at `apps/pricers/src/<name>/index.ts`:
 
 ```typescript
 import type { Account, Address, Chain, Client, Transport } from "viem";
@@ -44,31 +44,26 @@ export class <ClassName> implements Pricer {
 
 Replace `<ClassName>` with an appropriate PascalCase class name (e.g. `PythPricer`).
 
-**b) Register in factory** at `apps/client/src/pricers/factory.ts`:
+**b) Register in factory** at `apps/pricers/src/factory.ts`:
 - Add import for the new class
 - Add `case "<name>":` to the switch returning `new <ClassName>()`
 
-**c) Add re-export** in `apps/client/src/pricers/index.ts`:
+**c) Add re-export** in `apps/pricers/src/index.ts`:
 - Add `export * from "./<name>";`
 
 ### 3. Test scaffold
 
-Create `apps/client/test/vitest/pricers/<name>.test.ts`:
+Create `apps/pricers/test/vitest/<name>.test.ts`:
 
 ```typescript
-import { describe, expect, beforeEach } from "vitest";
+import { describe, expect } from "vitest";
 
-import { <ClassName> } from "../../../src/pricers";
-import { test } from "../../setup.js";
+import { <ClassName> } from "../../src";
+import { test } from "../setup.js";
 
 describe("<name> pricer", () => {
-  let pricer: <ClassName>;
-
-  beforeEach(() => {
-    pricer = new <ClassName>();
-  });
-
-  test("should test price", async ({ client }) => {
+  test("should return a price", async ({ client }) => {
+    const pricer = new <ClassName>();
     // TODO: test with known assets
     // Example: expect(await pricer.price(client, USDC)).toBeCloseTo(1, 3);
     expect(true).toBe(true);
