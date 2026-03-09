@@ -14,10 +14,52 @@ Data providers are multi-chain: a single instance is shared across all chains. T
 
 ## Available Data Providers
 
-- **MorphoApi** (`"morphoApi"`) — Queries the Morpho Blue API for liquidatable positions and reads vault markets on-chain.
-- **HyperIndex** (`"hyperIndex"`) — Queries an Envio HyperIndex instance for on-chain data. Supports two modes:
-  - **Self-hosted** (default): Automatically starts a local indexer from the `apps/hyperindex` package and waits for it to backfill before the bot begins.
-  - **External**: Connects to an externally hosted HyperIndex instance. Set the `HYPERINDEX_URL` environment variable to skip local spin-up.
+### `morphoApi`
+
+Queries the [Morpho API](https://docs.morpho.org/api) for liquidatable positions and reads vault markets on-chain. No infrastructure required.
+
+### `hyperIndex`
+
+Queries an [Envio HyperIndex](https://docs.envio.dev/) instance (see `apps/hyperindex`) via GraphQL. Supports two deployment modes:
+
+#### 1. External instance (no Docker needed)
+
+Connect to an already-running HyperIndex deployment by setting `HYPERINDEX_URL`:
+
+```bash
+HYPERINDEX_URL=https://my-indexer.example.com/v1/graphql
+```
+
+The provider connects directly — no local indexer is started.
+
+#### 2. Self-hosted (default)
+
+When `HYPERINDEX_URL` is **not set**, the provider starts a local indexer via `pnpm start` in `apps/hyperindex` and waits for it to backfill before the bot begins.
+
+Requires Docker (Envio manages `envio-postgres` and `envio-hasura` containers).
+
+The sync mode (HyperSync vs RPC) is configured in `apps/hyperindex` — see its README. In short:
+- `ENVIO_API_TOKEN` set → HyperSync (fast, no RPC needed)
+- `ENVIO_API_TOKEN` not set → RPC (requires `RPC_URL_<chainId>`)
+
+### Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `HYPERINDEX_URL` | No | URL of an external HyperIndex GraphQL endpoint. If unset, self-hosts locally. |
+
+### Configuration
+
+Set the data provider in `apps/config/src/config.ts`:
+
+```typescript
+[mainnet.id]: {
+  options: {
+    dataProvider: "hyperIndex",  // or "morphoApi"
+    // ...
+  },
+},
+```
 
 ## Adding a New Data Provider
 

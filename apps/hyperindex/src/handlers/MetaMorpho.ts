@@ -1,4 +1,5 @@
 import { MetaMorphoFactory, MetaMorpho } from "generated";
+import { getAddress } from "viem";
 import { vaultId } from "../utils/ids.js";
 
 MetaMorphoFactory.CreateMetaMorpho.contractRegister(({ event, context }) => {
@@ -11,7 +12,7 @@ MetaMorphoFactory.CreateMetaMorpho.handler(async ({ event, context }) => {
   context.Vault.set({
     id,
     chainId: event.chainId,
-    address: event.params.metaMorpho,
+    address: getAddress(event.params.metaMorpho),
     withdrawQueue: [],
   });
 });
@@ -22,7 +23,7 @@ MetaMorpho.SetWithdrawQueue.handler(async ({ event, context }) => {
   context.Vault.set({
     id,
     chainId: event.chainId,
-    address: event.srcAddress,
+    address: getAddress(event.srcAddress),
     withdrawQueue: [...event.params.newWithdrawQueue],
   });
 });

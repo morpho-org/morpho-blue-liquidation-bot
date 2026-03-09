@@ -99,8 +99,9 @@ export class HyperIndexDataProvider implements DataProvider {
   private indexerProcess?: ChildProcess;
 
   constructor(options?: HyperIndexDataProviderOptions) {
-    this.url = options?.url ?? DEFAULT_HYPERINDEX_URL;
-    this.selfhost = !options?.url;
+    const externalUrl = options?.url ?? process.env.HYPERINDEX_URL;
+    this.url = externalUrl ?? DEFAULT_HYPERINDEX_URL;
+    this.selfhost = !externalUrl;
     this.graphqlClient = new GraphQLClient(this.url);
   }
 
@@ -136,7 +137,7 @@ export class HyperIndexDataProvider implements DataProvider {
 
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
-      const vaultIds = vaults.map((v) => `${client.chain.id}-${v.toLowerCase()}`);
+      const vaultIds = vaults.map((v) => `${client.chain.id}-${v}`);
 
       const response = await this.graphqlClient.request<VaultMarketsResponse>(GET_VAULT_MARKETS, {
         vaultIds,

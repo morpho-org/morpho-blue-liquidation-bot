@@ -1,3 +1,5 @@
+import { getAddress } from "viem";
+
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export function marketId(chainId: number, id: string): string {
@@ -9,7 +11,7 @@ export function positionId(
   marketId: string,
   user: string,
 ): string {
-  return `${chainId}-${marketId}-${user}`;
+  return `${chainId}-${marketId}-${getAddress(user)}`;
 }
 
 export function authorizationId(
@@ -17,7 +19,7 @@ export function authorizationId(
   authorizer: string,
   authorizee: string,
 ): string {
-  return `${chainId}-${authorizer}-${authorizee}`;
+  return `${chainId}-${getAddress(authorizer)}-${getAddress(authorizee)}`;
 }
 
 export function preLiquidationContractId(
@@ -25,9 +27,9 @@ export function preLiquidationContractId(
   marketId: string,
   address: string,
 ): string {
-  return `${chainId}-${marketId}-${address}`;
+  return `${chainId}-${marketId}-${getAddress(address)}`;
 }
 
 export function vaultId(chainId: number, address: string): string {
-  return `${chainId}-${address}`;
+  return `${chainId}-${getAddress(address)}`;
 }

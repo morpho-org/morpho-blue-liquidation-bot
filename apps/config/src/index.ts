@@ -61,6 +61,7 @@ export {
   type LiquidityVenueName,
   type PricerName,
 };
+export * from "./dataProviders";
 export * from "./liquidityVenues";
 export * from "./pricers";
 export {
