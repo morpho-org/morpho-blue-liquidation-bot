@@ -98,22 +98,7 @@ jobs:
           version: stable
       - name: Build config package
         run: pnpm build:config
-      - name: Restore indexer cache
-        id: indexer-cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/envio-postgres-data.tar
-          key: envio-indexer-v1
-      - name: Import cached volume
-        if: steps.indexer-cache.outputs.cache-hit == 'true'
-        run: |
-          docker volume create envio-postgres-data
-          docker run --rm -v envio-postgres-data:/data -v /tmp:/backup alpine tar xf /backup/envio-postgres-data.tar -C /data
       - name: Run hyperindex tests
         run: pnpm test:hyperindex
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
-      - name: Export volume for cache
-        if: always()
-        run: |
-          docker run --rm -v envio-postgres-data:/data -v /tmp:/backup alpine tar cf /backup/envio-postgres-data.tar -C /data .
