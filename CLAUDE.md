@@ -33,11 +33,11 @@ Workspace monorepo with six packages:
 
 ## Non-Negotiables
 
-- **Never commit secrets or private keys.** All secrets (RPC URLs, private keys, executor addresses) are resolved from environment variables in `apps/config/src/index.ts`. Never hardcode them anywhere.
-- **Client code must not expect any configuration or secret.** All configurations (parameters, venue/pricer ordering, chain settings) live in the config package (`apps/config`). The client package receives everything via dependency injection. If you need a new parameter, add it to the config types and pass it through.
+- **Never commit secrets or private keys.** Secrets (RPC URLs, private keys, API keys) must come from environment variables. Never hardcode them anywhere.
+- **All configuration lives in the config package.** The client, liquidity-venues, pricers, and data-providers packages must not define or hardcode any configuration within their own packages. All configuration (parameters, addresses, venue/pricer ordering, chain settings) lives in `apps/config`. These packages may access config values by importing directly from `@morpho-blue-liquidation-bot/config` — this is the intended pattern, not a violation. If you need a new parameter, add it to the config types in `apps/config`. These packages may also read secrets (e.g. RPC URLs, API keys) directly from environment variables.
 - **Never push directly to `main`.** Always use feature branches and PRs.
 - **Always run tests after code changes.** Run the relevant test suite before considering work complete.
-- **Preserve venue/pricer ordering semantics.** The order of `liquidityVenues` and `pricers` arrays in config is significant — venues are tried sequentially and the first successful conversion wins. Pricers are tried in order and the first price found is used.
+- **Preserve venue/pricer ordering semantics.** The order of `liquidityVenues` and `pricers` arrays in config is significant — venues are tried sequentially and the first successful conversion wins. Pricers are tried in order and the first price found is used. `pricers` is optional — omitting it disables profitability checks for that chain.
 
 ## Code Standards
 

@@ -123,7 +123,7 @@ export const chainConfigs: Record<number, Config> = {
     },
   },
   [hyperevm.id]: {
-    chain: worldchain,
+    chain: hyperevm,
     wNative: "0x5555555555555555555555555555555555555555",
     options: {
       dataProvider: "morphoApi",
