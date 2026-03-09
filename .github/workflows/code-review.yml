@@ -84,5 +84,5 @@ jobs:
 
             Do NOT post any summary comment. Only inline comments on specific lines.
           claude_args: |
-            --model claude-sonnet-4-20250514
+            --model claude-opus-4-20250514
             --max-turns 32

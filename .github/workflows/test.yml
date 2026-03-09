@@ -96,6 +96,8 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
+      - name: Build config package
+        run: pnpm build:config
       - name: Restore indexer cache
         id: indexer-cache
         uses: actions/cache@v4
