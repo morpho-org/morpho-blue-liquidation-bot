@@ -66,8 +66,8 @@ const GET_PRELIQUIDATION_CONTRACTS = gql`
 `;
 
 const GET_AUTHORIZATIONS = gql`
-  query GetAuthorizations {
-    Authorization(where: { isAuthorized: { _eq: true } }) {
+  query GetAuthorizations($chainId: Int!) {
+    Authorization(where: { isAuthorized: { _eq: true }, chainId: { _eq: $chainId } }) {
       authorizer
       authorizee
     }
@@ -225,7 +225,9 @@ export class HyperIndexDataProvider implements DataProvider {
         this.graphqlClient.request<PreLiquidationContractsResponse>(GET_PRELIQUIDATION_CONTRACTS, {
           marketIds: indexedMarketIds,
         }),
-        this.graphqlClient.request<AuthorizationsResponse>(GET_AUTHORIZATIONS),
+        this.graphqlClient.request<AuthorizationsResponse>(GET_AUTHORIZATIONS, {
+          chainId: client.chain.id,
+        }),
       ]);
 
       if (positionsAndMarkets.Position.length === 0) {
