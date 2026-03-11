@@ -287,7 +287,7 @@ export class LiquidationBot {
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-      return;
+      return true;
     } else {
       await writeContract(this.client, { address: encoder.address, ...functionData });
     }

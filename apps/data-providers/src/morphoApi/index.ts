@@ -28,21 +28,37 @@ export class MorphoApiDataProvider implements DataProvider {
     marketIds: Hex[],
   ): Promise<LiquidatablePositionsResult> {
     try {
-      const positionsQuery = await apiSdk.getLiquidatablePositions({
-        chainId: client.chain.id,
-        marketIds,
-        skip: 0,
-        first: 100,
-      });
+      const PAGE_SIZE = 100;
+      const allPositions: NonNullable<
+        Awaited<ReturnType<typeof apiSdk.getLiquidatablePositions>>["marketPositions"]["items"]
+      > = [];
 
-      const positions = positionsQuery.marketPositions.items?.filter(
+      let skip = 0;
+      while (true) {
+        const positionsQuery = await apiSdk.getLiquidatablePositions({
+          chainId: client.chain.id,
+          marketIds,
+          skip,
+          first: PAGE_SIZE,
+        });
+
+        const items = positionsQuery.marketPositions.items;
+        if (!items || items.length === 0) break;
+
+        allPositions.push(...items);
+
+        if (items.length < PAGE_SIZE) break;
+        skip += PAGE_SIZE;
+      }
+
+      const positions = allPositions.filter(
         (position) =>
           position.market.uniqueKey !== undefined &&
           position.market.oracle !== null &&
           position.state !== null,
       );
 
-      if (!positions) return { liquidatablePositions: [], preLiquidatablePositions: [] };
+      if (positions.length === 0) return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
       const marketsMap = new Map(
         await Promise.all(
@@ -58,7 +74,7 @@ export class MorphoApiDataProvider implements DataProvider {
         ),
       );
 
-      const accruedPositions = (positions ?? [])
+      const accruedPositions = positions
         .map((position) => {
           const market = marketsMap.get(position.market.uniqueKey);
           if (!market) return;

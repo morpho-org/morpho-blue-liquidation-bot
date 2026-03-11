@@ -88,11 +88,9 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   watchBlocks(client, {
     onBlock: () => {
       if (count % blockInterval === 0) {
-        try {
-          void bot.run();
-        } catch (e) {
+        bot.run().catch((e) => {
           console.error(`${logTag} uncaught error in bot.run():`, e);
-        }
+        });
       }
       count++;
     },
