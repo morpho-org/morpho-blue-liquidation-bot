@@ -54,7 +54,7 @@ jobs:
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
-  bot:
+  client:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -73,7 +73,7 @@ jobs:
         with:
           version: stable
       - name: Run liquidation execution tests
-        run: pnpm test:bot
+        run: pnpm test:client
         env:
           RPC_URL_1: ${{ secrets.RPC_URL_1 }}
 
