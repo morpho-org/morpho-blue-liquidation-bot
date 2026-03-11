@@ -16,11 +16,11 @@ Data providers are multi-chain: a single instance is shared across all chains. T
 
 ### `morphoApi`
 
-Queries the [Morpho API](https://docs.morpho.org/api) for liquidatable positions and reads vault markets on-chain. No infrastructure required.
+Queries the [Morpho API](https://docs.morpho.org/api) for liquidatable positions (with pagination) and reads vault markets on-chain. No infrastructure required. Does not support pre-liquidations.
 
 ### `hyperIndex`
 
-Queries an [Envio HyperIndex](https://docs.envio.dev/) instance (see `apps/hyperindex`) via GraphQL. Supports two deployment modes:
+Queries an [Envio HyperIndex](https://docs.envio.dev/) instance (see `apps/hyperindex`) via GraphQL. Supports both liquidations and pre-liquidations. Fetches positions/markets, pre-liquidation contracts, and authorizations in parallel. Oracle prices are read on-chain. Supports two deployment modes:
 
 #### 1. External instance (no Docker needed)
 

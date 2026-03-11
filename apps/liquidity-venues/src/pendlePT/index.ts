@@ -1,4 +1,8 @@
-import { API_REFRESH_INTERVAL } from "@morpho-blue-liquidation-bot/config";
+import {
+  API_REFRESH_INTERVAL,
+  PENDLE_API_URL,
+  PENDLE_SLIPPAGE,
+} from "@morpho-blue-liquidation-bot/config";
 import { BigIntish } from "@morpho-org/blue-sdk";
 import { type ExecutorEncoder } from "executooor-viem";
 import { type Address, getAddress, maxUint256 } from "viem";
@@ -14,8 +18,6 @@ import {
   SwapParams,
 } from "./types";
 
-const API_URL = "https://api-v2.pendle.finance/core/";
-
 async function getApiData<T extends {}, U>(
   chainId: number,
   endpoint: string,
@@ -28,7 +30,7 @@ async function getApiData<T extends {}, U>(
   ).toString();
 
   const apiPath = api === "sdk" ? `v2/sdk/${chainId}` : `v2/${chainId}`;
-  const url = `${API_URL}${apiPath}${endpoint}?${queryParams}`;
+  const url = `${PENDLE_API_URL}${apiPath}${endpoint}?${queryParams}`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -43,7 +45,7 @@ async function getApiData<T extends {}, U>(
 }
 
 async function getMarkets(chainId: number) {
-  const url = `${API_URL}v1/markets/all?chainId=${chainId}`;
+  const url = `${PENDLE_API_URL}v1/markets/all?chainId=${chainId}`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -160,7 +162,7 @@ export class PendlePTVenue implements LiquidityVenue {
   ) {
     const redeemCallData = await getRedeemCallData(encoder.client.chain.id, {
       receiver: encoder.address,
-      slippage: 0.04,
+      slippage: PENDLE_SLIPPAGE,
       yt: pendleMarket.yt.split("-")[1] ?? "",
       amountIn: srcAmount.toString(),
       tokenOut: underlyingToken,
@@ -187,7 +189,7 @@ export class PendlePTVenue implements LiquidityVenue {
   ) {
     const swapCallData = await getSwapCallData(encoder.client.chain.id, pendleMarket.address, {
       receiver: encoder.address,
-      slippage: 0.04,
+      slippage: PENDLE_SLIPPAGE,
       tokenIn: src.toLowerCase(),
       tokenOut: underlyingToken,
       amountIn: srcAmount.toString(),

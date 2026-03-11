@@ -14,8 +14,8 @@ The method can be sync or async.
 
 - **DefiLlama** — Queries the DeFi Llama API.
 - **MorphoApi** — Queries the Morpho Blue API.
-- **Chainlink** — Queries the Chainlink feed registry contracts (mainnet only).
-- **UniswapV3** — Uses UniswapV3 pools to price tokens.
+- **Chainlink** — Queries the Chainlink feed registry contracts (mainnet only). Config: `apps/config/src/pricers/chainlink.ts` (feed registry address, denominations, token mappings).
+- **UniswapV3** — Uses UniswapV3 pools to price tokens. Config: `apps/config/src/pricers/uniswapV3.ts`.
 
 Pricers are tried in order; the first successful price wins.
 
