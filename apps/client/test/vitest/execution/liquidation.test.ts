@@ -14,7 +14,10 @@ import { beforeEach, describe, expect } from "vitest";
 
 import { morphoBlueAbi } from "../../../src/abis/morpho/morphoBlue.js";
 import { LiquidationBot } from "../../../src/bot.js";
-import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
+import {
+  MarketsFetchingCooldownMechanism,
+  PositionLiquidationCooldownMechanism,
+} from "../../../src/utils/cooldownMechanisms.js";
 import { MORPHO, wbtcUSDC, ptsUSDeUSDC, WETH, borrower } from "../../constants.js";
 import { OneInchTest, setupPosition, mockEtherPrice, syncTimestamp } from "../../helpers.js";
 import { encoderTest, pendleOneInchExecutionTest } from "../../setup.js";
@@ -413,4 +416,163 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
       accountLoanTokenBalanceAfterLiquidation - accountLoanTokenBalanceBeforeLiquidation,
     ).toBeGreaterThan(0n);
   });
+});
+
+describe("position cooldown mechanism", () => {
+  const erc4626 = new Erc4626();
+  const uniswapV3 = new UniswapV3Venue();
+
+  beforeEach(() => {
+    nock.cleanAll();
+  });
+
+  encoderTest.sequential(
+    "should skip liquidation when position is on cooldown",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
+      const { client } = encoder;
+      const collateralAmount = parseUnits("0.1", 8);
+      const borrowAmount = parseUnits("5000", 6);
+
+      const _marketParams = await readContract(encoder.client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "idToMarketParams",
+        args: [wbtcUSDC],
+      });
+
+      const marketParams = {
+        loanToken: _marketParams[0],
+        collateralToken: _marketParams[1],
+        oracle: _marketParams[2],
+        irm: _marketParams[3],
+        lltv: _marketParams[4],
+      };
+
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      mockEtherPrice(2640, marketParams);
+
+      // Use a very long cooldown (1 hour) so the second run is still on cooldown
+      const cooldown = new PositionLiquidationCooldownMechanism(3600);
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDC],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        dataProvider: new MorphoApiDataProvider(),
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        positionLiquidationCooldownMechanism: cooldown,
+        alwaysRealizeBadDebt: false,
+      });
+
+      // First run: should liquidate
+      await bot.run();
+
+      const positionAfterFirstRun = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      // Position should be cleared after first run
+      expect(positionAfterFirstRun[1]).toBe(0n);
+      expect(positionAfterFirstRun[2]).toBe(0n);
+
+      // Set up a new position for the same borrower
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      mockEtherPrice(2640, marketParams);
+
+      // Second run: should skip due to cooldown
+      await bot.run();
+
+      const positionAfterSecondRun = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      // Position should NOT be cleared — cooldown prevented liquidation
+      expect(positionAfterSecondRun[1]).toBeGreaterThan(0n);
+      expect(positionAfterSecondRun[2]).toBe(collateralAmount / 2n);
+    },
+  );
+});
+
+describe("profitability checks skipped when no pricers", () => {
+  const erc4626 = new Erc4626();
+  const uniswapV3 = new UniswapV3Venue();
+
+  beforeEach(() => {
+    nock.cleanAll();
+  });
+
+  encoderTest.sequential(
+    "should execute liquidation without pricers (profitability check disabled)",
+    async ({ encoder }) => {
+      const { client } = encoder;
+      const collateralAmount = parseUnits("0.1", 8);
+      const borrowAmount = parseUnits("5000", 6);
+
+      const _marketParams = await readContract(encoder.client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "idToMarketParams",
+        args: [wbtcUSDC],
+      });
+
+      const marketParams = {
+        loanToken: _marketParams[0],
+        collateralToken: _marketParams[1],
+        oracle: _marketParams[2],
+        irm: _marketParams[3],
+        lltv: _marketParams[4],
+      };
+
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      // No mockEtherPrice — no pricers configured
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDC],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        dataProvider: new MorphoApiDataProvider(),
+        liquidityVenues: [erc4626, uniswapV3],
+        // No pricers — profitability checks skipped
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        alwaysRealizeBadDebt: false,
+      });
+
+      await bot.run();
+
+      const positionPostLiquidation = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      // Position should be cleared despite no profitability check
+      expect(positionPostLiquidation[0]).toBe(0n);
+      expect(positionPostLiquidation[1]).toBe(0n);
+      expect(positionPostLiquidation[2]).toBe(0n);
+    },
+  );
 });

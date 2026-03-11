@@ -102,12 +102,13 @@ export class LiquidationBot {
   async run() {
     await this.fetchMarkets();
 
-    const liquidatablePositions = await this.dataProvider.fetchLiquidatablePositions(
-      this.client,
-      this.coveredMarkets,
-    );
+    const { liquidatablePositions, preLiquidatablePositions } =
+      await this.dataProvider.fetchLiquidatablePositions(this.client, this.coveredMarkets);
 
-    await Promise.all(liquidatablePositions.map((position) => this.liquidate(position)));
+    await Promise.all([
+      ...liquidatablePositions.map((position) => this.liquidate(position)),
+      ...preLiquidatablePositions.map((position) => this.preLiquidate(position)),
+    ]);
   }
 
   private async liquidate(position: AccrualPosition) {

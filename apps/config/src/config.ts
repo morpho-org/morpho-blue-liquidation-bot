@@ -112,7 +112,7 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: [
         "0xb1E80387EbE53Ff75a89736097D34dC8D9E9045B", // Re7 USDC
         "0x348831b46876d3dF2Db98BdEc5E3B4083329Ab9f", // Re7 WLD
-        "0xBC8C37467c5Df9D50B42294B8628c25888BECF61", // Re7 WETH
+        "0x0Db7E405278c2674F462aC9D9eb8b8346D1c1571", // Re7 WETH
         "0xBC8C37467c5Df9D50B42294B8628c25888BECF61", // Re7 WBTC
       ],
       additionalMarketsWhitelist: [],

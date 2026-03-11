@@ -5,7 +5,7 @@ import { Time } from "@morpho-org/morpho-ts";
 import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
 import { readContract } from "viem/actions";
 
-import type { DataProvider } from "../dataProvider";
+import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
 
 import { apiSdk } from "./api/index";
 
@@ -26,7 +26,7 @@ export class MorphoApiDataProvider implements DataProvider {
   async fetchLiquidatablePositions(
     client: Client<Transport, Chain, Account>,
     marketIds: Hex[],
-  ): Promise<AccrualPosition[]> {
+  ): Promise<LiquidatablePositionsResult> {
     try {
       const positionsQuery = await apiSdk.getLiquidatablePositions({
         chainId: client.chain.id,
@@ -42,7 +42,7 @@ export class MorphoApiDataProvider implements DataProvider {
           position.state !== null,
       );
 
-      if (!positions) return [];
+      if (!positions) return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
       const marketsMap = new Map(
         await Promise.all(
@@ -78,10 +78,15 @@ export class MorphoApiDataProvider implements DataProvider {
         })
         .filter((position) => position !== undefined);
 
-      return accruedPositions.filter((position) => position.seizableCollateral !== undefined);
+      return {
+        liquidatablePositions: accruedPositions.filter(
+          (position) => position.seizableCollateral !== undefined,
+        ),
+        preLiquidatablePositions: [],
+      };
     } catch (error) {
       console.error(`Error fetching liquidatable positions: ${error}`);
-      return [];
+      return { liquidatablePositions: [], preLiquidatablePositions: [] };
     }
   }
 

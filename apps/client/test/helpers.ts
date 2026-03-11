@@ -1,10 +1,21 @@
+import type {
+  DataProvider,
+  LiquidatablePositionsResult,
+} from "@morpho-blue-liquidation-bot/data-providers";
 import { OneInch } from "@morpho-blue-liquidation-bot/liquidity-venues";
-import { MarketUtils } from "@morpho-org/blue-sdk";
+import {
+  type AccrualPosition,
+  MarketUtils,
+  type PreLiquidationPosition,
+} from "@morpho-org/blue-sdk";
 import type { AnvilTestClient } from "@morpho-org/test";
 import { ExecutorEncoder } from "executooor-viem";
 import nock from "nock";
 import {
+  type Account,
   type Address,
+  type Chain,
+  type Client,
   encodePacked,
   fromHex,
   type Hex,
@@ -12,6 +23,7 @@ import {
   maxUint128,
   maxUint256,
   toHex,
+  type Transport,
 } from "viem";
 import { getStorageAt, readContract } from "viem/actions";
 import { vi } from "vitest";
@@ -19,6 +31,38 @@ import { vi } from "vitest";
 import { morphoBlueAbi } from "../src/abis/morpho/morphoBlue";
 
 import { BORROW_SHARES_AND_COLLATERAL_OFFSET, borrower, MORPHO, POSITION_SLOT } from "./constants";
+
+/// Mock data provider
+
+export class MockDataProvider implements DataProvider {
+  private liquidatablePositions: AccrualPosition[] = [];
+  private preLiquidatablePositions: PreLiquidationPosition[] = [];
+
+  setLiquidatablePositions(positions: AccrualPosition[]) {
+    this.liquidatablePositions = positions;
+  }
+
+  setPreLiquidatablePositions(positions: PreLiquidationPosition[]) {
+    this.preLiquidatablePositions = positions;
+  }
+
+  async fetchMarkets(
+    _client: Client<Transport, Chain, Account>,
+    _vaults: Address[],
+  ): Promise<Hex[]> {
+    return [];
+  }
+
+  async fetchLiquidatablePositions(
+    _client: Client<Transport, Chain, Account>,
+    _marketIds: Hex[],
+  ): Promise<LiquidatablePositionsResult> {
+    return {
+      liquidatablePositions: this.liquidatablePositions,
+      preLiquidatablePositions: this.preLiquidatablePositions,
+    };
+  }
+}
 
 /// test liquidity Venues
 

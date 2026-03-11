@@ -8,7 +8,7 @@
     "prepare": "husky",
     "test:liquidity-venues": "pnpm build && vitest --dir apps/liquidity-venues",
     "test:pricers": "pnpm build && vitest --dir apps/pricers",
-    "test:bot": "pnpm build && vitest bot",
+    "test:client": "pnpm build && vitest --dir apps/client",
     "test:hyperindex": "pnpm --filter @morpho-blue-liquidation-bot/hyperindex test",
     "build": "pnpm build:config && pnpm --parallel --filter @morpho-blue-liquidation-bot/data-providers --filter @morpho-blue-liquidation-bot/liquidity-venues --filter @morpho-blue-liquidation-bot/pricers build",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",

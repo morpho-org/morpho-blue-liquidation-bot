@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { startHealthServer } from "../../../src/health.js";
+import { startHealthServer } from "../../src/health.js";
 
 describe("Health endpoint", () => {
   let healthServer: Awaited<ReturnType<typeof startHealthServer>>;
