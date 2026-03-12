@@ -1,4 +1,5 @@
 generated/
 node_modules/
 .envio/
+config.yaml
 config.test.yaml

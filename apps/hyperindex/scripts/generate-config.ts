@@ -1,7 +1,7 @@
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import {
+  chainConfigs,
   hyperIndexChainConfigs,
-  hyperIndexChainIds,
 } from "@morpho-blue-liquidation-bot/config";
 import { stringify } from "yaml";
 import { writeFileSync } from "node:fs";
@@ -182,7 +182,10 @@ const config = {
       ],
     },
   ],
-  chains: hyperIndexChainIds.map(buildChainConfig),
+  chains: Object.keys(hyperIndexChainConfigs)
+    .map(Number)
+    .filter((chainId) => chainId in chainConfigs)
+    .map(buildChainConfig),
 };
 
 const yamlContent =

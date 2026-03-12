@@ -1,5 +1,6 @@
-import { exec, type ChildProcess } from "node:child_process";
+import { exec, execSync, type ChildProcess } from "node:child_process";
 
+import { hyperIndexChainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { AccrualPosition, Market, PreLiquidationPosition } from "@morpho-org/blue-sdk";
 import { GraphQLClient } from "graphql-request";
 import gql from "graphql-tag";
@@ -9,8 +10,10 @@ import { readContract } from "viem/actions";
 import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
 
 const DEFAULT_HYPERINDEX_URL = "http://localhost:8080/v1/graphql";
-const HEALTH_CHECK_INTERVAL_MS = 2000;
-const HEALTH_CHECK_TIMEOUT_MS = 120_000;
+const HEALTH_CHECK_INTERVAL_MS = 500;
+const SPINNER_FRAMES = ["◰", "◳", "◲", "◱"];
+const HEALTH_CHECK_TIMEOUT_MS = 7_200_000; // 2 hours — full Arbitrum RPC backfill can take a long time
+const BACKFILL_TOLERANCE_BLOCKS = 100; // consider "caught up" when within this many blocks of tip
 
 const oracleAbi = [
   {
@@ -146,6 +149,12 @@ interface VaultMarketsResponse {
   Vault: HyperIndexVault[];
 }
 
+function progressBar(current: number, total: number, width = 30): string {
+  const ratio = Math.min(current / total, 1);
+  const filled = Math.round(width * ratio);
+  return `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
+}
+
 export interface HyperIndexDataProviderOptions {
   /** URL of an externally hosted HyperIndex instance. If set, selfhost is skipped. */
   url?: string;
@@ -171,9 +180,14 @@ export class HyperIndexDataProvider implements DataProvider {
       return;
     }
 
+    const hyperindexDir = new URL("../../../hyperindex", import.meta.url).pathname;
+
+    console.log("[HyperIndex] Generating config...");
+    execSync("pnpm generate:config", { cwd: hyperindexDir, stdio: "inherit" });
+
     console.log("[HyperIndex] Starting local indexer...");
-    this.indexerProcess = exec("pnpm start", {
-      cwd: new URL("../../../../hyperindex", import.meta.url).pathname,
+    this.indexerProcess = exec("TUI_OFF=true pnpm dev", {
+      cwd: hyperindexDir,
     });
 
     this.indexerProcess.stdout?.on("data", (data: string) => {
@@ -182,6 +196,10 @@ export class HyperIndexDataProvider implements DataProvider {
 
     this.indexerProcess.stderr?.on("data", (data: string) => {
       process.stderr.write(`[HyperIndex] ${data}`);
+    });
+
+    this.indexerProcess.on("error", (err) => {
+      console.error(`[HyperIndex] Failed to start indexer process: ${err.message}`);
     });
 
     this.indexerProcess.on("exit", (code) => {
@@ -388,24 +406,111 @@ export class HyperIndexDataProvider implements DataProvider {
     }
   }
 
+  private async getChainTip(chainId: number): Promise<number | undefined> {
+    const rpcUrl = process.env[`RPC_URL_${chainId}`];
+    if (!rpcUrl) return undefined;
+
+    try {
+      const res = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }),
+      });
+      const data = (await res.json()) as { result?: string };
+      return data.result ? Number.parseInt(data.result, 16) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   private async waitForReady(): Promise<void> {
     const start = Date.now();
+    const chainTips = new Map<number, number>();
+    let spinnerIdx = 0;
+    let lineCount = 0;
 
     while (Date.now() - start < HEALTH_CHECK_TIMEOUT_MS) {
       try {
-        await this.graphqlClient.request(gql`
+        const data = await this.graphqlClient.request<{
+          chain_metadata: { chain_id: number; latest_processed_block: number }[];
+        }>(gql`
           {
-            __typename
+            chain_metadata {
+              chain_id
+              latest_processed_block
+            }
           }
         `);
-        return;
+
+        const chains = data.chain_metadata ?? [];
+        if (chains.length === 0) {
+          await new Promise((resolve) => setTimeout(resolve, HEALTH_CHECK_INTERVAL_MS));
+          continue;
+        }
+
+        // Fetch chain tips once per chain
+        for (const c of chains) {
+          if (!chainTips.has(c.chain_id)) {
+            const tip = await this.getChainTip(c.chain_id);
+            if (tip) chainTips.set(c.chain_id, tip);
+          }
+        }
+
+        // Check if all chains are caught up
+        let allCaughtUp = true;
+        for (const c of chains) {
+          const tip = chainTips.get(c.chain_id);
+          if (tip) {
+            if (tip - c.latest_processed_block > BACKFILL_TOLERANCE_BLOCKS) {
+              allCaughtUp = false;
+            }
+          } else if (c.latest_processed_block < 0) {
+            allCaughtUp = false;
+          }
+        }
+
+        // Overwrite previous lines to create a rolling progress display
+        if (lineCount > 0) {
+          process.stdout.write(`\x1b[${lineCount}A`);
+        }
+
+        const elapsed = ((Date.now() - start) / 1000).toFixed(0);
+        const spinner = SPINNER_FRAMES[spinnerIdx % SPINNER_FRAMES.length];
+        spinnerIdx++;
+
+        lineCount = 0;
+        for (const c of chains) {
+          const tip = chainTips.get(c.chain_id);
+          const startBlock = hyperIndexChainConfigs[c.chain_id]?.morphoStartBlock ?? 0;
+          if (tip) {
+            const progress = c.latest_processed_block - startBlock;
+            const total = tip - startBlock;
+            const pct = total > 0 ? ((progress / total) * 100).toFixed(1) : "0.0";
+            const bar = progressBar(progress, total);
+            process.stdout.write(
+              `\x1b[2K${spinner} [HyperIndex] Chain ${c.chain_id}: ${bar} ${pct}% (${c.latest_processed_block.toLocaleString()} / ${tip.toLocaleString()}) [${elapsed}s]\n`,
+            );
+          } else {
+            process.stdout.write(
+              `\x1b[2K${spinner} [HyperIndex] Chain ${c.chain_id}: block ${c.latest_processed_block.toLocaleString()} [${elapsed}s]\n`,
+            );
+          }
+          lineCount++;
+        }
+
+        if (allCaughtUp) {
+          console.log("[HyperIndex] Backfill complete");
+          return;
+        }
       } catch {
-        await new Promise((resolve) => setTimeout(resolve, HEALTH_CHECK_INTERVAL_MS));
+        // Hasura not up yet or table not created
       }
+
+      await new Promise((resolve) => setTimeout(resolve, HEALTH_CHECK_INTERVAL_MS));
     }
 
     throw new Error(
-      `[HyperIndex] Timed out waiting for indexer at ${this.url} after ${HEALTH_CHECK_TIMEOUT_MS / 1000}s`,
+      `[HyperIndex] Timed out waiting for backfill at ${this.url} after ${HEALTH_CHECK_TIMEOUT_MS / 1000}s`,
     );
   }
 }
