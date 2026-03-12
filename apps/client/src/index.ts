@@ -20,8 +20,6 @@ import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms";
-import { createPricer } from "./pricers";
-import { createLiquidityVenue } from "./liquidityVenues";
 
 export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   dotenv.config();
