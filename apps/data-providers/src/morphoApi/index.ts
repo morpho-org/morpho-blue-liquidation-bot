@@ -29,26 +29,32 @@ export class MorphoApiDataProvider implements DataProvider {
   ): Promise<LiquidatablePositionsResult> {
     try {
       const PAGE_SIZE = 100;
+      const MARKET_BATCH_SIZE = 100;
       const allPositions: NonNullable<
         Awaited<ReturnType<typeof apiSdk.getLiquidatablePositions>>["marketPositions"]["items"]
       > = [];
 
-      let skip = 0;
-      while (true) {
-        const positionsQuery = await apiSdk.getLiquidatablePositions({
-          chainId: client.chain.id,
-          marketIds,
-          skip,
-          first: PAGE_SIZE,
-        });
+      // Batch market IDs into chunks of 100 (API limit)
+      for (let i = 0; i < marketIds.length; i += MARKET_BATCH_SIZE) {
+        const marketIdsBatch = marketIds.slice(i, i + MARKET_BATCH_SIZE);
 
-        const items = positionsQuery.marketPositions.items;
-        if (!items || items.length === 0) break;
+        let skip = 0;
+        while (true) {
+          const positionsQuery = await apiSdk.getLiquidatablePositions({
+            chainId: client.chain.id,
+            marketIds: marketIdsBatch,
+            skip,
+            first: PAGE_SIZE,
+          });
 
-        allPositions.push(...items);
+          const items = positionsQuery.marketPositions.items;
+          if (!items || items.length === 0) break;
 
-        if (items.length < PAGE_SIZE) break;
-        skip += PAGE_SIZE;
+          allPositions.push(...items);
+
+          if (items.length < PAGE_SIZE) break;
+          skip += PAGE_SIZE;
+        }
       }
 
       const positions = allPositions.filter(
@@ -58,7 +64,8 @@ export class MorphoApiDataProvider implements DataProvider {
           position.state !== null,
       );
 
-      if (positions.length === 0) return { liquidatablePositions: [], preLiquidatablePositions: [] };
+      if (positions.length === 0)
+        return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
       const marketsMap = new Map(
         await Promise.all(
