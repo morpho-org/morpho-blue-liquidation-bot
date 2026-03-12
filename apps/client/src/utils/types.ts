@@ -1,4 +1,4 @@
-import type { PreLiquidationParams } from "@morpho-org/blue-sdk";
+import type { IMarketParams, PreLiquidationParams } from "@morpho-org/blue-sdk";
 import type { Address, Chain, Hex } from "viem";
 
 export interface ToConvert {
@@ -25,3 +25,10 @@ export type TenderlyConfig = {
   tenderlyAccount: string;
   tenderlyProject: string;
 };
+export interface LiquidatablePosition {
+  marketId: Hex;
+  params: IMarketParams;
+  collateral: bigint;
+  borrowShares: bigint;
+  seizableCollateral: bigint;
+}

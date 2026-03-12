@@ -109,6 +109,22 @@ export const pendleOneInchExecutionTest = createViemTest(mainnet, {
   },
 });
 
+export const preLiquidationTest = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
+  forkBlockNumber: 21_429_913,
+  timeout: 100_000,
+}).extend<ExecutorEncoderTestContext<typeof mainnet>>({
+  encoder: async ({ client }, use) => {
+    const receipt = await client.deployContractWait({
+      abi: executorAbi,
+      bytecode,
+      args: [client.account.address],
+    });
+
+    await use(new ExecutorEncoder(receipt.contractAddress, client));
+  },
+});
+
 export const liquidSwapTest = createViemTest(hyperevm, {
   forkUrl: process.env.RPC_URL_999 ?? hyperevm.rpcUrls.default.http[0],
   forkBlockNumber: 18383174,

@@ -19,9 +19,14 @@ export const wbtcUSDC = "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340
 export const ptsUSDeUSDC =
   "0x05702edf1c4709808b62fe65a7d082dccc9386f858ae460ef207ec8dd1debfa2" as Hex;
 
+/// Markets (WBTC/USDT 86%)
+
+export const wbtcUSDT = "0xa921ef34e2fc7a27ccc50ae7e4b154e16c9799d3387076c421423ef52ac4df99" as Hex;
+
 /// Protocols addresses
 
 export const MORPHO = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
+export const PRE_LIQUIDATION_FACTORY = "0x6FF33615e792E35ed1026ea7cACCf42D9BF83476" as Address;
 
 /// Morpho storage slots
 

@@ -7,6 +7,9 @@ import {
   POSITION_LIQUIDATION_COOLDOWN_PERIOD,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
+import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
+import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
@@ -20,7 +23,7 @@ import {
 import { createPricer } from "./pricers";
 import { createLiquidityVenue } from "./liquidityVenues";
 
-export const launchBot = (config: ChainConfig) => {
+export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   dotenv.config();
 
   const logTag = `[${config.chain.name} client]: `;
@@ -92,6 +95,7 @@ export const launchBot = (config: ChainConfig) => {
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
     treasuryAddress: config.treasuryAddress ?? client.account.address,
+    dataProvider,
     liquidityVenues,
     pricers,
     marketsFetchingCooldownMechanism,
@@ -109,9 +113,7 @@ export const launchBot = (config: ChainConfig) => {
   watchBlocks(client, {
     onBlock: () => {
       if (count % blockInterval === 0) {
-        try {
-          void bot.run();
-        } catch (e) {
+        bot.run().catch((e) => {
           console.error(`${logTag} uncaught error in bot.run():`, e);
           Sentry.captureException(e, {
             tags: {
@@ -119,7 +121,7 @@ export const launchBot = (config: ChainConfig) => {
               chainId: config.chainId.toString(),
             },
           });
-        }
+        });
       }
       count++;
     },

@@ -25,19 +25,27 @@ You are a domain expert on the Morpho Blue liquidation bot and the Morpho Blue p
 
 ### Liquidation bot architecture
 - Read and understand the CLAUDE.md at the project root for the full architecture overview
+- Six packages: `apps/config`, `apps/client`, `apps/data-providers`, `apps/hyperindex`, `apps/liquidity-venues`, `apps/pricers`
 - Executor contract patterns: how `LiquidationEncoder` builds batched calldata via `executooor-viem`
 - Multi-chain execution: how `script.ts` launches one bot per chain config
 
 ### Venue integration patterns
-- `LiquidityVenue` interface: `supportsRoute` and `convert`
+- `LiquidityVenue` interface in `apps/liquidity-venues/src/liquidityVenue.ts`: `supportsRoute` and `convert`
 - How venues are ordered and tried sequentially in `apps/config/src/config.ts`
-- Factory pattern: config exports string names, client owns implementations
+- Factory pattern in `apps/liquidity-venues/src/factory.ts`: config exports string names, implementation package owns classes
 - Common patterns: ERC4626 unwrapping, DEX swaps, wrapper unwrapping, Pendle PT redemption
 
 ### Pricer integration patterns
-- `Pricer` interface: `price(client, asset)` returns USD price
-- Factory pattern matching venues
+- `Pricer` interface in `apps/pricers/src/pricer.ts`: `price(client, asset)` returns USD price
+- Factory pattern in `apps/pricers/src/factory.ts` matching venues
 - Caching strategies (see DefiLlama pricer)
+
+### Data provider integration patterns
+- `DataProvider` interface in `apps/data-providers/src/dataProvider.ts`: `init`, `fetchMarkets`, `fetchLiquidatablePositions`
+- Factory pattern in `apps/data-providers/src/factory.ts`: creates shared instances across chains
+- HyperIndex provider: self-hosted Envio indexer with GraphQL API
+- MorphoApi provider: queries the Morpho API directly
+- Config in `apps/config/src/dataProviders/hyperindex.ts`: chain deployment blocks and factory addresses
 
 ### EVM/DeFi best practices
 - Token decimal handling: always use `parseUnits`/`formatUnits`, never manual exponentiation

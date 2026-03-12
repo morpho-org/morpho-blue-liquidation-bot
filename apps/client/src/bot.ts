@@ -1,5 +1,8 @@
 import * as Sentry from "@sentry/node";
 import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import type { LiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
+import type { Pricer } from "@morpho-blue-liquidation-bot/pricers";
 import {
   AccrualPosition,
   ChainAddresses,
@@ -32,14 +35,11 @@ import {
   writeContract,
 } from "viem/actions";
 
-import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue.js";
-import type { Pricer } from "./pricers/pricer.js";
 import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms.js";
 import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
-import { fetchLiquidatablePositions, fetchMarketsForVaults } from "./utils/fetchers.js";
 import { Flashbots } from "./utils/flashbots.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
@@ -55,6 +55,7 @@ export interface LiquidationBotInputs {
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
   treasuryAddress: Address;
+  dataProvider: DataProvider;
   liquidityVenues: LiquidityVenue[];
   alwaysRealizeBadDebt: boolean;
   pricers?: Pricer[];
@@ -76,6 +77,7 @@ export class LiquidationBot {
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
   private treasuryAddress: Address;
+  private dataProvider: DataProvider;
   private liquidityVenues: LiquidityVenue[];
   private pricers?: Pricer[];
   private positionLiquidationCooldownMechanism?: PositionLiquidationCooldownMechanism;
@@ -95,6 +97,7 @@ export class LiquidationBot {
     this.additionalMarketsWhitelist = inputs.additionalMarketsWhitelist;
     this.executorAddress = inputs.executorAddress;
     this.treasuryAddress = inputs.treasuryAddress;
+    this.dataProvider = inputs.dataProvider;
     this.liquidityVenues = inputs.liquidityVenues;
     this.pricers = inputs.pricers;
     this.positionLiquidationCooldownMechanism = inputs.positionLiquidationCooldownMechanism;
@@ -107,17 +110,18 @@ export class LiquidationBot {
   async run() {
     await this.fetchMarkets();
 
-    const liquidatablePositions = await fetchLiquidatablePositions(
-      this.client,
-      this.coveredMarkets,
-    );
+    const { liquidatablePositions, preLiquidatablePositions } =
+      await this.dataProvider.fetchLiquidatablePositions(this.client, this.coveredMarkets);
 
-    await Promise.all(liquidatablePositions.map((position) => this.liquidate(position)));
+    await Promise.all([
+      ...liquidatablePositions.map((position) => this.liquidate(position)),
+      ...preLiquidatablePositions.map((position) => this.preLiquidate(position)),
+    ]);
   }
 
   private async liquidate(position: AccrualPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = position.seizableCollateral!;
+    const seizableCollateral = position.seizableCollateral ?? 0n;
     const badDebtPosition = seizableCollateral === position.collateral;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
@@ -140,7 +144,10 @@ export class LiquidationBot {
     encoder.morphoBlueLiquidate(
       this.chainAddresses.morpho,
       {
-        ...marketParams,
+        loanToken: marketParams.loanToken,
+        collateralToken: marketParams.collateralToken,
+        oracle: marketParams.oracle,
+        irm: marketParams.irm,
         lltv: BigInt(marketParams.lltv),
       },
       position.user,
@@ -221,7 +228,10 @@ export class LiquidationBot {
 
   private async preLiquidate(position: PreLiquidationPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = this.decreaseSeizableCollateral(position.seizableCollateral!, false);
+    const seizableCollateral = this.decreaseSeizableCollateral(
+      position.seizableCollateral ?? 0n,
+      false,
+    );
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
@@ -384,7 +394,7 @@ export class LiquidationBot {
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-      return;
+      return true;
     } else {
       await writeContract(this.client, { address: encoder.address, ...functionData });
     }
@@ -519,7 +529,10 @@ export class LiquidationBot {
     const vaultWhitelist = this.vaultWhitelist;
     console.log(`${this.logTag}📝 Watching markets in the following vaults:`, vaultWhitelist);
 
-    const whitelistedMarketsFromVaults = await fetchMarketsForVaults(this.client, vaultWhitelist);
+    const whitelistedMarketsFromVaults = await this.dataProvider.fetchMarkets(
+      this.client,
+      vaultWhitelist,
+    );
 
     this.coveredMarkets = [...whitelistedMarketsFromVaults, ...this.additionalMarketsWhitelist];
   }

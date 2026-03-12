@@ -47,11 +47,12 @@ Read each changed file and check for violations. Focus areas:
 - Chain ID assumptions are documented
 - New chain additions include all required config fields
 
-**Venue/pricer patterns (P1)**:
-- New venues implement the `LiquidityVenue` interface (`supportsRoute` + `convert`)
-- New pricers implement the `Pricer` interface (`price`)
-- Registered in the factory switch statement
-- Type name added to the union type in config
+**Venue/pricer/data-provider patterns (P1)**:
+- New venues implement the `LiquidityVenue` interface (`supportsRoute` + `convert`) in `apps/liquidity-venues/src/`
+- New pricers implement the `Pricer` interface (`price`) in `apps/pricers/src/`
+- New data providers implement the `DataProvider` interface (`init`, `fetchMarkets`, `fetchLiquidatablePositions`) in `apps/data-providers/src/`
+- Registered in the respective factory switch statement (`apps/liquidity-venues/src/factory.ts`, `apps/pricers/src/factory.ts`, `apps/data-providers/src/factory.ts`)
+- Type name added to the union type in config (`apps/config/src/types.ts`)
 - Config constants exported from config package
 - Tests added
 
@@ -67,8 +68,8 @@ Read each changed file and check for violations. Focus areas:
 - Individual venue/pricer failures don't crash the bot
 
 **Test coverage (P2)**:
-- New venues have liquidity venue tests
-- New pricers have pricer tests
+- New venues have tests in `apps/liquidity-venues/test/vitest/`
+- New pricers have tests in `apps/pricers/test/vitest/`
 - Tests follow existing patterns (use `encoderTest` for venues, `test` fixture for pricers)
 
 ### 4. Output format

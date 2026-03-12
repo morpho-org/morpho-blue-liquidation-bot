@@ -1,9 +1,9 @@
 import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import dotenv from "dotenv";
-import { bytecode, executorAbi } from "executooor-viem";
-import { type Address, createWalletClient, type Hex, http, type WalletClient } from "viem";
+import { createWalletClient, type Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { waitForTransactionReceipt } from "viem/actions";
+
+import { deploy } from "./utils/deploy-executor.js";
 
 async function run() {
   dotenv.config();
@@ -33,22 +33,5 @@ async function run() {
     await deploy(client, privateKeyToAccount(privateKey as Hex).address);
   }
 }
-
-export const deploy = async (client: WalletClient, account: Address) => {
-  const hash = await client.deployContract({
-    abi: executorAbi,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    account: client.account!,
-    bytecode,
-    args: [account],
-    chain: client.chain,
-  });
-
-  const tx = await waitForTransactionReceipt(client, { hash });
-
-  console.log(`Executor deployed on ${client.chain?.id} at ${tx.contractAddress}`);
-
-  return tx.contractAddress;
-};
 
 void run();
