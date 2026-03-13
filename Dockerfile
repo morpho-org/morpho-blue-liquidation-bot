@@ -23,6 +23,7 @@ ENV CHAIN_IDS="1 8453 130 747474 42161 999 143 10 137 480"
 # Declare the non-dynamic vars so they are available at runtime
 ENV LIQUIDATION_PRIVATE_KEY=${LIQUIDATION_PRIVATE_KEY}
 ENV ONE_INCH_SWAP_API_KEY=${ONE_INCH_SWAP_API_KEY}
+ENV HYPERINDEX_URL=${HYPERINDEX_URL}
 ENV RAILWAY_DEPLOYMENT_ID=${RAILWAY_DEPLOYMENT_ID}
 
 # Build the .env file dynamically at container start
@@ -33,5 +34,6 @@ CMD ["sh", "-lc", "{ \
     echo \"LIQUIDATION_PRIVATE_KEY_${CHAIN}=$(printenv LIQUIDATION_PRIVATE_KEY)\"; \
   done; \
   echo \"ONE_INCH_SWAP_API_KEY=$(printenv ONE_INCH_SWAP_API_KEY)\"; \
+  echo \"HYPERINDEX_URL=$(printenv HYPERINDEX_URL)\"; \
   echo \"RAILWAY_DEPLOYMENT_ID=$(printenv RAILWAY_DEPLOYMENT_ID)\"; \
 } > .env && pnpm run liquidate"]
