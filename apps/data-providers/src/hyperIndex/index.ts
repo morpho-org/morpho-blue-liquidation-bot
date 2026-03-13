@@ -5,6 +5,7 @@ import { AccrualPosition, Market, PreLiquidationPosition } from "@morpho-org/blu
 import { GraphQLClient } from "graphql-request";
 import gql from "graphql-tag";
 import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
+import { getAddress } from "viem";
 import { readContract } from "viem/actions";
 
 import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
@@ -81,7 +82,9 @@ const GET_VAULT_MARKETS = gql`
   query GetVaultMarkets($vaultIds: [String!]!) {
     Vault(where: { id: { _in: $vaultIds } }) {
       id
-      withdrawQueue
+      withdrawQueue(order_by: { ordinal: asc }) {
+        market_id
+      }
     }
   }
 `;
@@ -129,7 +132,7 @@ interface HyperIndexAuthorization {
 
 interface HyperIndexVault {
   id: string;
-  withdrawQueue: string[];
+  withdrawQueue: { market_id: string }[];
 }
 
 interface PositionsAndMarketsResponse {
@@ -214,13 +217,15 @@ export class HyperIndexDataProvider implements DataProvider {
 
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
-      const vaultIds = vaults.map((v) => `${client.chain.id}-${v}`);
+      const vaultIds = vaults.map((v) => `${client.chain.id}-${v.toLowerCase()}`);
 
       const response = await this.graphqlClient.request<VaultMarketsResponse>(GET_VAULT_MARKETS, {
         vaultIds,
       });
 
-      const marketIds = response.Vault.flatMap((vault) => vault.withdrawQueue);
+      const marketIds = response.Vault.flatMap((vault) =>
+        vault.withdrawQueue.filter((item) => item.market_id != null).map((item) => item.market_id),
+      );
       return [...new Set(marketIds)] as Hex[];
     } catch (error) {
       console.error(`Error fetching markets from HyperIndex: ${error}`);
@@ -233,7 +238,7 @@ export class HyperIndexDataProvider implements DataProvider {
     marketIds: Hex[],
   ): Promise<LiquidatablePositionsResult> {
     try {
-      const indexedMarketIds = marketIds.map((id) => `${client.chain.id}-${id}`);
+      const indexedMarketIds = marketIds.map((id) => `${client.chain.id}-${id.toLowerCase()}`);
 
       // 1. Fetch positions/markets, preLiquidation contracts, and authorizations in parallel
       const [positionsAndMarkets, preLiqContracts, authorizations] = await Promise.all([
@@ -255,10 +260,10 @@ export class HyperIndexDataProvider implements DataProvider {
       // 2. Collect all unique oracle addresses (market oracles + preLiquidation oracles)
       const oracleAddresses = new Set<Address>();
       for (const m of positionsAndMarkets.Market) {
-        oracleAddresses.add(m.oracle as Address);
+        oracleAddresses.add(getAddress(m.oracle));
       }
       for (const plc of preLiqContracts.PreLiquidationContract) {
-        oracleAddresses.add(plc.preLiquidationOracle as Address);
+        oracleAddresses.add(getAddress(plc.preLiquidationOracle));
       }
 
       // 3. Fetch all oracle prices on-chain in parallel (deduplicated)
@@ -283,14 +288,15 @@ export class HyperIndexDataProvider implements DataProvider {
       const now = BigInt(Math.floor(Date.now() / 1000));
 
       for (const m of positionsAndMarkets.Market) {
-        const price = oraclePrices.get(m.oracle as Address);
+        const oracleAddress = getAddress(m.oracle);
+        const price = oraclePrices.get(oracleAddress);
 
         const market = new Market({
           params: {
-            loanToken: m.loanToken as Address,
-            collateralToken: m.collateralToken as Address,
-            oracle: m.oracle as Address,
-            irm: m.irm as Address,
+            loanToken: getAddress(m.loanToken),
+            collateralToken: getAddress(m.collateralToken),
+            oracle: oracleAddress,
+            irm: getAddress(m.irm),
             lltv: BigInt(m.lltv),
           },
           totalSupplyAssets: BigInt(m.totalSupplyAssets),
@@ -313,7 +319,7 @@ export class HyperIndexDataProvider implements DataProvider {
 
         return new AccrualPosition(
           {
-            user: p.user as Address,
+            user: getAddress(p.user),
             supplyShares: BigInt(p.supplyShares),
             borrowShares: BigInt(p.borrowShares),
             collateral: BigInt(p.collateral),
@@ -328,8 +334,7 @@ export class HyperIndexDataProvider implements DataProvider {
       //    Match: position.user authorized the preLiquidation contract address
       const authorizedSet = new Set<string>();
       for (const auth of authorizations.Authorization) {
-        // key: "authorizer-authorizee" (both checksummed from index)
-        authorizedSet.add(`${auth.authorizer}-${auth.authorizee}`);
+        authorizedSet.add(`${getAddress(auth.authorizer)}-${getAddress(auth.authorizee)}`);
       }
 
       // Group preLiquidation contracts by market
@@ -352,25 +357,28 @@ export class HyperIndexDataProvider implements DataProvider {
 
         for (const plc of contracts) {
           // Check if user authorized this preLiquidation contract
-          const authKey = `${p.user}-${plc.address}`;
+          const userAddress = getAddress(p.user);
+          const plcAddress = getAddress(plc.address);
+          const authKey = `${userAddress}-${plcAddress}`;
           if (!authorizedSet.has(authKey)) continue;
 
-          const preLiqOraclePrice = oraclePrices.get(plc.preLiquidationOracle as Address);
+          const preLiqOracleAddress = getAddress(plc.preLiquidationOracle);
+          const preLiqOraclePrice = oraclePrices.get(preLiqOracleAddress);
 
           const preLiqPosition = new PreLiquidationPosition(
             {
-              user: p.user as Address,
+              user: userAddress,
               supplyShares: BigInt(p.supplyShares),
               borrowShares: BigInt(p.borrowShares),
               collateral: BigInt(p.collateral),
-              preLiquidation: plc.address as Address,
+              preLiquidation: plcAddress,
               preLiquidationParams: {
                 preLltv: BigInt(plc.preLltv),
                 preLCF1: BigInt(plc.preLCF1),
                 preLCF2: BigInt(plc.preLCF2),
                 preLIF1: BigInt(plc.preLIF1),
                 preLIF2: BigInt(plc.preLIF2),
-                preLiquidationOracle: plc.preLiquidationOracle as Address,
+                preLiquidationOracle: preLiqOracleAddress,
               },
               preLiquidationOraclePrice: preLiqOraclePrice,
             },
