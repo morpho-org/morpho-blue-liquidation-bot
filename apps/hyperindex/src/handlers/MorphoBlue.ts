@@ -221,17 +221,12 @@ Morpho.Liquidate.handler(async ({ event, context }) => {
   context.Position.set({
     ...position,
     collateral: position.collateral - event.params.seizedAssets,
-    borrowShares:
-      position.borrowShares - event.params.repaidShares - event.params.badDebtShares,
+    borrowShares: position.borrowShares - event.params.repaidShares - event.params.badDebtShares,
   });
 });
 
 Morpho.SetAuthorization.handler(async ({ event, context }) => {
-  const id = authorizationId(
-    event.chainId,
-    event.params.authorizer,
-    event.params.authorized,
-  );
+  const id = authorizationId(event.chainId, event.params.authorizer, event.params.authorized);
 
   context.Authorization.set({
     id,

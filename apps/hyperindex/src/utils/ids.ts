@@ -6,19 +6,11 @@ export function marketId(chainId: number, id: string): string {
   return `${chainId}-${id}`;
 }
 
-export function positionId(
-  chainId: number,
-  marketId: string,
-  user: string,
-): string {
+export function positionId(chainId: number, marketId: string, user: string): string {
   return `${chainId}-${marketId}-${getAddress(user)}`;
 }
 
-export function authorizationId(
-  chainId: number,
-  authorizer: string,
-  authorizee: string,
-): string {
+export function authorizationId(chainId: number, authorizer: string, authorizee: string): string {
   return `${chainId}-${getAddress(authorizer)}-${getAddress(authorizee)}`;
 }
 
