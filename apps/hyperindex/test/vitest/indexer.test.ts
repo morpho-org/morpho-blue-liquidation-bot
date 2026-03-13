@@ -200,23 +200,15 @@ describe.sequential(`HyperIndex indexer (mainnet, end block ${END_BLOCK})`, () =
         args: [indexed.marketId as Hex],
       });
 
-      expect(BigInt(indexed.totalSupplyAssets)).toBe(
-        onChain[0],
-      );
-      expect(BigInt(indexed.totalSupplyShares)).toBe(
-        onChain[1],
-      );
-      expect(BigInt(indexed.totalBorrowAssets)).toBe(
-        onChain[2],
-      );
-      expect(BigInt(indexed.totalBorrowShares)).toBe(
-        onChain[3],
-      );
+      expect(BigInt(indexed.totalSupplyAssets)).toBe(onChain[0]);
+      expect(BigInt(indexed.totalSupplyShares)).toBe(onChain[1]);
+      expect(BigInt(indexed.totalBorrowAssets)).toBe(onChain[2]);
+      expect(BigInt(indexed.totalBorrowShares)).toBe(onChain[3]);
       expect(BigInt(indexed.fee)).toBe(onChain[5]);
 
       // Skip lastUpdate check for zero-IRM markets (they never accrue interest)
       const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-      if (indexed.irm.toLowerCase() !== ZERO_ADDRESS) {
+      if (indexed.irm !== ZERO_ADDRESS) {
         expect(BigInt(indexed.lastUpdate)).toBe(onChain[4]);
       }
     }
@@ -236,11 +228,12 @@ describe.sequential(`HyperIndex indexer (mainnet, end block ${END_BLOCK})`, () =
       // market_id format is "chainId-marketId"
       const rawMarketId = indexed.market_id.replace(`${CHAIN_ID}-`, "") as Hex;
 
+      // Indexed addresses are lowercase; getAddress() checksums for on-chain call
       const onChain = await readContract(client, {
         address: morphoAddress,
         abi: morphoAbi,
         functionName: "position",
-        args: [rawMarketId, indexed.user as Address],
+        args: [rawMarketId, getAddress(indexed.user) as Address],
       });
 
       expect(BigInt(indexed.supplyShares)).toBe(onChain[0]);
@@ -260,11 +253,15 @@ describe.sequential(`HyperIndex indexer (mainnet, end block ${END_BLOCK})`, () =
     const sampled = pickRandom(authorizations, 10);
 
     for (const indexed of sampled) {
+      // Indexed addresses are lowercase; getAddress() checksums for on-chain call
       const onChain = await readContract(client, {
         address: morphoAddress,
         abi: morphoAbi,
         functionName: "isAuthorized",
-        args: [indexed.authorizer as Address, indexed.authorizee as Address],
+        args: [
+          getAddress(indexed.authorizer) as Address,
+          getAddress(indexed.authorizee) as Address,
+        ],
       });
 
       expect(indexed.isAuthorized).toBe(onChain);
@@ -283,6 +280,7 @@ describe.sequential(`HyperIndex indexer (mainnet, end block ${END_BLOCK})`, () =
     const sampled = pickRandom(vaults, 1);
 
     for (const indexed of sampled) {
+      // Indexed addresses are lowercase; getAddress() checksums for on-chain call
       const vaultAddress = getAddress(indexed.address) as Address;
 
       const queueLength = await readContract(client, {
