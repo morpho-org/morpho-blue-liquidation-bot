@@ -1,4 +1,4 @@
-import { AccrualPosition, MarketId } from "@morpho-org/blue-sdk";
+import { AccrualPosition, Market, MarketId } from "@morpho-org/blue-sdk";
 import "@morpho-org/blue-sdk-viem/lib/augment";
 import { fetchMarket, metaMorphoAbi } from "@morpho-org/blue-sdk-viem";
 import { Time } from "@morpho-org/morpho-ts";
@@ -18,7 +18,7 @@ export class MorphoApiDataProvider implements DataProvider {
 
       return [...new Set(vaultMarkets.flat())];
     } catch (error) {
-      console.error(`Error fetching markets for vaults: ${error}`);
+      console.error(`[Chain ${client.chain.id}] Error fetching markets for vaults:`, error);
       return [];
     }
   }
@@ -67,19 +67,31 @@ export class MorphoApiDataProvider implements DataProvider {
       if (positions.length === 0)
         return { liquidatablePositions: [], preLiquidatablePositions: [] };
 
-      const marketsMap = new Map(
-        await Promise.all(
-          [...marketIds].map(async (marketId) => {
-            const market = await fetchMarket(marketId as MarketId, client, {
-              chainId: client.chain.id,
-              // Disable `deployless` so that viem multicall aggregates fetches
-              deployless: false,
-            });
+      const marketResults = await Promise.allSettled(
+        [...marketIds].map(async (marketId) => {
+          const market = await fetchMarket(marketId as MarketId, client, {
+            chainId: client.chain.id,
+            // Disable `deployless` so that viem multicall aggregates fetches
+            deployless: false,
+          });
 
-            return [marketId, market.accrueInterest(Time.timestamp())] as const;
-          }),
-        ),
+          return [marketId, market.accrueInterest(Time.timestamp())] as const;
+        }),
       );
+
+      const marketsMap = new Map(
+        marketResults
+          .filter(
+            (r): r is PromiseFulfilledResult<readonly [Hex, Market]> => r.status === "fulfilled",
+          )
+          .map((r) => r.value),
+      );
+
+      for (const r of marketResults) {
+        if (r.status === "rejected") {
+          console.error(`[Chain ${client.chain.id}] Error fetching market:`, r.reason);
+        }
+      }
 
       const accruedPositions = positions
         .map((position) => {
@@ -108,7 +120,7 @@ export class MorphoApiDataProvider implements DataProvider {
         preLiquidatablePositions: [],
       };
     } catch (error) {
-      console.error(`Error fetching liquidatable positions: ${error}`);
+      console.error(`[Chain ${client.chain.id}] Error fetching liquidatable positions:`, error);
       return { liquidatablePositions: [], preLiquidatablePositions: [] };
     }
   }
@@ -138,7 +150,10 @@ export class MorphoApiDataProvider implements DataProvider {
         }),
       );
     } catch (error) {
-      console.error(`Error fetching vault markets: ${error}`);
+      console.error(
+        `[Chain ${client.chain.id}] Error fetching vault markets for ${vaultAddress}:`,
+        error,
+      );
       return [];
     }
   }
