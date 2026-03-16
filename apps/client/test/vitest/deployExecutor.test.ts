@@ -4,7 +4,7 @@ import { type Address, erc20Abi, parseUnits } from "viem";
 import { readContract, writeContract } from "viem/actions";
 import { describe, expect } from "vitest";
 
-import { deploy } from "../../src/deployExecutor.js";
+import { deploy } from "../../src/utils/deploy-executor.js";
 import { USDC } from "../constants.js";
 import { test } from "../setup.js";
 

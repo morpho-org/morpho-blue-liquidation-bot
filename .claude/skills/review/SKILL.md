@@ -51,11 +51,12 @@ For each file, check for violations of CLAUDE.md standards. Focus areas:
 - Chain ID assumptions are documented
 - New chain additions include all required config fields
 
-**Liquidity Venue / Pricer Patterns**:
-- New venues implement the `LiquidityVenue` interface
-- New pricers implement the `Pricer` interface
-- Registered in the factory switch statement
-- Type name added to the union type in config
+**Liquidity Venue / Pricer / Data Provider Patterns**:
+- New venues implement the `LiquidityVenue` interface in `apps/liquidity-venues/src/`
+- New pricers implement the `Pricer` interface in `apps/pricers/src/`
+- New data providers implement the `DataProvider` interface in `apps/data-providers/src/`
+- Registered in the respective factory switch statement
+- Type name added to the union type in config (`apps/config/src/types.ts`)
 - Config constants exported from config package
 - Tests added
 

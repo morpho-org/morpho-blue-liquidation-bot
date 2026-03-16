@@ -5,19 +5,20 @@ import {
   ALWAYS_REALIZE_BAD_DEBT,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
+import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
+import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-import { createPricer } from "./pricers";
-import { createLiquidityVenue } from "./liquidityVenues";
 import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms";
 
-export const launchBot = (config: ChainConfig) => {
+export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const logTag = `[${config.chain.name} client]: `;
   console.log(`${logTag}Starting up`);
 
@@ -70,6 +71,7 @@ export const launchBot = (config: ChainConfig) => {
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
     treasuryAddress: config.treasuryAddress ?? client.account.address,
+    dataProvider,
     liquidityVenues,
     pricers,
     marketsFetchingCooldownMechanism,
@@ -86,11 +88,9 @@ export const launchBot = (config: ChainConfig) => {
   watchBlocks(client, {
     onBlock: () => {
       if (count % blockInterval === 0) {
-        try {
-          void bot.run();
-        } catch (e) {
+        bot.run().catch((e) => {
           console.error(`${logTag} uncaught error in bot.run():`, e);
-        }
+        });
       }
       count++;
     },

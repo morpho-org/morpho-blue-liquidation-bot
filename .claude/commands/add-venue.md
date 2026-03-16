@@ -22,15 +22,15 @@ Ask the user for:
 - Include all chains from `apps/config/src/config.ts`
 - Export from `apps/config/src/liquidityVenues/index.ts`
 
-### 2. Client package (`apps/client`)
+### 2. Liquidity Venues package (`apps/liquidity-venues`)
 
-**a) Create venue implementation** at `apps/client/src/liquidityVenues/<name>/index.ts`:
+**a) Create venue implementation** at `apps/liquidity-venues/src/<name>/index.ts`:
 
 ```typescript
 import type { ExecutorEncoder } from "executooor-viem";
 import type { Address } from "viem";
 
-import type { ToConvert } from "../../utils/types";
+import type { ToConvert } from "../types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
 export class <ClassName> implements LiquidityVenue {
@@ -39,7 +39,7 @@ export class <ClassName> implements LiquidityVenue {
     throw new Error("Not implemented");
   }
 
-  async convert(encoder: ExecutorEncoder, toConvert: ToConvert): Promise<ToConvert> {
+  async convert(executor: ExecutorEncoder, toConvert: ToConvert): Promise<ToConvert> {
     // TODO: implement conversion logic
     throw new Error("Not implemented");
   }
@@ -48,21 +48,21 @@ export class <ClassName> implements LiquidityVenue {
 
 Replace `<ClassName>` with an appropriate PascalCase class name (e.g. `CurveV2Venue`).
 
-**b) Register in factory** at `apps/client/src/liquidityVenues/factory.ts`:
+**b) Register in factory** at `apps/liquidity-venues/src/factory.ts`:
 - Add import for the new class
 - Add `case "<name>":` to the switch returning `new <ClassName>()`
 
-**c) Add re-export** in `apps/client/src/liquidityVenues/index.ts`:
+**c) Add re-export** in `apps/liquidity-venues/src/index.ts`:
 - Add `export * from "./<name>";`
 
 ### 3. Test scaffold
 
-Create `apps/client/test/vitest/liquidityVenues/<name>.test.ts`:
+Create `apps/liquidity-venues/test/vitest/<name>.test.ts`:
 
 ```typescript
 import { describe, expect } from "vitest";
-import { encoderTest } from "../../setup.js";
-import { <ClassName> } from "../../../src/liquidityVenues/index.js";
+import { encoderTest } from "../setup.js";
+import { <ClassName> } from "../../src/index.js";
 
 describe("<name> liquidity venue", () => {
   const liquidityVenue = new <ClassName>();

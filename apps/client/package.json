@@ -6,33 +6,21 @@
   "scripts": {
     "dev": "tsc && concurrently \"tsc --watch\" \"node dist/client/src/index.js\"",
     "lint": "eslint . --fix",
-    "typecheck": "tsc --noEmit",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@morpho-blue-liquidation-bot/config": "workspace:*",
+    "@morpho-blue-liquidation-bot/data-providers": "workspace:*",
+    "@morpho-blue-liquidation-bot/liquidity-venues": "workspace:*",
+    "@morpho-blue-liquidation-bot/pricers": "workspace:*",
     "@morpho-org/blue-sdk-viem": "^4.2.1",
-    "@morpho-org/blue-api-sdk": "^2.17.2",
-    "@morpho-org/morpho-ts": "^2.4.6",
     "executooor-viem": "^1.3.3",
     "fastify": "^5.1.0",
-    "graphql-request": "^7.4.0",
-    "graphql-tag": "^2.12.6",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^6.1.0",
-    "@graphql-codegen/import-types-preset": "^3.0.1",
-    "@graphql-codegen/typescript": "^5.0.7",
-    "@graphql-codegen/typescript-graphql-request": "^6.3.0",
-    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@morpho-org/test": "^2.1.1",
     "@types/yargs": "^17.0.33",
     "nock": "^14.0.2"
-  },
-  "optionalDependencies": {
-    "@uniswap/sdk-core": "^7.7.2",
-    "@uniswap/universal-router-sdk": "^4.19.5",
-    "@uniswap/v4-sdk": "^1.21.4"
   }
 }
