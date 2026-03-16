@@ -2,10 +2,6 @@
 
 A simple, fast, and easily deployable liquidation bot for the **Morpho Blue** protocol. This bot is entirely based on **RPC calls** and is designed to be **easy to configure**, **customizable**, and **ready to deploy** on any EVM-compatible chain.
 
-## Visual Architecture
-
-![Architecture](./img/liquidation-bot-architecture.png)
-
 ## Features
 
 - Automatically detects liquidatable positions and executes the liquidations.
@@ -22,14 +18,14 @@ Use at your own risk.
 
 ## Packages
 
-| Package | Description |
-|---|---|
-| [`apps/config`](./apps/config) | Chain configurations, module registrations, and all tunable parameters |
-| [`apps/client`](./apps/client) | Bot orchestration, on-chain execution, and transaction management |
-| [`apps/data-providers`](./apps/data-providers) | Data provider implementations for fetching market and position data |
-| [`apps/hyperindex`](./apps/hyperindex) | Envio HyperIndex indexer for self-hosted on-chain data |
+| Package                                            | Description                                                              |
+| -------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`apps/config`](./apps/config)                     | Chain configurations, module registrations, and all tunable parameters   |
+| [`apps/client`](./apps/client)                     | Bot orchestration, on-chain execution, and transaction management        |
+| [`apps/data-providers`](./apps/data-providers)     | Data provider implementations for fetching market and position data      |
+| [`apps/hyperindex`](./apps/hyperindex)             | Envio HyperIndex indexer for self-hosted on-chain data                   |
 | [`apps/liquidity-venues`](./apps/liquidity-venues) | Liquidity venue implementations for converting collateral to loan tokens |
-| [`apps/pricers`](./apps/pricers) | Pricer implementations for USD pricing and profitability checks |
+| [`apps/pricers`](./apps/pricers)                   | Pricer implementations for USD pricing and profitability checks          |
 
 ## Requirements
 

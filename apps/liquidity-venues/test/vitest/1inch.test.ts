@@ -30,9 +30,8 @@ describe("1inch liquidity venue", () => {
     const expectedCalls = encoder.flush();
 
     nock("https://api.1inch.dev")
-      .get("/swap/v6.0/1/swap")
+      .get("/swap/v6.1/1/swap")
       .query({
-        chainId: "1",
         src: wstETH,
         dst: USDC,
         amount: "1000000000000000000",
