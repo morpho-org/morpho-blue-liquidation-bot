@@ -248,7 +248,7 @@ export class HyperIndexDataProvider implements DataProvider {
       );
       return [...new Set(marketIds)] as Hex[];
     } catch (error) {
-      console.error(`Error fetching markets from HyperIndex: ${error}`);
+      console.error(`[Chain ${client.chain.id}] Error fetching markets from HyperIndex:`, error);
       return [];
     }
   }
@@ -378,7 +378,7 @@ export class HyperIndexDataProvider implements DataProvider {
           );
         })
         .filter((p) => p !== undefined)
-        .filter((p) => p.seizableCollateral !== undefined);
+        .filter((p) => p.seizableCollateral !== undefined && p.seizableCollateral > 0n);
 
       // 7. Build pre-liquidatable positions
       //    Match: position.user authorized the preLiquidation contract address
@@ -464,7 +464,10 @@ export class HyperIndexDataProvider implements DataProvider {
 
       return { liquidatablePositions, preLiquidatablePositions };
     } catch (error) {
-      console.error(`Error fetching liquidatable positions from HyperIndex: ${error}`);
+      console.error(
+        `[Chain ${client.chain.id}] Error fetching liquidatable positions from HyperIndex:`,
+        error,
+      );
       return { liquidatablePositions: [], preLiquidatablePositions: [] };
     }
   }
