@@ -22,19 +22,19 @@ Queries the [Morpho API](https://docs.morpho.org/api) for liquidatable positions
 
 Queries an [Envio HyperIndex](https://docs.envio.dev/) instance (see `apps/hyperindex`) via GraphQL. Supports both liquidations and pre-liquidations. Fetches positions/markets, pre-liquidation contracts, and authorizations in parallel. Oracle prices are read on-chain. Supports two deployment modes:
 
-#### 1. External instance (no Docker needed)
+#### 1. Envio hosted service (recommended)
 
-Connect to an already-running HyperIndex deployment by setting `HYPERINDEX_URL`:
+Use the [Envio hosting service](https://docs.envio.dev/docs/HyperIndex/hosted-service) to deploy and manage the indexer. Set `HYPERINDEX_URL` to point to the hosted instance:
 
 ```bash
-HYPERINDEX_URL=https://my-indexer.example.com/v1/graphql
+HYPERINDEX_URL=https://indexer.bigdevenergy.link/<your-indexer-id>/v1/graphql
 ```
 
-The provider connects directly — no local indexer is started.
+The provider connects directly — no local indexer is started. This is the recommended approach as it avoids local infrastructure, handles backfill automatically, and provides reliable uptime.
 
-#### 2. Self-hosted (default)
+#### 2. Self-hosted with RPCs
 
-When `HYPERINDEX_URL` is **not set**, the provider starts a local indexer via `pnpm start` in `apps/hyperindex` and waits for it to backfill before the bot begins.
+When `HYPERINDEX_URL` is **not set**, the provider starts a local indexer via `pnpm start` in `apps/hyperindex` and waits for it to backfill before the bot begins. While self-hosting is possible, it requires more setup and maintenance — the Envio hosted service is recommended for production use.
 
 Requires Docker (Envio manages `envio-postgres` and `envio-hasura` containers).
 

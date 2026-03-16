@@ -56,12 +56,12 @@ export class OneInch implements LiquidityVenue {
     }
   }
 
-  private getSwapApiPath = (chainId: BigIntish) => `/swap/v6.0/${chainId}/swap`;
+  private getSwapApiPath = (chainId: BigIntish) => `/swap/v6.1/${chainId}/swap`;
 
   private async fetchSwap(swapParams: SwapParams) {
     const url = new URL(this.getSwapApiPath(swapParams.chainId), API_BASE_URL);
     Object.entries(swapParams).forEach(([key, value]) => {
-      if (value == null) return;
+      if (value == null || key === "chainId") return;
       switch (key) {
         case "slippage":
           // 1inch expects slippage as a percentage, so we divide our value (in basis points) by 100

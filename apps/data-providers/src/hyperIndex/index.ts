@@ -26,15 +26,26 @@ const oracleAbi = [
   },
 ] as const;
 
-const GET_POSITIONS_AND_MARKETS = gql`
-  query GetPositionsAndMarkets($marketIds: [String!]!) {
-    Position(where: { market_id: { _in: $marketIds }, borrowShares: { _gt: "0" } }) {
+const POSITIONS_PAGE_SIZE = 1000;
+
+const GET_POSITIONS = gql`
+  query GetPositions($marketIds: [String!]!, $limit: Int!, $offset: Int!) {
+    Position(
+      where: { market_id: { _in: $marketIds }, borrowShares: { _gt: "0" } }
+      limit: $limit
+      offset: $offset
+    ) {
       user
       market_id
       supplyShares
       borrowShares
       collateral
     }
+  }
+`;
+
+const GET_MARKETS = gql`
+  query GetMarkets($marketIds: [String!]!) {
     Market(where: { id: { _in: $marketIds } }) {
       id
       marketId
@@ -70,8 +81,14 @@ const GET_PRELIQUIDATION_CONTRACTS = gql`
 `;
 
 const GET_AUTHORIZATIONS = gql`
-  query GetAuthorizations($chainId: Int!) {
-    Authorization(where: { isAuthorized: { _eq: true }, chainId: { _eq: $chainId } }) {
+  query GetAuthorizations($chainId: Int!, $authorizees: [String!]!) {
+    Authorization(
+      where: {
+        isAuthorized: { _eq: true }
+        chainId: { _eq: $chainId }
+        authorizee: { _in: $authorizees }
+      }
+    ) {
       authorizer
       authorizee
     }
@@ -135,8 +152,11 @@ interface HyperIndexVault {
   withdrawQueue: { market_id: string }[];
 }
 
-interface PositionsAndMarketsResponse {
+interface PositionsResponse {
   Position: HyperIndexPosition[];
+}
+
+interface MarketsResponse {
   Market: HyperIndexMarket[];
 }
 
@@ -240,33 +260,62 @@ export class HyperIndexDataProvider implements DataProvider {
     try {
       const indexedMarketIds = marketIds.map((id) => `${client.chain.id}-${id.toLowerCase()}`);
 
-      // 1. Fetch positions/markets, preLiquidation contracts, and authorizations in parallel
-      const [positionsAndMarkets, preLiqContracts, authorizations] = await Promise.all([
-        this.graphqlClient.request<PositionsAndMarketsResponse>(GET_POSITIONS_AND_MARKETS, {
+      // 1. Fetch positions (with pagination), markets, and preLiquidation contracts in parallel
+      const allPositions: HyperIndexPosition[] = [];
+      const fetchPositions = async () => {
+        let offset = 0;
+        while (true) {
+          const page = await this.graphqlClient.request<PositionsResponse>(GET_POSITIONS, {
+            marketIds: indexedMarketIds,
+            limit: POSITIONS_PAGE_SIZE,
+            offset,
+          });
+          allPositions.push(...page.Position);
+          if (page.Position.length < POSITIONS_PAGE_SIZE) break;
+          offset += POSITIONS_PAGE_SIZE;
+        }
+      };
+
+      const [, marketsResponse, preLiqContracts] = await Promise.all([
+        fetchPositions(),
+        this.graphqlClient.request<MarketsResponse>(GET_MARKETS, {
           marketIds: indexedMarketIds,
         }),
         this.graphqlClient.request<PreLiquidationContractsResponse>(GET_PRELIQUIDATION_CONTRACTS, {
           marketIds: indexedMarketIds,
         }),
-        this.graphqlClient.request<AuthorizationsResponse>(GET_AUTHORIZATIONS, {
-          chainId: client.chain.id,
-        }),
       ]);
 
-      if (positionsAndMarkets.Position.length === 0) {
+      if (allPositions.length === 0) {
         return { liquidatablePositions: [], preLiquidatablePositions: [] };
       }
 
-      // 2. Collect all unique oracle addresses (market oracles + preLiquidation oracles)
+      // 2. Fetch authorizations filtered by preLiquidation contract addresses
+      const preLiqAddresses = preLiqContracts.PreLiquidationContract.map((plc) =>
+        plc.address.toLowerCase(),
+      );
+
+      let authorizations: AuthorizationsResponse = { Authorization: [] };
+      if (preLiqAddresses.length > 0) {
+        authorizations = await this.graphqlClient.request<AuthorizationsResponse>(
+          GET_AUTHORIZATIONS,
+          {
+            chainId: client.chain.id,
+            authorizees: preLiqAddresses,
+          },
+        );
+      }
+
+      // 3. Collect all unique oracle addresses (market oracles + preLiquidation oracles)
       const oracleAddresses = new Set<Address>();
-      for (const m of positionsAndMarkets.Market) {
+      for (const m of marketsResponse.Market) {
         oracleAddresses.add(getAddress(m.oracle));
       }
       for (const plc of preLiqContracts.PreLiquidationContract) {
         oracleAddresses.add(getAddress(plc.preLiquidationOracle));
       }
 
-      // 3. Fetch all oracle prices on-chain in parallel (deduplicated)
+      // 4. Fetch all oracle prices on-chain in parallel (deduplicated)
       const oraclePrices = new Map<Address, bigint | undefined>();
       await Promise.all(
         [...oracleAddresses].map(async (oracle) => {
@@ -283,11 +332,11 @@ export class HyperIndexDataProvider implements DataProvider {
         }),
       );
 
-      // 4. Build Market objects from indexed data + on-chain oracle prices
+      // 5. Build Market objects from indexed data + on-chain oracle prices
       const marketsMap = new Map<string, Market>();
       const now = BigInt(Math.floor(Date.now() / 1000));
 
-      for (const m of positionsAndMarkets.Market) {
+      for (const m of marketsResponse.Market) {
         const oracleAddress = getAddress(m.oracle);
         const price = oraclePrices.get(oracleAddress);
 
@@ -312,25 +361,26 @@ export class HyperIndexDataProvider implements DataProvider {
         marketsMap.set(m.id, market);
       }
 
-      // 5. Build liquidatable positions
-      const liquidatablePositions = positionsAndMarkets.Position.map((p) => {
-        const market = marketsMap.get(p.market_id);
-        if (!market) return;
+      // 6. Build liquidatable positions
+      const liquidatablePositions = allPositions
+        .map((p) => {
+          const market = marketsMap.get(p.market_id);
+          if (!market) return;
 
-        return new AccrualPosition(
-          {
-            user: getAddress(p.user),
-            supplyShares: BigInt(p.supplyShares),
-            borrowShares: BigInt(p.borrowShares),
-            collateral: BigInt(p.collateral),
-          },
-          market,
-        );
-      })
+          return new AccrualPosition(
+            {
+              user: getAddress(p.user),
+              supplyShares: BigInt(p.supplyShares),
+              borrowShares: BigInt(p.borrowShares),
+              collateral: BigInt(p.collateral),
+            },
+            market,
+          );
+        })
         .filter((p) => p !== undefined)
         .filter((p) => p.seizableCollateral !== undefined);
 
-      // 6. Build pre-liquidatable positions
+      // 7. Build pre-liquidatable positions
       //    Match: position.user authorized the preLiquidation contract address
       const authorizedSet = new Set<string>();
       for (const auth of authorizations.Authorization) {
@@ -348,7 +398,9 @@ export class HyperIndexDataProvider implements DataProvider {
       // For each borrowing position, check if the user authorized any preLiquidation contract
       const preLiqCandidates: PreLiquidationPosition[] = [];
 
-      for (const p of positionsAndMarkets.Position) {
+      for (const p of allPositions) {
+        if (!indexedMarketIds.includes(p.market_id)) continue;
+
         const market = marketsMap.get(p.market_id);
         if (!market) continue;
 
@@ -385,7 +437,10 @@ export class HyperIndexDataProvider implements DataProvider {
             market,
           );
 
-          if (preLiqPosition.seizableCollateral !== undefined) {
+          if (
+            preLiqPosition.seizableCollateral !== undefined &&
+            preLiqPosition.seizableCollateral > 0n
+          ) {
             preLiqCandidates.push(preLiqPosition);
           }
         }

@@ -367,9 +367,8 @@ describe("execute liquidation combining Pendle PT and 1inch liquidity venues", (
     // mock 1inch api
 
     nock("https://api.1inch.dev")
-      .get("/swap/v6.0/1/swap")
+      .get("/swap/v6.1/1/swap")
       .query({
-        chainId: 1,
         src: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497",
         dst: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         amount: "4101332127580973561801",
