@@ -1,6 +1,6 @@
 import * as Types from "@morpho-org/blue-api-sdk";
 
-export type GetLiquidatablePositionsQueryVariables = Types.Exact<{
+export type GetPositionsQueryVariables = Types.Exact<{
   chainId: Types.Scalars["Int"]["input"];
   marketIds?: Types.InputMaybe<
     Types.Scalars["String"]["input"][] | Types.Scalars["String"]["input"]
@@ -11,7 +11,7 @@ export type GetLiquidatablePositionsQueryVariables = Types.Exact<{
   orderDirection?: Types.InputMaybe<Types.OrderDirection>;
 }>;
 
-export interface GetLiquidatablePositionsQuery {
+export interface GetPositionsQuery {
   __typename?: "Query";
   marketPositions: {
     __typename?: "PaginatedMarketPositions";
@@ -31,6 +31,19 @@ export interface GetLiquidatablePositionsQuery {
             __typename?: "Market";
             uniqueKey: Types.Scalars["MarketId"]["output"];
             oracle: { __typename?: "Oracle"; address: Types.Scalars["Address"]["output"] } | null;
+            preLiquidations: {
+              __typename?: "PaginatedPreLiquidations";
+              items: {
+                __typename?: "PreLiquidationModel";
+                address: Types.Scalars["Address"]["output"];
+                preLltv: Types.Scalars["BigInt"]["output"];
+                preLCF1: Types.Scalars["BigInt"]["output"];
+                preLCF2: Types.Scalars["BigInt"]["output"];
+                preLIF1: Types.Scalars["BigInt"]["output"];
+                preLIF2: Types.Scalars["BigInt"]["output"];
+                preLiquidationOracle: Types.Scalars["Address"]["output"];
+              }[] | null;
+            } | null;
           };
           state: {
             __typename?: "MarketPositionState";
