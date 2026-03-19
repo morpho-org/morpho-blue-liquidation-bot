@@ -4,6 +4,10 @@ import type { DataProvider } from "./dataProvider";
 import { HyperIndexDataProvider } from "./hyperIndex";
 import { MorphoApiDataProvider } from "./morphoApi";
 
+export interface CreateDataProvidersOptions {
+  authorizationCacheCooldownPeriod?: number;
+}
+
 /**
  * Creates data providers for the given chains.
  * Returns a Map from chainId to DataProvider.
@@ -12,12 +16,13 @@ import { MorphoApiDataProvider } from "./morphoApi";
 export async function createDataProviders(
   dataProviderName: DataProviderName,
   chainIds: number[],
+  options?: CreateDataProvidersOptions,
 ): Promise<Map<number, DataProvider>> {
   let provider: DataProvider;
 
   switch (dataProviderName) {
     case "morphoApi":
-      provider = new MorphoApiDataProvider();
+      provider = new MorphoApiDataProvider(options?.authorizationCacheCooldownPeriod);
       break;
     case "hyperIndex":
       provider = new HyperIndexDataProvider();

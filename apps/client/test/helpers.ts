@@ -132,9 +132,9 @@ export async function setupPosition(
 
   nock("https://api.morpho.org")
     .post("/graphql", (body) => {
-      // Match the getLiquidatablePositions query
+      // Match the getPositions query
       return (
-        body.query?.includes("getLiquidatablePositions") &&
+        body.query?.includes("getPositions") &&
         body.variables?.chainId === 1 &&
         (body.variables?.marketIds === undefined ||
           body.variables?.marketIds?.includes(marketId) ||
@@ -167,6 +167,7 @@ export async function setupPosition(
                   __typename: "Oracle",
                   address: marketParams.oracle,
                 },
+                preLiquidations: null,
               },
               state: {
                 __typename: "MarketPositionState",

@@ -12,6 +12,14 @@ import { startHealthServer } from "./health";
 
 import { launchBot } from ".";
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
 async function run() {
   const configs = Object.keys(chainConfigs)
     .map((config) => {
@@ -24,17 +32,20 @@ async function run() {
     .filter((config) => config !== undefined);
 
   // Group chains by data provider name
-  const chainsByProvider = new Map<DataProviderName, number[]>();
+  const chainsByProvider = new Map<DataProviderName, typeof configs>();
   for (const config of configs) {
     const existing = chainsByProvider.get(config.dataProvider) ?? [];
-    existing.push(config.chainId);
+    existing.push(config);
     chainsByProvider.set(config.dataProvider, existing);
   }
 
   // Create data providers (one per provider type, shared across chains)
   const providersByChain = new Map<number, DataProvider>();
-  for (const [providerName, chainIds] of chainsByProvider) {
-    const providers = await createDataProviders(providerName, chainIds);
+  for (const [providerName, providerConfigs] of chainsByProvider) {
+    const chainIds = providerConfigs.map((c) => c.chainId);
+    const providers = await createDataProviders(providerName, chainIds, {
+      authorizationCacheCooldownPeriod: providerConfigs[0]?.authorizationCacheCooldownPeriod,
+    });
     for (const [chainId, provider] of providers) {
       providersByChain.set(chainId, provider);
     }

@@ -4,8 +4,8 @@ import gql from "graphql-tag";
 import * as Types from "./types.js";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 
-export const GetLiquidatablePositionsDocument = gql`
-  query getLiquidatablePositions(
+export const GetPositionsDocument = gql`
+  query getPositions(
     $chainId: Int!
     $marketIds: [String!]
     $skip: Int
@@ -16,7 +16,7 @@ export const GetLiquidatablePositionsDocument = gql`
     marketPositions(
       skip: $skip
       first: $first
-      where: { chainId_in: [$chainId], marketUniqueKey_in: $marketIds, healthFactor_lte: 1 }
+      where: { chainId_in: [$chainId], marketUniqueKey_in: $marketIds, borrowShares_gte: 1 }
       orderBy: $orderBy
       orderDirection: $orderDirection
     ) {
@@ -35,6 +35,17 @@ export const GetLiquidatablePositionsDocument = gql`
           uniqueKey
           oracle {
             address
+          }
+          preLiquidations {
+            items {
+              address
+              preLltv
+              preLCF1
+              preLCF2
+              preLIF1
+              preLIF2
+              preLiquidationOracle
+            }
           }
         }
         state {
@@ -59,20 +70,20 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    getLiquidatablePositions(
-      variables: Types.GetLiquidatablePositionsQueryVariables,
+    getPositions(
+      variables: Types.GetPositionsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
       signal?: RequestInit["signal"],
-    ): Promise<Types.GetLiquidatablePositionsQuery> {
+    ): Promise<Types.GetPositionsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<Types.GetLiquidatablePositionsQuery>({
-            document: GetLiquidatablePositionsDocument,
+          client.request<Types.GetPositionsQuery>({
+            document: GetPositionsDocument,
             variables,
             requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
             signal,
           }),
-        "getLiquidatablePositions",
+        "getPositions",
         "query",
         variables,
       );
