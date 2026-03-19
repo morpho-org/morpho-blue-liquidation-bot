@@ -153,7 +153,8 @@ export class MorphoApiDataProvider implements DataProvider {
             deployless: false,
           });
 
-          const timestamp = Math.max(Time.timestamp(), Number(market.lastUpdate));
+          const now = BigInt(Time.timestamp());
+          const timestamp = now > market.lastUpdate ? now : market.lastUpdate;
           return [marketId, market.accrueInterest(timestamp)] as const;
         }),
       );
@@ -301,7 +302,7 @@ export class MorphoApiDataProvider implements DataProvider {
         .filter((position) => position !== undefined);
 
       const liquidatablePositions = accruedPositions.filter(
-        (position) => position.seizableCollateral !== undefined,
+        (position) => position.seizableCollateral !== undefined && position.seizableCollateral > 0n,
       );
 
       // 6. Build pre-liquidatable positions
