@@ -30,6 +30,7 @@ export interface Options {
   liquidationBufferBps?: number;
   useFlashbots: boolean;
   blockInterval?: number;
+  watchBlocksRetryDelayMs?: number;
 }
 
 export type ChainConfig = Omit<Config, "options"> &
