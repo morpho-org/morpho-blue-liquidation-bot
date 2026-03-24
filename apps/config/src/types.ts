@@ -31,6 +31,7 @@ export interface Options {
   useFlashbots: boolean;
   blockInterval?: number;
   useTenderly: boolean;
+  watchBlocksRetryDelayMs?: number;
 }
 
 export type ChainConfig = Omit<Config, "options"> &

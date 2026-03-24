@@ -125,6 +125,7 @@ Workspace monorepo with six packages:
    - `chain` — the viem Chain object
    - `wNative` — wrapped native token address
    - `options` — vault whitelist, liquidity venues (ordered), pricers (ordered), buffer, flashbots toggle, block interval
+   - `watchBlocksRetryDelayMs` — delay in ms before restarting the block watcher after an RPC error (default: 5000)
 3. Set up environment variables: `RPC_URL_<chainId>`, `EXECUTOR_ADDRESS_<chainId>`, `LIQUIDATION_PRIVATE_KEY_<chainId>`
 4. Deploy the executor contract on the new chain via `pnpm deploy:executor`
 

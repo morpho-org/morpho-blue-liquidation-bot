@@ -356,9 +356,11 @@ export class HyperIndexDataProvider implements DataProvider {
           fee: BigInt(m.fee),
           rateAtTarget: BigInt(m.rateAtTarget),
           price,
-        }).accrueInterest(now);
+        });
 
-        marketsMap.set(m.id, market);
+        const lastUpdate = BigInt(m.lastUpdate);
+        const timestamp = now > lastUpdate ? now : lastUpdate;
+        marketsMap.set(m.id, market.accrueInterest(timestamp));
       }
 
       // 6. Build liquidatable positions

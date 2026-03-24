@@ -75,6 +75,8 @@ For each chain, here are the parameters that need to be configured:
 
 - `options.blockInterval` (optional): Run liquidation checks every N blocks. Default: every block.
 
+- `options.watchBlocksRetryDelayMs` (optional): Delay in milliseconds before restarting the block watcher after an RPC error. Default: 5000.
+
 ### Secrets
 
 Secrets are set in the `.env` file at the root of the repository, with the following keys:
