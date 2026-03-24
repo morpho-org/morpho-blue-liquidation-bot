@@ -85,14 +85,26 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const blockInterval = config.blockInterval ?? 1;
   let count = 0;
 
-  watchBlocks(client, {
-    onBlock: () => {
-      if (count % blockInterval === 0) {
-        bot.run().catch((e) => {
-          console.error(`${logTag} uncaught error in bot.run():`, e);
-        });
-      }
-      count++;
-    },
-  });
+  const startWatching = () => {
+    watchBlocks(client, {
+      onBlock: () => {
+        if (count % blockInterval === 0) {
+          bot.run().catch((e) => {
+            console.error(`${logTag} uncaught error in bot.run():`, e);
+          });
+        }
+        count++;
+      },
+      onError: (error) => {
+        const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
+        console.error(
+          `${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`,
+          error,
+        );
+        setTimeout(startWatching, retryDelay);
+      },
+    });
+  };
+
+  startWatching();
 };

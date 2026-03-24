@@ -12,6 +12,14 @@ import { startHealthServer } from "./health";
 
 import { launchBot } from ".";
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
 async function run() {
   const configs = Object.keys(chainConfigs)
     .map((config) => {
@@ -42,18 +50,21 @@ async function run() {
 
   try {
     await startHealthServer();
-
-    for (const config of configs) {
-      const dataProvider = providersByChain.get(config.chainId);
-      if (!dataProvider) {
-        console.error(`No data provider for chain ${config.chainId}, skipping`);
-        continue;
-      }
-      launchBot(config, dataProvider);
-    }
   } catch (err) {
-    console.error(err);
-    process.exit(1);
+    console.error("Failed to start health server:", err);
+  }
+
+  for (const config of configs) {
+    const dataProvider = providersByChain.get(config.chainId);
+    if (!dataProvider) {
+      console.error(`No data provider for chain ${config.chainId}, skipping`);
+      continue;
+    }
+    try {
+      launchBot(config, dataProvider);
+    } catch (err) {
+      console.error(`Failed to launch bot for chain ${config.chainId}:`, err);
+    }
   }
 }
 

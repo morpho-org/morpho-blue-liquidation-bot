@@ -75,7 +75,9 @@ export class MorphoApiDataProvider implements DataProvider {
             deployless: false,
           });
 
-          return [marketId, market.accrueInterest(Time.timestamp())] as const;
+          const now = BigInt(Time.timestamp());
+          const timestamp = now > market.lastUpdate ? now : market.lastUpdate;
+          return [marketId, market.accrueInterest(timestamp)] as const;
         }),
       );
 
