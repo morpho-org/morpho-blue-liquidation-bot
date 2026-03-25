@@ -108,9 +108,15 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const blockInterval = config.blockInterval ?? 1;
   let count = 0;
 
+  const MAX_RETRY_DELAY = 300_000; // 5 minutes
+  const baseRetryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
+  let currentRetryDelay = baseRetryDelay;
+
   const startWatching = () => {
     watchBlocks(client, {
       onBlock: () => {
+        // Reset backoff on successful block
+        currentRetryDelay = baseRetryDelay;
         if (count % blockInterval === 0) {
           bot.run().catch((e) => {
             console.error(`${logTag} uncaught error in bot.run():`, e);
@@ -119,15 +125,19 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
         count++;
       },
       onError: (error) => {
-        const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
-        console.error(`${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`, error);
+        const shortMessage =
+          error instanceof Error ? error.message.split("\n")[0] : String(error);
+        console.error(
+          `${logTag} watchBlocks error, restarting watcher in ${currentRetryDelay}ms: ${shortMessage}`,
+        );
         Sentry.captureException(error, {
           tags: {
             chain: config.chain.name,
             chainId: config.chainId.toString(),
           },
         });
-        setTimeout(startWatching, retryDelay);
+        setTimeout(startWatching, currentRetryDelay);
+        currentRetryDelay = Math.min(currentRetryDelay * 2, MAX_RETRY_DELAY);
       },
     });
   };

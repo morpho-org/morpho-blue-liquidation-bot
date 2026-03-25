@@ -384,7 +384,7 @@ export class LiquidationBot {
     if (this.flashbotAccount) {
       const signedBundle = await Flashbots.signBundle([
         {
-          transaction: { to: encoder.address, ...functionData },
+          transaction: { to: encoder.address, ...functionData, gasPrice: (gasPrice * 150n) / 100n },
           client: this.client,
         },
       ]);
