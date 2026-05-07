@@ -6,7 +6,7 @@ export class TelegramNotifier {
 
   async sendMessage(message: string) {
     try {
-      const url = `https://api.telegram.org/bot${encodeURIComponent(this.botToken)}/sendMessage`;
+      const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
       const body = JSON.stringify({
         chat_id: this.chatId,
         text: message,
