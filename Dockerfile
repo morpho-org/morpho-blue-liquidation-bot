@@ -10,6 +10,9 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/config/package.json ./apps/config/
 COPY apps/client/package.json ./apps/client/
+COPY apps/data-providers/package.json ./apps/data-providers/
+COPY apps/liquidity-venues/package.json ./apps/liquidity-venues/
+COPY apps/pricers/package.json ./apps/pricers/
 
 # Copy vendor directory (for local packages like viem-dlc)
 # The morpho-org-viem-dlc-0.0.1.tgz file must be placed in vendor/ before building
