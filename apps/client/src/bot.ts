@@ -138,12 +138,7 @@ export class LiquidationBot {
     const seizableCollateral = position.seizableCollateral ?? 0n;
     const badDebtPosition = seizableCollateral === position.collateral;
 
-    if (badDebtPosition && !this.alwaysRealizeBadDebt) {
-      console.log(
-        `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (bad debt)`,
-      );
-      return;
-    }
+    if (badDebtPosition && !this.alwaysRealizeBadDebt) return;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
@@ -153,12 +148,7 @@ export class LiquidationBot {
         this.decreaseSeizableCollateral(seizableCollateral, badDebtPosition),
         this.pricers,
       );
-      if (valueUsd !== undefined && valueUsd < this.minLiquidationValueUsd) {
-        console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (collateral $${valueUsd.toFixed(4)} < min $${this.minLiquidationValueUsd})`,
-        );
-        return;
-      }
+      if (valueUsd !== undefined && valueUsd < this.minLiquidationValueUsd) return;
     }
 
     const { client, executorAddress } = this;
