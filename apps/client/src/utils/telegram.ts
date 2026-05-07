@@ -24,6 +24,8 @@ export class TelegramNotifier {
         console.error(
           `[Telegram] Failed to send notification: ${response.status} ${response.statusText} - ${error}`,
         );
+      } else {
+        console.log("[Telegram] Notification sent successfully");
       }
     } catch (error) {
       console.error("[Telegram] Failed to send notification:", error);
@@ -86,7 +88,11 @@ export class TelegramNotifier {
 export function createTelegramNotifier(): TelegramNotifier | undefined {
   const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-  if (!telegramBotToken || !telegramChatId) return undefined;
+  if (!telegramBotToken || !telegramChatId) {
+    console.log("[Telegram] Notifier disabled (TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set)");
+    return undefined;
+  }
+  console.log(`[Telegram] Notifier enabled (chatId: ${telegramChatId})`);
   return new TelegramNotifier(telegramBotToken, telegramChatId);
 }
 
