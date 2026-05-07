@@ -82,7 +82,11 @@ Secrets are set in the `.env` file at the root of the repository, with the follo
 - `RPC_URL_<chainId>` — RPC URL for the chain.
 - `EXECUTOR_ADDRESS_<chainId>` — Address of the deployed executor contract.
 - `LIQUIDATION_PRIVATE_KEY_<chainId>` — Private key of the EOA.
+- `TELEGRAM_BOT_TOKEN` — Telegram bot token for liquidation notifications.
+- `TELEGRAM_CHAT_ID` — Telegram chat ID for notifications.
+- `CHAIN_ID` / `CHAIN_IDS` — Optional chain selection; run only the listed chain IDs.
 - `FLASHBOTS_PRIVATE_KEY` (optional) — Flashbots private key, only if using Flashbots.
+- `ONE_INCH_SWAP_API_KEY` (optional) — 1inch Swap API key. Required to enable the `1inch` liquidity venue on mainnet, base, unichain, and arbitrum. Without it, the venue is silently skipped. Get yours at [portal.1inch.dev](https://portal.1inch.dev).
 
 Example for mainnet (chainId 1):
 

@@ -17,7 +17,16 @@
       "Bash(pnpm run build:*)",
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(node -e \"const u = require\\('/home/olivier/workspace/Bots/morpho-blue-liquidation-bot-olb/apps/data-providers/node_modules/@morpho-org/morpho-ts/lib/urls.js'\\); console.log\\(u.BLUE_API_GRAPHQL_URL\\)\")",
+      "Bash(curl -s -X POST https://api.morpho.org/graphql -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(CHAIN_IDS=999 npx pnpm liquidate)",
+      "Bash(node -e \"const sdk = require\\('./apps/client/node_modules/@morpho-org/blue-sdk/lib/index.js'\\); const a = sdk.getChainAddresses\\(999\\); console.log\\(JSON.stringify\\(a, null, 2\\)\\);\")",
+      "Bash(npx --prefix /home/olivier/workspace/Bots/morpho-blue-liquidation-bot-olb tsx --input-type=module)",
+      "Bash(cp /tmp/check_pos.ts /home/olivier/workspace/Bots/morpho-blue-liquidation-bot-olb/apps/client/check_pos.ts)",
+      "Bash(npx tsx *)",
+      "Bash(rm /home/olivier/workspace/Bots/morpho-blue-liquidation-bot-olb/apps/client/check_pos.ts)"
     ],
     "deny": [
       "Bash(git push --force *)",
