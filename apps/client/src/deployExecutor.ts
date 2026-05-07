@@ -8,7 +8,18 @@ import { deploy } from "./utils/deploy-executor.js";
 async function run() {
   dotenv.config();
 
-  const configs = Object.values(chainConfigs);
+  const selectedChainIds = (() => {
+    const chainIdsEnv = process.env.CHAIN_IDS ?? process.env.CHAIN_ID;
+    if (!chainIdsEnv) return undefined;
+    return chainIdsEnv
+      .split(",")
+      .map((id) => Number(id.trim()))
+      .filter((id) => Number.isInteger(id) && id > 0);
+  })();
+
+  const configs = Object.values(chainConfigs).filter(
+    (config) => !selectedChainIds?.length || selectedChainIds.includes(config.chain.id),
+  );
 
   for (const config of configs) {
     const chain = config.chain;

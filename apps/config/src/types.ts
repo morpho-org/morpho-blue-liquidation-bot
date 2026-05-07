@@ -31,6 +31,8 @@ export interface Options {
   useFlashbots: boolean;
   blockInterval?: number;
   watchBlocksRetryDelayMs?: number;
+  disableSimulateCalls?: boolean;
+  minLiquidationValueUsd?: number;
 }
 
 export type ChainConfig = Omit<Config, "options"> &

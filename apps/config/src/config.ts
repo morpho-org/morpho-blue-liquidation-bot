@@ -133,9 +133,12 @@ export const chainConfigs: Record<number, Config> = {
         "0x2900ABd73631b2f60747e687095537B673c06A76", // Felix HYPE
       ],
       liquidityVenues: ["liquidSwap", "erc20Wrapper", "erc4626", "uniswapV3"],
+      pricers: ["uniswapV3"],
       additionalMarketsWhitelist: [],
       liquidationBufferBps: 50,
       useFlashbots: false,
+      disableSimulateCalls: true,
+      minLiquidationValueUsd: 1,
     },
   },
   [monad.id]: {
