@@ -13,7 +13,7 @@ COPY apps/client/package.json ./apps/client/
 
 # Copy vendor directory (for local packages like viem-dlc)
 # The morpho-org-viem-dlc-0.0.1.tgz file must be placed in vendor/ before building
-COPY vendor/ ./vendor/
+#COPY vendor/ ./vendor/
 
 # Install dependencies (this layer will be cached unless package files change)
 # Note: node_modules will be installed for Linux platform inside the container
@@ -29,11 +29,7 @@ COPY . .
 # - RAILWAY_DEPLOYMENT_ID
 
 # Declare the chain IDs we support as an environment variable for looping
-ENV CHAIN_IDS="1 130 137 8453 747474"
-
-# Declare the non-dynamic vars so they are available at runtime
-ENV LIQUIDATION_PRIVATE_KEY=${LIQUIDATION_PRIVATE_KEY}
-ENV RAILWAY_DEPLOYMENT_ID=${RAILWAY_DEPLOYMENT_ID}
+ENV CHAIN_IDS="999"
 
 # Create cache directory and declare it as a volume to persist between runs
 RUN mkdir -p .cache
@@ -46,5 +42,6 @@ CMD ["sh", "-lc", "{ \
     echo \"EXECUTOR_ADDRESS_${CHAIN}=$(printenv EXECUTOR_ADDRESS_$CHAIN)\"; \
     echo \"LIQUIDATION_PRIVATE_KEY_${CHAIN}=$(printenv LIQUIDATION_PRIVATE_KEY)\"; \
   done; \
-  echo \"RAILWAY_DEPLOYMENT_ID=$(printenv RAILWAY_DEPLOYMENT_ID)\"; \
+  echo \"TELEGRAM_BOT_TOKEN=$(printenv TELEGRAM_BOT_TOKEN)\"; \
+  echo \"TELEGRAM_CHAT_ID=$(printenv TELEGRAM_CHAT_ID)\"; \
 } > .env && pnpm run liquidate"]
