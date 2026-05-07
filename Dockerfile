@@ -31,9 +31,7 @@ COPY . .
 # Declare the chain IDs we support as an environment variable for looping
 ENV CHAIN_IDS="999"
 
-# Create cache directory and declare it as a volume to persist between runs
 RUN mkdir -p .cache
-VOLUME ["/app/.cache"]
 
 # Build the .env file dynamically at container start
 CMD ["sh", "-lc", "{ \
