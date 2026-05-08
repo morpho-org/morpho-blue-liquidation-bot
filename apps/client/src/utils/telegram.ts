@@ -83,6 +83,13 @@ export class TelegramNotifier {
     const timestamp = new Date().toISOString();
     await this.sendMessage(`✅ Bot lancé à ${timestamp}\nChaînes: ${chains.join(", ")}`);
   }
+
+  async rpcDown(chainName: string, rpcCount: number) {
+    const timestamp = new Date().toISOString();
+    await this.sendMessage(
+      `🚨 [${chainName}] Plus aucun RPC disponible (${rpcCount} essayé(s))\nLe bot ne peut plus scanner de blocs.\n${timestamp}`,
+    );
+  }
 }
 
 export function createTelegramNotifier(): TelegramNotifier | undefined {

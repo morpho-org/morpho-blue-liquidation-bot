@@ -95,10 +95,12 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
 
   const blockInterval = config.blockInterval ?? 1;
   let count = 0;
+  let rpcDownNotified = false;
 
   const startWatching = () => {
     watchBlocks(client, {
       onBlock: (block) => {
+        rpcDownNotified = false;
         // Log every 50 blocks to show the bot is alive
         if (count % 50 === 0) {
           const blockNumber =
@@ -116,6 +118,10 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
       onError: (error) => {
         const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
         console.error(`${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`, error);
+        if (!rpcDownNotified) {
+          rpcDownNotified = true;
+          notifier?.rpcDown(config.chain.name, allRpcUrls.length).catch(() => {});
+        }
         setTimeout(startWatching, retryDelay);
       },
     });
