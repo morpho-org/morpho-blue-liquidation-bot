@@ -19,21 +19,35 @@ export function chainConfig(chainId: number): ChainConfig {
     );
   }
 
-  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
+  const { rpcUrl, fallbackRpcUrls, executorAddress, liquidationPrivateKey } = getSecrets(
+    chainId,
+    config.chain,
+  );
   return {
     // Hoist all parameters from `options` up 1 level, i.e. flatten the config as much as possible.
     ...(({ options, ...c }) => ({ ...options, ...c }))(config),
     chainId,
     rpcUrl,
+    fallbackRpcUrls,
     executorAddress,
     liquidationPrivateKey,
   };
 }
 
 export function getSecrets(chainId: number, chain?: Chain) {
-  const defaultRpcUrl = chain?.rpcUrls.default.http[0];
+  const defaultRpcUrls = chain?.rpcUrls.default.http ?? [];
 
-  const rpcUrl = process.env[`RPC_URL_${chainId}`] ?? defaultRpcUrl;
+  // RPC_URL_<chainId> supports comma-separated URLs for rotation, e.g. "url1,url2,url3".
+  const envRpcUrls = (process.env[`RPC_URL_${chainId}`] ?? "")
+    .split(",")
+    .map((u) => u.trim())
+    .filter(Boolean);
+  // Merge env URLs with chain defaults, deduped, env first.
+  const allRpcUrls = [...new Set([...envRpcUrls, ...defaultRpcUrls])];
+
+  const rpcUrl = allRpcUrls[0];
+  const fallbackRpcUrls = allRpcUrls.slice(1);
+
   const executorAddress = process.env[`EXECUTOR_ADDRESS_${chainId}`];
   const liquidationPrivateKey = process.env[`LIQUIDATION_PRIVATE_KEY_${chainId}`];
 
@@ -48,6 +62,7 @@ export function getSecrets(chainId: number, chain?: Chain) {
   }
   return {
     rpcUrl,
+    fallbackRpcUrls,
     executorAddress: executorAddress as Address,
     liquidationPrivateKey: liquidationPrivateKey as Hex,
   };

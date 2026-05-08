@@ -39,6 +39,7 @@ export type ChainConfig = Omit<Config, "options"> &
   Options & {
     chainId: number;
     rpcUrl: string;
+    fallbackRpcUrls: string[];
     executorAddress: Address;
     liquidationPrivateKey: Hex;
   };

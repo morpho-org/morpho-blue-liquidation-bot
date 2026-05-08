@@ -8,7 +8,7 @@ import {
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
 import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
 import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
-import { createWalletClient, Hex, http } from "viem";
+import { createWalletClient, fallback, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
@@ -21,11 +21,16 @@ import { createTelegramNotifier } from "./utils/telegram.js";
 
 export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const logTag = `[${config.chain.name} client]: `;
-  console.log(`${logTag}Starting up`);
+  const allRpcUrls = [config.rpcUrl, ...config.fallbackRpcUrls];
+  console.log(`${logTag}Starting up with ${allRpcUrls.length} RPC(s): ${allRpcUrls.join(", ")}`);
 
+  const transport =
+    config.fallbackRpcUrls.length > 0
+      ? fallback([config.rpcUrl, ...config.fallbackRpcUrls].map((url) => http(url)))
+      : http(config.rpcUrl);
   const client = createWalletClient({
     chain: config.chain,
-    transport: http(config.rpcUrl),
+    transport,
     account: privateKeyToAccount(config.liquidationPrivateKey),
   });
 
