@@ -7,6 +7,7 @@ import { LiquidityVenue } from "./liquidityVenue";
 import { LiquidSwapVenue } from "./liquidSwap";
 import { MidasVenue } from "./midas";
 import { PendlePTVenue } from "./pendlePT";
+import { Sky } from "./sky";
 import { UniswapV3Venue } from "./uniswapV3";
 import { UniswapV4Venue } from "./uniswapV4";
 
@@ -31,6 +32,8 @@ export function createLiquidityVenue(liquidityVenueName: LiquidityVenueName): Li
       return new MidasVenue();
     case "pendlePT":
       return new PendlePTVenue();
+    case "sky":
+      return new Sky();
     case "1inch":
       return new OneInch();
     default:

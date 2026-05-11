@@ -32,6 +32,7 @@ export const chainConfigs: Record<number, Config> = {
       liquidityVenues: [
         "pendlePT",
         "midas",
+        "sky",
         "1inch",
         "erc20Wrapper",
         "erc4626",

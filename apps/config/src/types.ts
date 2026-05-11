@@ -7,6 +7,7 @@ export type LiquidityVenueName =
   | "liquidSwap"
   | "midas"
   | "pendlePT"
+  | "sky"
   | "uniswapV3"
   | "uniswapV4";
 

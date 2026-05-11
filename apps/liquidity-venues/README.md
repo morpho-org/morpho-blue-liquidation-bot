@@ -20,6 +20,7 @@ Both methods can be sync or async.
 - **1inch** — Swaps tokens via the 1inch swap aggregator (requires a 1inch API Key). Config: `apps/config/src/liquidityVenues/1inch.ts` (API URL, slippage, supported networks).
 - **Pendle** — Swaps and redeems Pendle PT tokens. Config: `apps/config/src/liquidityVenues/pendlePT.ts` (API URL, slippage, refresh interval).
 - **Midas** — Redeems Midas tokens. Config: `apps/config/src/liquidityVenues/midas.ts`.
+- **Sky** — Converts between USDS↔DAI (1:1) and SKY↔MKR (rate-based) via the Maker/Sky on-chain converter contracts. Useful as a pre-step before an aggregator when collateral lands in USDS/SKY but DAI/MKR have deeper aggregator routes. Mainnet only. Config: `apps/config/src/liquidityVenues/sky.ts`.
 - **LiquidSwap** — Swaps tokens on LiquidSwap (HyperEVM). Config: `apps/config/src/liquidityVenues/liquidSwap.ts`.
 
 Venues can be combined (e.g., ERC4626 withdrawal followed by UniswapV3 swap).
