@@ -38,7 +38,7 @@ describe("LiquidSwap liquidity venue", () => {
 
     nock("https://api.liqd.ag/v2")
       .get(
-        "/route?tokenIn=0x5555555555555555555555555555555555555555&tokenOut=0xb88339CB7199b77E23DB6E890353E22632Ba630f&amountIn=1000",
+        "/route?tokenIn=0x5555555555555555555555555555555555555555&tokenOut=0xb88339CB7199b77E23DB6E890353E22632Ba630f&amountIn=1000000000000000000000",
       )
       .reply(200, {
         success: true,

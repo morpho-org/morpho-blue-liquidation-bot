@@ -512,19 +512,48 @@ export class LiquidationBot {
   }
 
   private async fetchMarkets() {
-    if (!this.marketsFetchingCooldownMechanism.isFetchingReady()) return;
+    if (!this.marketsFetchingCooldownMechanism.isReady()) return;
 
-    if (this.vaultWhitelist === "morpho-api")
-      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+    try {
+      const wasMorphoApiVaultMode = this.vaultWhitelist === "morpho-api";
 
-    const vaultWhitelist = this.vaultWhitelist;
-    console.log(`${this.logTag}📝 Watching markets in the following vaults:`, vaultWhitelist);
+      let vaultWhitelist: Address[];
+      if (this.vaultWhitelist === "morpho-api") {
+        vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+        this.vaultWhitelist = vaultWhitelist;
+      } else {
+        vaultWhitelist = this.vaultWhitelist;
+      }
 
-    const whitelistedMarketsFromVaults = await this.dataProvider.fetchMarkets(
-      this.client,
-      vaultWhitelist,
-    );
+      console.log(`${this.logTag}📝 Watching markets in the following vaults:`, vaultWhitelist);
 
-    this.coveredMarkets = [...whitelistedMarketsFromVaults, ...this.additionalMarketsWhitelist];
+      const whitelistedMarketsFromVaults = await this.dataProvider.fetchMarkets(
+        this.client,
+        vaultWhitelist,
+      );
+
+      this.coveredMarkets = [...whitelistedMarketsFromVaults, ...this.additionalMarketsWhitelist];
+
+      /// Treat "no markets to cover" as a transient failure: a flaky Morpho API or RPC blip at
+      /// boot must not lock the bot into an empty market set for the whole cooldown period.
+      const morphoApiReturnedNoVaults = wasMorphoApiVaultMode && vaultWhitelist.length === 0;
+      const vaultsGaveNoMarkets =
+        vaultWhitelist.length > 0 &&
+        whitelistedMarketsFromVaults.length === 0 &&
+        this.additionalMarketsWhitelist.length === 0;
+
+      if (morphoApiReturnedNoVaults || vaultsGaveNoMarkets) {
+        console.warn(
+          `${this.logTag}fetchMarkets returned an empty market set, scheduling a fast retry`,
+        );
+        this.marketsFetchingCooldownMechanism.scheduleRetryAfterFailure();
+        return;
+      }
+
+      this.marketsFetchingCooldownMechanism.scheduleNextFetchAfterSuccess();
+    } catch (error) {
+      console.error(`${this.logTag}Error in fetchMarkets():`, error);
+      this.marketsFetchingCooldownMechanism.scheduleRetryAfterFailure();
+    }
   }
 }

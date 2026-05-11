@@ -27,20 +27,29 @@ export class PositionLiquidationCooldownMechanism {
   }
 }
 
+/** Default seconds before retrying a failed `fetchMarkets` (RPC / Morpho API blip). */
+const DEFAULT_MARKETS_FETCH_RETRY_SEC = 60;
+
 export class MarketsFetchingCooldownMechanism {
-  private cooldownPeriod: number;
+  private readonly cooldownPeriodSeconds: number;
+  private readonly retryDelaySeconds: number;
   private readyAt: number;
 
-  constructor(cooldownPeriod: number) {
-    this.cooldownPeriod = cooldownPeriod;
+  constructor(cooldownPeriodSeconds: number, retryDelaySeconds = DEFAULT_MARKETS_FETCH_RETRY_SEC) {
+    this.cooldownPeriodSeconds = cooldownPeriodSeconds;
+    this.retryDelaySeconds = retryDelaySeconds;
     this.readyAt = 0;
   }
 
-  isFetchingReady() {
-    if (this.readyAt > Date.now() / 1000) {
-      return false;
-    }
-    this.readyAt = Date.now() / 1000 + this.cooldownPeriod;
-    return true;
+  isReady(): boolean {
+    return Date.now() / 1000 >= this.readyAt;
+  }
+
+  scheduleNextFetchAfterSuccess(): void {
+    this.readyAt = Date.now() / 1000 + this.cooldownPeriodSeconds;
+  }
+
+  scheduleRetryAfterFailure(): void {
+    this.readyAt = Date.now() / 1000 + this.retryDelaySeconds;
   }
 }

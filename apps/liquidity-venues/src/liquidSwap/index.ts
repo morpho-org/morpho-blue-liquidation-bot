@@ -1,7 +1,6 @@
 import { LIQUID_SWAP_SUPPORTED_NETWORKS } from "@morpho-blue-liquidation-bot/config";
 import { ExecutorEncoder } from "executooor-viem";
-import { Account, Address, Chain, Client, erc20Abi, Hex, parseUnits, Transport } from "viem";
-import { readContract } from "viem/actions";
+import { Address, getAddress, Hex, parseUnits } from "viem";
 
 import { LiquidityVenue } from "../liquidityVenue";
 import { ToConvert } from "../types";
@@ -9,7 +8,6 @@ import { ToConvert } from "../types";
 import { SwapRouteV2Response } from "./types";
 
 export class LiquidSwapVenue implements LiquidityVenue {
-  private assetsDecimals: Record<number, Record<Address, number>> = {};
   private baseApiUrl = "https://api.liqd.ag/v2/route";
 
   supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
@@ -22,9 +20,9 @@ export class LiquidSwapVenue implements LiquidityVenue {
     const { src, dst, srcAmount } = toConvert;
 
     try {
-      const srcDecimals = await this.getAssetsDecimals(encoder.client, src);
-
-      const url = this.apiUrl(src, dst, Math.floor(Number(srcAmount) / 10 ** srcDecimals));
+      /// amountIn must be in smallest units (wei). Using `Number(bigint)` loses precision
+      /// above ~2^53 and `floor(amount / 10**d)` mis-quotes vs the actual `srcAmount` encoded on-chain.
+      const url = this.apiUrl(src, dst, srcAmount);
       const response = await fetch(url);
       const data = (await response.json()) as SwapRouteV2Response;
 
@@ -41,27 +39,14 @@ export class LiquidSwapVenue implements LiquidityVenue {
         srcAmount: parseUnits(data.amountOut, data.tokens.tokenOut.decimals),
       };
     } catch (error) {
-      console.error("failed to fetch assets decimals or liquid swap route", error);
+      console.error("failed to fetch liquid swap route", error);
       return toConvert;
     }
   }
 
-  private apiUrl(src: Address, dst: Address, amount: number) {
-    return `${this.baseApiUrl}?tokenIn=${src}&tokenOut=${dst}&amountIn=${amount}`;
-  }
-
-  private async getAssetsDecimals(client: Client<Transport, Chain, Account>, asset: Address) {
-    const chainId = client.chain.id;
-    this.assetsDecimals[chainId] ??= {};
-
-    const chainDecimals = this.assetsDecimals[chainId];
-    if (chainDecimals[asset] === undefined) {
-      chainDecimals[asset] = await readContract(client, {
-        address: asset,
-        abi: erc20Abi,
-        functionName: "decimals",
-      });
-    }
-    return chainDecimals[asset];
+  private apiUrl(src: Address, dst: Address, amountInWei: bigint) {
+    const tokenIn = getAddress(src);
+    const tokenOut = getAddress(dst);
+    return `${this.baseApiUrl}?tokenIn=${tokenIn}&tokenOut=${tokenOut}&amountIn=${amountInWei.toString()}`;
   }
 }
