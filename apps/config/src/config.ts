@@ -134,7 +134,25 @@ export const chainConfigs: Record<number, Config> = {
       ],
       liquidityVenues: ["liquidSwap", "erc20Wrapper", "erc4626", "uniswapV3"],
       pricers: ["uniswapV3"],
-      additionalMarketsWhitelist: [],
+      /// Markets outside the Felix vaults' withdraw queues whose collaterals are routable via
+      /// LiquidSwap (LST HYPE / UBTC / UETH / sUSDe). Identified via `scripts/discover-hyperevm-markets.mjs`.
+      /// Loan tokens are USDe and WHYPE — both supported by LiquidSwap, no extra venue needed.
+      additionalMarketsWhitelist: [
+        "0x292f0a3ddfb642fbaadf258ebcccf9e4b0048a9dc5af93036288502bde1a71b1", // WHYPE   / USDe
+        "0x5fe3ac84f3a2c4e3102c3e6e9accb1ec90c30f6ee87ab1fcafc197b8addeb94c", // UBTC    / USDe
+        "0xa7fe39c692f0192fb2f281a6cc16c8b2e1c8f9b9f2bc418e0c0c1e9374bf4b04", // WHYPE   / USDe
+        "0x5ef35fe4418a6bcfcc70fe32efce30074f22e9a782f81d432c1e537ddbda11e2", // UBTC    / USDe
+        "0x0e5172eeb1bbf076fccc101f4a47e6f2db42eb7c39e44bd015c64b5e63e3da3d", // lstHYPE / WHYPE
+        "0xe9a9bb9ed3cc53f4ee9da4eea0370c2c566873d5de807e16559a99907c9ae227", // wstHYPE / WHYPE
+        "0xe41ace68f2de7be8e47185b51ddc23d4a58aac4ce9f8cc5f9384fe26f2104ec8", // sUSDe   / USDe
+        "0xb142d65d7c624def0a9f4b49115b83f400a86bd2904d4f3339ec4441e28483ea", // wstHYPE / USDe
+        "0x964e7d1db11bdf32262c71274c297dcdb4710d73acb814f04fdca8b0c7cdf028", // UETH    / USDe
+        "0x0a2e456ebd22ed68ae1d5c6b2de70bc514337ac588a7a4b0e28f546662144036", // beHYPE  / WHYPE
+        "0x19e47d37453628ebf0fd18766ce6fee1b08ea46752a5da83ca0bfecb270d07e8", // hbHYPE  / WHYPE
+        "0xf25db2433ae650155eae04ebd8b3795d19bfcb318d22926a8a5e746e8028e0a8", // kHYPE   / WHYPE
+        "0xabb2460997195a4b8be22346e3c0ed3a4f778868a7352d130ec09554df3f147b", // kHYPE   / WHYPE
+        "0xbc15a1782163f4be46c23ac61f5da50fed96ad40293f86a5ce0501ce4a246b32", // wstHYPE / WHYPE
+      ],
       liquidationBufferBps: 50,
       useFlashbots: false,
       disableSimulateCalls: true,
