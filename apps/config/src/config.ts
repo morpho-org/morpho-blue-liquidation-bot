@@ -11,7 +11,7 @@ export const ALWAYS_REALIZE_BAD_DEBT = false; // true if you want to always real
 
 export const MARKETS_FETCHING_COOLDOWN_PERIOD = 60 * 60 * 24; // 24 hours (1 day)
 export const POSITION_LIQUIDATION_COOLDOWN_ENABLED = true; // true if you want to enable the cooldown mechanism
-export const POSITION_LIQUIDATION_COOLDOWN_PERIOD = 60 * 60; // 1 hour
+export const POSITION_LIQUIDATION_COOLDOWN_PERIOD = 120; // 2 minutes
 
 /// Chains configurations
 
@@ -38,10 +38,10 @@ export const chainConfigs: Record<number, Config> = {
         "uniswapV3",
         "uniswapV4",
       ],
-      pricers: ["defillama", "chainlink", "uniswapV3"],
+      pricers: ["chainlink", "defillama", "uniswapV3"],
       liquidationBufferBps: 50,
       useFlashbots: true,
-      blockInterval: 2,
+      blockInterval: 1,
     },
   },
   [base.id]: {
@@ -60,10 +60,10 @@ export const chainConfigs: Record<number, Config> = {
         "uniswapV3",
         "uniswapV4",
       ],
-      pricers: ["defillama", "chainlink", "uniswapV3"],
+      pricers: ["chainlink", "defillama", "uniswapV3"],
       liquidationBufferBps: 50,
       useFlashbots: false,
-      blockInterval: 10,
+      blockInterval: 1,
     },
   },
   [unichain.id]: {
