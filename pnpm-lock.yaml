@@ -4,8 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: b15e09649e3a96b1b8ba63631ff337dc
-
 importers:
 
   .:
@@ -17,8 +15,8 @@ importers:
         specifier: ^4.19.3
         version: 4.19.3
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@eslint/js':
         specifier: ^9.20.0
@@ -34,19 +32,19 @@ importers:
         version: 16.4.7
       eslint:
         specifier: ^9.20.1
-        version: 9.23.0(jiti@2.6.1)
+        version: 9.23.0
       eslint-config-prettier:
         specifier: ^10.0.1
-        version: 10.1.1(eslint@9.23.0(jiti@2.6.1))
+        version: 10.1.1(eslint@9.23.0)
       eslint-import-resolver-typescript:
         specifier: ^3.8.3
-        version: 3.10.0(eslint-plugin-import-x@4.9.3(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2))(eslint@9.23.0(jiti@2.6.1))
+        version: 3.10.0(eslint-plugin-import-x@4.9.3(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)
       eslint-plugin-import-x:
         specifier: ^4.6.1
-        version: 4.9.3(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+        version: 4.9.3(eslint@9.23.0)(typescript@5.8.2)
       eslint-plugin-prettier:
         specifier: ^5.2.3
-        version: 5.2.5(eslint-config-prettier@10.1.1(eslint@9.23.0(jiti@2.6.1)))(eslint@9.23.0(jiti@2.6.1))(prettier@3.5.1)
+        version: 5.2.5(eslint-config-prettier@10.1.1(eslint@9.23.0))(eslint@9.23.0)(prettier@3.5.1)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -61,10 +59,10 @@ importers:
         version: 5.8.2
       typescript-eslint:
         specifier: ^8.24.1
-        version: 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+        version: 8.28.0(eslint@9.23.0)(typescript@5.8.2)
       vitest:
         specifier: ^3.0.9
-        version: 3.0.9(@types/debug@4.1.12)(@types/node@20.17.28)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0)
+        version: 3.0.9(@types/node@20.17.28)(jsdom@26.0.0)(tsx@4.19.3)(yaml@2.7.0)
 
   apps/client:
     dependencies:
@@ -82,10 +80,10 @@ importers:
         version: link:../pricers
       '@morpho-org/blue-sdk-viem':
         specifier: ^4.2.1
-        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(typescript@5.8.2))
       executooor-viem:
         specifier: ^1.3.3
-        version: 1.3.3(evm-maths@7.0.1)(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 1.3.3(evm-maths@7.0.1)(viem@2.46.2(typescript@5.8.2))
       fastify:
         specifier: ^5.1.0
         version: 5.6.2
@@ -95,13 +93,13 @@ importers:
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       '@types/yargs':
         specifier: ^17.0.33
         version: 17.0.33
       nock:
         specifier: ^14.0.2
-        version: 14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        version: 14.0.2
 
   apps/config: {}
 
@@ -118,7 +116,7 @@ importers:
         version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
       '@morpho-org/blue-sdk-viem':
         specifier: ^4.2.1
-        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(typescript@5.8.2))
       '@morpho-org/morpho-ts':
         specifier: ^2.4.6
         version: 2.4.6
@@ -132,8 +130,8 @@ importers:
         specifier: ^2.12.6
         version: 2.12.6(graphql@16.12.0)
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
 
   apps/hyperindex:
     dependencies:
@@ -151,7 +149,7 @@ importers:
         version: 3.3.1
       envio:
         specifier: 3.0.0-alpha.17
-        version: 3.0.0-alpha.17(bufferutil@4.0.9)(react-dom@19.2.4(react@19.2.0))(react@19.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        version: 3.0.0-alpha.17(react-dom@19.2.4(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
       js-sdsl:
         specifier: 4.4.2
         version: 4.4.2
@@ -171,16 +169,12 @@ importers:
         specifier: 9.3.4
         version: 9.3.4(rescript@11.1.3)
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      generated:
-        specifier: ./generated
-        version: link:generated
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
@@ -201,10 +195,14 @@ importers:
         version: 4.21.0
       vitest:
         specifier: ^3.0.9
-        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0)
+        version: 3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0)
       yaml:
         specifier: ^2.7.0
         version: 2.7.0
+    optionalDependencies:
+      generated:
+        specifier: ./generated
+        version: link:generated
 
   apps/liquidity-venues:
     dependencies:
@@ -216,30 +214,30 @@ importers:
         version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
       executooor-viem:
         specifier: ^1.3.3
-        version: 1.3.3(evm-maths@7.0.1)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+        version: 1.3.3(evm-maths@7.0.1)(viem@2.46.2(typescript@5.8.2))
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
+    devDependencies:
+      '@morpho-org/test':
+        specifier: ^2.1.1
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+      nock:
+        specifier: ^14.0.2
+        version: 14.0.2
     optionalDependencies:
       '@uniswap/sdk-core':
         specifier: ^7.7.2
         version: 7.7.2
       '@uniswap/universal-router-sdk':
         specifier: ^4.19.5
-        version: 4.19.5(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+        version: 4.19.5(hardhat@2.24.1(typescript@5.8.2))
       '@uniswap/v4-sdk':
         specifier: ^1.21.4
-        version: 1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
-    devDependencies:
-      '@morpho-org/test':
-        specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
-      nock:
-        specifier: ^14.0.2
-        version: 14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        version: 1.21.4(hardhat@2.24.1(typescript@5.8.2))
 
   apps/pricers:
     dependencies:
@@ -247,20 +245,17 @@ importers:
         specifier: workspace:*
         version: link:../config
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
 
 packages:
-
-  '@adraffy/ens-normalize@1.10.1':
-    resolution: {integrity: sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==}
 
   '@adraffy/ens-normalize@1.11.0':
     resolution: {integrity: sha512-/3DDPKHqqIqxUULp8yP4zODUY1i+2xvVWsv8A79xGWdCAG+8sb0hRh0Rk2QyOJUnnbyPUAZYcpBuRe3nS2OIUg==}
@@ -341,18 +336,21 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@envio-dev/hyperfuel-client-linux-x64-gnu@1.2.2':
     resolution: {integrity: sha512-XDkvkBG/frS+xiZkJdY4KqOaoAwyxPdi2MysDQgF8NmZdssi32SWch0r4LTqKWLLlCBg9/R55POeXL5UAjg2wQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@envio-dev/hyperfuel-client-linux-x64-musl@1.2.2':
     resolution: {integrity: sha512-DKnKJJSwsYtA7YT0EFGhFB5Eqoo42X0l0vZBv4lDuxngEXiiNjeLemXoKQVDzhcbILD7eyXNa5jWUc+2hpmkEg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@envio-dev/hyperfuel-client-win32-x64-msvc@1.2.2':
     resolution: {integrity: sha512-SwIgTAVM9QhCFPyHwL+e1yQ6o3paV6q25klESkXw+r/KW9QPhOOyA6Yr8nfnur3uqMTLJHAKHTLUnkyi/Nh7Aw==}
@@ -381,18 +379,21 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@envio-dev/hypersync-client-linux-x64-gnu@1.1.0':
     resolution: {integrity: sha512-ooOdLfrhq8W3J76pcJDWuXIpu9cTBjZR86XkkHaheDNkYQlBZ7h5oG3IhNTLnooFkih+6+9dfcfOdG4NMmylGA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@envio-dev/hypersync-client-linux-x64-musl@1.1.0':
     resolution: {integrity: sha512-WS717WyRyTZPRMfYmscRslRIhxWNKzdQR3SLugqQs0z1W7wo58WMufhr5EpzID5/GR10zexz+Y3a4HWMAGiu+Q==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@envio-dev/hypersync-client@1.1.0':
     resolution: {integrity: sha512-tTCW/fvYPFYIcL6SLcWd5Fe6uPCcXQbLgZaYL3NSvkhvrpw5VSx3M2QbHdpIrhmzoDkZdpIYyFD+pdZhC6Y75g==}
@@ -751,80 +752,41 @@ packages:
     resolution: {integrity: sha512-XBEKsYqLGXLah9PNJbgdkigthkG7TAGvlD/sH12beMXEyHDyigfcbdvHhmLyDWgDyOJn4QwiQUaF7yeuhnjdog==}
     engines: {node: '>=18'}
 
-  '@ethersproject/abi@5.7.0':
-    resolution: {integrity: sha512-351ktp42TiRcYB3H1OP8yajPeAQstMW/yCFokj/AthP9bLHzQFPlOrxOcwYEDkUAICmOHljvN4K39OMTMUa9RA==}
-
   '@ethersproject/abi@5.8.0':
     resolution: {integrity: sha512-b9YS/43ObplgyV6SlyQsG53/vkSal0MNA1fskSC4mbnCMi8R+NkcH8K9FPYNESf6jUefBUniE4SOKms0E/KK1Q==}
-
-  '@ethersproject/abstract-provider@5.7.0':
-    resolution: {integrity: sha512-R41c9UkchKCpAqStMYUpdunjo3pkEvZC3FAwZn5S5MGbXoMQOHIdHItezTETxAO5bevtMApSyEhn9+CHcDsWBw==}
 
   '@ethersproject/abstract-provider@5.8.0':
     resolution: {integrity: sha512-wC9SFcmh4UK0oKuLJQItoQdzS/qZ51EJegK6EmAWlh+OptpQ/npECOR3QqECd8iGHC0RJb4WKbVdSfif4ammrg==}
 
-  '@ethersproject/abstract-signer@5.7.0':
-    resolution: {integrity: sha512-a16V8bq1/Cz+TGCkE2OPMTOUDLS3grCpdjoJCYNnVBbdYEMSgKrU0+B90s8b6H+ByYTBZN7a3g76jdIJi7UfKQ==}
-
   '@ethersproject/abstract-signer@5.8.0':
     resolution: {integrity: sha512-N0XhZTswXcmIZQdYtUnd79VJzvEwXQw6PK0dTl9VoYrEBxxCPXqS0Eod7q5TNKRxe1/5WUMuR0u0nqTF/avdCA==}
-
-  '@ethersproject/address@5.7.0':
-    resolution: {integrity: sha512-9wYhYt7aghVGo758POM5nqcOMaE168Q6aRLJZwUmiqSrAungkG74gSSeKEIR7ukixesdRZGPgVqme6vmxs1fkA==}
 
   '@ethersproject/address@5.8.0':
     resolution: {integrity: sha512-GhH/abcC46LJwshoN+uBNoKVFPxUuZm6dA257z0vZkKmU1+t8xTn8oK7B9qrj8W2rFRMch4gbJl6PmVxjxBEBA==}
 
-  '@ethersproject/base64@5.7.0':
-    resolution: {integrity: sha512-Dr8tcHt2mEbsZr/mwTPIQAf3Ai0Bks/7gTw9dSqk1mQvhW3XvRlmDJr/4n+wg1JmCl16NZue17CDh8xb/vZ0sQ==}
-
   '@ethersproject/base64@5.8.0':
     resolution: {integrity: sha512-lN0oIwfkYj9LbPx4xEkie6rAMJtySbpOAFXSDVQaBnAzYfB4X2Qr+FXJGxMoc3Bxp2Sm8OwvzMrywxyw0gLjIQ==}
-
-  '@ethersproject/basex@5.7.0':
-    resolution: {integrity: sha512-ywlh43GwZLv2Voc2gQVTKBoVQ1mti3d8HK5aMxsfu/nRDnMmNqaSJ3r3n85HBByT8OpoY96SXM1FogC533T4zw==}
 
   '@ethersproject/basex@5.8.0':
     resolution: {integrity: sha512-PIgTszMlDRmNwW9nhS6iqtVfdTAKosA7llYXNmGPw4YAI1PUyMv28988wAb41/gHF/WqGdoLv0erHaRcHRKW2Q==}
 
-  '@ethersproject/bignumber@5.7.0':
-    resolution: {integrity: sha512-n1CAdIHRWjSucQO3MC1zPSVgV/6dy/fjL9pMrPP9peL+QxEg9wOsVqwD4+818B6LUEtaXzVHQiuivzRoxPxUGw==}
-
   '@ethersproject/bignumber@5.8.0':
     resolution: {integrity: sha512-ZyaT24bHaSeJon2tGPKIiHszWjD/54Sz8t57Toch475lCLljC6MgPmxk7Gtzz+ddNN5LuHea9qhAe0x3D+uYPA==}
-
-  '@ethersproject/bytes@5.7.0':
-    resolution: {integrity: sha512-nsbxwgFXWh9NyYWo+U8atvmMsSdKJprTcICAkvbBffT75qDocbuggBU0SJiVK2MuTrp0q+xvLkTnGMPK1+uA9A==}
 
   '@ethersproject/bytes@5.8.0':
     resolution: {integrity: sha512-vTkeohgJVCPVHu5c25XWaWQOZ4v+DkGoC42/TS2ond+PARCxTJvgTFUNDZovyQ/uAQ4EcpqqowKydcdmRKjg7A==}
 
-  '@ethersproject/constants@5.7.0':
-    resolution: {integrity: sha512-DHI+y5dBNvkpYUMiRQyxRBYBefZkJfo70VUkUAsRjcPs47muV9evftfZ0PJVCXYbAiCgght0DtcF9srFQmIgWA==}
-
   '@ethersproject/constants@5.8.0':
     resolution: {integrity: sha512-wigX4lrf5Vu+axVTIvNsuL6YrV4O5AXl5ubcURKMEME5TnWBouUh0CDTWxZ2GpnRn1kcCgE7l8O5+VbV9QTTcg==}
-
-  '@ethersproject/contracts@5.7.0':
-    resolution: {integrity: sha512-5GJbzEU3X+d33CdfPhcyS+z8MzsTrBGk/sc+G+59+tPa9yFkl6HQ9D6L0QMgNTA9q8dT0XKxxkyp883XsQvbbg==}
 
   '@ethersproject/contracts@5.8.0':
     resolution: {integrity: sha512-0eFjGz9GtuAi6MZwhb4uvUM216F38xiuR0yYCjKJpNfSEy4HUM8hvqqBj9Jmm0IUz8l0xKEhWwLIhPgxNY0yvQ==}
 
-  '@ethersproject/hash@5.7.0':
-    resolution: {integrity: sha512-qX5WrQfnah1EFnO5zJv1v46a8HW0+E5xuBBDTwMFZLuVTx0tbU2kkx15NqdjxecrLGatQN9FGQKpb1FKdHCt+g==}
-
   '@ethersproject/hash@5.8.0':
     resolution: {integrity: sha512-ac/lBcTbEWW/VGJij0CNSw/wPcw9bSRgCB0AIBz8CvED/jfvDoV9hsIIiWfvWmFEi8RcXtlNwp2jv6ozWOsooA==}
 
-  '@ethersproject/hdnode@5.7.0':
-    resolution: {integrity: sha512-OmyYo9EENBPPf4ERhR7oj6uAtUAhYGqOnIS+jE5pTXvdKBS99ikzq1E7Iv0ZQZ5V36Lqx1qZLeak0Ra16qpeOg==}
-
   '@ethersproject/hdnode@5.8.0':
     resolution: {integrity: sha512-4bK1VF6E83/3/Im0ERnnUeWOY3P1BZml4ZD3wcH8Ys0/d1h1xaFt6Zc+Dh9zXf9TapGro0T4wvO71UTCp3/uoA==}
-
-  '@ethersproject/json-wallets@5.7.0':
-    resolution: {integrity: sha512-8oee5Xgu6+RKgJTkvEMl2wDgSPSAQ9MB/3JYjFV9jlKvcYHUXZC+cQp0njgmxdHkYWn8s6/IqIZYm0YWCjO/0g==}
 
   '@ethersproject/json-wallets@5.8.0':
     resolution: {integrity: sha512-HxblNck8FVUtNxS3VTEYJAcwiKYsBIF77W15HufqlBF9gGfhmYOJtYZp8fSDZtn9y5EaXTE87zDwzxRoTFk11w==}
@@ -835,62 +797,32 @@ packages:
   '@ethersproject/keccak256@5.8.0':
     resolution: {integrity: sha512-A1pkKLZSz8pDaQ1ftutZoaN46I6+jvuqugx5KYNeQOPqq+JZ0Txm7dlWesCHB5cndJSu5vP2VKptKf7cksERng==}
 
-  '@ethersproject/logger@5.7.0':
-    resolution: {integrity: sha512-0odtFdXu/XHtjQXJYA3u9G0G8btm0ND5Cu8M7i5vhEcE8/HmF4Lbdqanwyv4uQTr2tx6b7fQRmgLrsnpQlmnig==}
-
   '@ethersproject/logger@5.8.0':
     resolution: {integrity: sha512-Qe6knGmY+zPPWTC+wQrpitodgBfH7XoceCGL5bJVejmH+yCS3R8jJm8iiWuvWbG76RUmyEG53oqv6GMVWqunjA==}
-
-  '@ethersproject/networks@5.7.1':
-    resolution: {integrity: sha512-n/MufjFYv3yFcUyfhnXotyDlNdFb7onmkSy8aQERi2PjNcnWQ66xXxa3XlS8nCcA8aJKJjIIMNJTC7tu80GwpQ==}
 
   '@ethersproject/networks@5.8.0':
     resolution: {integrity: sha512-egPJh3aPVAzbHwq8DD7Po53J4OUSsA1MjQp8Vf/OZPav5rlmWUaFLiq8cvQiGK0Z5K6LYzm29+VA/p4RL1FzNg==}
 
-  '@ethersproject/pbkdf2@5.7.0':
-    resolution: {integrity: sha512-oR/dBRZR6GTyaofd86DehG72hY6NpAjhabkhxgr3X2FpJtJuodEl2auADWBZfhDHgVCbu3/H/Ocq2uC6dpNjjw==}
-
   '@ethersproject/pbkdf2@5.8.0':
     resolution: {integrity: sha512-wuHiv97BrzCmfEaPbUFpMjlVg/IDkZThp9Ri88BpjRleg4iePJaj2SW8AIyE8cXn5V1tuAaMj6lzvsGJkGWskg==}
-
-  '@ethersproject/properties@5.7.0':
-    resolution: {integrity: sha512-J87jy8suntrAkIZtecpxEPxY//szqr1mlBaYlQ0r4RCaiD2hjheqF9s1LVE8vVuJCXisjIP+JgtK/Do54ej4Sw==}
 
   '@ethersproject/properties@5.8.0':
     resolution: {integrity: sha512-PYuiEoQ+FMaZZNGrStmN7+lWjlsoufGIHdww7454FIaGdbe/p5rnaCXTr5MtBYl3NkeoVhHZuyzChPeGeKIpQw==}
 
-  '@ethersproject/providers@5.7.2':
-    resolution: {integrity: sha512-g34EWZ1WWAVgr4aptGlVBF8mhl3VWjv+8hoAnzStu8Ah22VHBsuGzP17eb6xDVRzw895G4W7vvx60lFFur/1Rg==}
-
   '@ethersproject/providers@5.8.0':
     resolution: {integrity: sha512-3Il3oTzEx3o6kzcg9ZzbE+oCZYyY+3Zh83sKkn4s1DZfTUjIegHnN2Cm0kbn9YFy45FDVcuCLLONhU7ny0SsCw==}
-
-  '@ethersproject/random@5.7.0':
-    resolution: {integrity: sha512-19WjScqRA8IIeWclFme75VMXSBvi4e6InrUNuaR4s5pTF2qNhcGdCUwdxUVGtDDqC00sDLCO93jPQoDUH4HVmQ==}
 
   '@ethersproject/random@5.8.0':
     resolution: {integrity: sha512-E4I5TDl7SVqyg4/kkA/qTfuLWAQGXmSOgYyO01So8hLfwgKvYK5snIlzxJMk72IFdG/7oh8yuSqY2KX7MMwg+A==}
 
-  '@ethersproject/rlp@5.7.0':
-    resolution: {integrity: sha512-rBxzX2vK8mVF7b0Tol44t5Tb8gomOHkj5guL+HhzQ1yBh/ydjGnpw6at+X6Iw0Kp3OzzzkcKp8N9r0W4kYSs9w==}
-
   '@ethersproject/rlp@5.8.0':
     resolution: {integrity: sha512-LqZgAznqDbiEunaUvykH2JAoXTT9NV0Atqk8rQN9nx9SEgThA/WMx5DnW8a9FOufo//6FZOCHZ+XiClzgbqV9Q==}
-
-  '@ethersproject/sha2@5.7.0':
-    resolution: {integrity: sha512-gKlH42riwb3KYp0reLsFTokByAKoJdgFCwI+CCiX/k+Jm2mbNs6oOaCjYQSlI1+XBVejwH2KrmCbMAT/GnRDQw==}
 
   '@ethersproject/sha2@5.8.0':
     resolution: {integrity: sha512-dDOUrXr9wF/YFltgTBYS0tKslPEKr6AekjqDW2dbn1L1xmjGR+9GiKu4ajxovnrDbwxAKdHjW8jNcwfz8PAz4A==}
 
-  '@ethersproject/signing-key@5.7.0':
-    resolution: {integrity: sha512-MZdy2nL3wO0u7gkB4nA/pEf8lu1TlFswPNmy8AiYkfKTdO6eXBJyUdmHO/ehm/htHw9K/qF8ujnTyUAD+Ry54Q==}
-
   '@ethersproject/signing-key@5.8.0':
     resolution: {integrity: sha512-LrPW2ZxoigFi6U6aVkFN/fa9Yx/+4AtIUe4/HACTvKJdhm0eeb107EVCIQcrLZkxaSIgc/eCrX8Q1GtbH+9n3w==}
-
-  '@ethersproject/solidity@5.7.0':
-    resolution: {integrity: sha512-HmabMd2Dt/raavyaGukF4XxizWKhKQ24DoLtdNbBmNKUOPqwjsKQSdV9GQtj9CBEea9DlzETlVER1gYeXXBGaA==}
 
   '@ethersproject/solidity@5.8.0':
     resolution: {integrity: sha512-4CxFeCgmIWamOHwYN9d+QWGxye9qQLilpgTU0XhYs1OahkclF+ewO+3V1U0mvpiuQxm5EHHmv8f7ClVII8EHsA==}
@@ -901,32 +833,17 @@ packages:
   '@ethersproject/strings@5.8.0':
     resolution: {integrity: sha512-qWEAk0MAvl0LszjdfnZ2uC8xbR2wdv4cDabyHiBh3Cldq/T8dPH3V4BbBsAYJUeonwD+8afVXld274Ls+Y1xXg==}
 
-  '@ethersproject/transactions@5.7.0':
-    resolution: {integrity: sha512-kmcNicCp1lp8qanMTC3RIikGgoJ80ztTyvtsFvCYpSCfkjhD0jZ2LOrnbcuxuToLIUYYf+4XwD1rP+B/erDIhQ==}
-
   '@ethersproject/transactions@5.8.0':
     resolution: {integrity: sha512-UglxSDjByHG0TuU17bDfCemZ3AnKO2vYrL5/2n2oXvKzvb7Cz+W9gOWXKARjp2URVwcWlQlPOEQyAviKwT4AHg==}
-
-  '@ethersproject/units@5.7.0':
-    resolution: {integrity: sha512-pD3xLMy3SJu9kG5xDGI7+xhTEmGXlEqXU4OfNapmfnxLVY4EMSSRp7j1k7eezutBPH7RBN/7QPnwR7hzNlEFeg==}
 
   '@ethersproject/units@5.8.0':
     resolution: {integrity: sha512-lxq0CAnc5kMGIiWW4Mr041VT8IhNM+Pn5T3haO74XZWFulk7wH1Gv64HqE96hT4a7iiNMdOCFEBgaxWuk8ETKQ==}
 
-  '@ethersproject/wallet@5.7.0':
-    resolution: {integrity: sha512-MhmXlJXEJFBFVKrDLB4ZdDzxcBxQ3rLyCkhNqVu3CDYvR97E+8r01UgrI+TI99Le+aYm/in/0vp86guJuM7FCA==}
-
   '@ethersproject/wallet@5.8.0':
     resolution: {integrity: sha512-G+jnzmgg6UxurVKRKvw27h0kvG75YKXZKdlLYmAHeF32TGUzHkOFd7Zn6QHOTYRFWnfjtSSFjBowKo7vfrXzPA==}
 
-  '@ethersproject/web@5.7.1':
-    resolution: {integrity: sha512-Gueu8lSvyjBWL4cYsWsjh6MtMwM0+H4HvqFPZfB6dV8ctbP9zFAO73VG1cMWae0FLPCtz0peKPpZY8/ugJJX2w==}
-
   '@ethersproject/web@5.8.0':
     resolution: {integrity: sha512-j7+Ksi/9KfGviws6Qtf9Q7KCqRhpwrYKQPs+JBA/rKVFF/yaWLHJEH3zfVP2plVu+eys0d2DlFmhoQJayFewcw==}
-
-  '@ethersproject/wordlists@5.7.0':
-    resolution: {integrity: sha512-S2TFNJNfHWVHNE6cNDjbVlZ6MgE17MIxMbMg2zv3wn+3XSJGosL1m9ZVv3GXCf/2ymSsQ+hRI5IzoMJTG6aoVA==}
 
   '@ethersproject/wordlists@5.8.0':
     resolution: {integrity: sha512-2df9bbXicZws2Sb5S6ET493uJ0Z84Fjr3pC4tu/qlnZERibZCeUVuqdtt+7Tv9xxhUxHoIekIA7avrKUWHrezg==}
@@ -1028,9 +945,6 @@ packages:
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
     engines: {node: ^14.21.3 || >=16}
 
-  '@noble/curves@1.2.0':
-    resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
-
   '@noble/curves@1.4.2':
     resolution: {integrity: sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==}
 
@@ -1044,10 +958,6 @@ packages:
 
   '@noble/hashes@1.2.0':
     resolution: {integrity: sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==}
-
-  '@noble/hashes@1.3.2':
-    resolution: {integrity: sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==}
-    engines: {node: '>= 16'}
 
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
@@ -1176,11 +1086,6 @@ packages:
     resolution: {integrity: sha512-vsJDAkYR6qCPu+ioGScGiMYR7LvZYIXh/dlQeviqoTWNCVfKTLYD/LkNWH4Mxsv2a5vpIRc77FN5DnmK1eBggQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@playwright/test@1.51.1':
-    resolution: {integrity: sha512-nM+kEaTSAoVlXmMPH10017vn3FSiFqr/bh4fKg9vmAdMfd9SDqRZNvPSiAHADc/itWak+qPvMPZQOPwCBW7k7Q==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   '@rescript/react@0.14.1':
     resolution: {integrity: sha512-tCdzMnzSEuEfWs/A6wq6kLx/E5nBkVJmFST+MwU01W9hzFwQi2JpvE82Fl66ets+oaC5UVpFf3vy4KvXRN+jPA==}
     peerDependencies:
@@ -1221,56 +1126,67 @@ packages:
     resolution: {integrity: sha512-hhAALKJPidCwZcj+g+iN+38SIOkhK2a9bqtJR+EtyxrKKSt1ynCBeqrQy31z0oWU6thRZzdx53hVgEbRkuI19w==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.37.0':
     resolution: {integrity: sha512-jUb/kmn/Gd8epbHKEqkRAxq5c2EwRt0DqhSGWjPFxLeFvldFdHQs/n8lQ9x85oAeVb6bHcS8irhTJX2FCOd8Ag==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.37.0':
     resolution: {integrity: sha512-oNrJxcQT9IcbcmKlkF+Yz2tmOxZgG9D9GRq+1OE6XCQwCVwxixYAa38Z8qqPzQvzt1FCfmrHX03E0pWoXm1DqA==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.37.0':
     resolution: {integrity: sha512-pfxLBMls+28Ey2enpX3JvjEjaJMBX5XlPCZNGxj4kdJyHduPBXtxYeb8alo0a7bqOoWZW2uKynhHxF/MWoHaGQ==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loongarch64-gnu@4.37.0':
     resolution: {integrity: sha512-yCE0NnutTC/7IGUq/PUHmoeZbIwq3KRh02e9SfFh7Vmc1Z7atuJRYWhRME5fKgT8aS20mwi1RyChA23qSyRGpA==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-powerpc64le-gnu@4.37.0':
     resolution: {integrity: sha512-NxcICptHk06E2Lh3a4Pu+2PEdZ6ahNHuK7o6Np9zcWkrBMuv21j10SQDJW3C9Yf/A/P7cutWoC/DptNLVsZ0VQ==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.37.0':
     resolution: {integrity: sha512-PpWwHMPCVpFZLTfLq7EWJWvrmEuLdGn1GMYcm5MV7PaRgwCEYJAwiN94uBuZev0/J/hFIIJCsYw4nLmXA9J7Pw==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.37.0':
     resolution: {integrity: sha512-DTNwl6a3CfhGTAOYZ4KtYbdS8b+275LSLqJVJIrPa5/JuIufWWZ/QFvkxp52gpmguN95eujrM68ZG+zVxa8zHA==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.37.0':
     resolution: {integrity: sha512-hZDDU5fgWvDdHFuExN1gBOhCuzo/8TMpidfOR+1cPZJflcEzXdCy1LjnklQdW8/Et9sryOPJAKAQRw8Jq7Tg+A==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.37.0':
     resolution: {integrity: sha512-pKivGpgJM5g8dwj0ywBwe/HeVAUSuVVJhUTa/URXjxvoyTT/AxsLTAbkHkDHG7qQxLoW2s3apEIl26uUe08LVQ==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.37.0':
     resolution: {integrity: sha512-E2lPrLKE8sQbY/2bEkVTGDEk4/49UYRVWgj90MY8yPjpnGBQ+Xi1Qnr7b7UIWw1NOggdFQFOLZ8+5CzCiz143w==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-win32-arm64-msvc@4.37.0':
     resolution: {integrity: sha512-Jm7biMazjNzTU4PrQtr7VS8ibeys9Pn29/1bm4ph7CP2kf21950LgN+BaE2mJ1QujnvOc6p54eWWiVvn05SOBg==}
@@ -1345,9 +1261,6 @@ packages:
   '@types/bn.js@5.2.0':
     resolution: {integrity: sha512-DLbJ1BPqxvQhIGbeu8VbUC1DiAiahHtAYvA0ZEAa4P31F7IaArc8z3C3BRQdWX4mtLQuABG4yzp76ZrS02Ui1Q==}
 
-  '@types/debug@4.1.12':
-    resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
-
   '@types/doctrine@0.0.9':
     resolution: {integrity: sha512-eOIHzCUSH7SMfonMG1LsC2f8vxBFtho6NGBznK41R84YzPuvSBzrhEps33IsQiOW9+VL6NQ9DbjQJznk/S4uRA==}
 
@@ -1372,20 +1285,11 @@ packages:
   '@types/lru-cache@5.1.1':
     resolution: {integrity: sha512-ssE3Vlrys7sdIzs5LOxCzTVMsU7i9oa/IaW92wF32JFb3CVczqOkru2xspuKczHEbG3nvmPY7IFqVmGGHdNbYw==}
 
-  '@types/ms@2.1.0':
-    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
-
   '@types/node@20.17.28':
     resolution: {integrity: sha512-DHlH/fNL6Mho38jTy7/JT7sn2wnXI+wULR6PV4gy4VHLVvnrV/d3pHAMQHhc4gjdLmK2ZiPoMxzp6B3yRajLSQ==}
 
   '@types/node@22.13.14':
     resolution: {integrity: sha512-Zs/Ollc1SJ8nKUAgc7ivOEdIBM8JAKgrqqUYi2J997JuKO7/tpQC+WCetQ1sypiKCQWHdvdg9wBNpUPEWZae7w==}
-
-  '@types/node@22.7.5':
-    resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
-
-  '@types/node@25.4.0':
-    resolution: {integrity: sha512-9wLpoeWuBlcbBpOY3XmzSTG3oscB6xjBEEtn+pYXTfhyXhIxC5FsBer2KTopBlvKEiW9l13po9fq+SJY/5lkhw==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -1529,31 +1433,37 @@ packages:
     resolution: {integrity: sha512-3zP420zxJfYPD1rGp2/OTIBxF8E3+/6VqCG+DEO6kkDgBiloa7Y8pw1o7N9BfgAC+VC8FPZsFXhV2lpx+lLRMQ==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-arm64-musl@1.3.2':
     resolution: {integrity: sha512-ZWjSleUgr88H4Kei7yT4PlPqySTuWN1OYDDcdbmMCtLWFly3ed+rkrcCb3gvqXdDbYrGOtzv3g2qPEN+WWNv5Q==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-linux-ppc64-gnu@1.3.2':
     resolution: {integrity: sha512-p+5OvYJ2UOlpjes3WfBlxyvQok2u26hLyPxLFHkYlfzhZW0juhvBf/tvewz1LDFe30M7zL9cF4OOO5dcvtk+cw==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-s390x-gnu@1.3.2':
     resolution: {integrity: sha512-yweY7I6SqNn3kvj6vE4PQRo7j8Oz6+NiUhmgciBNAUOuI3Jq0bnW29hbHJdxZRSN1kYkQnSkbbA1tT8VnK816w==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-gnu@1.3.2':
     resolution: {integrity: sha512-fNIvtzJcGN9hzWTIayrTSk2+KHQrqKbbY+I88xMVMOFV9t4AXha4veJdKaIuuks+2JNr6GuuNdsL7+exywZ32w==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-musl@1.3.2':
     resolution: {integrity: sha512-OaFEw8WAjiwBGxutQgkWhoAGB5BQqZJ8Gjt/mW+m6DWNjimcxU22uWCuEtfw1CIwLlKPOzsgH0429fWmZcTGkg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-wasm32-wasi@1.3.2':
     resolution: {integrity: sha512-u+sumtO7M0AGQ9bNQrF4BHNpUyxo23FM/yXZfmVAicTQ+mXtG06O7pm5zQUw3Mr4jRs2I84uh4O0hd8bdouuvQ==}
@@ -1604,17 +1514,6 @@ packages:
   '@vitest/utils@3.0.9':
     resolution: {integrity: sha512-ilHM5fHhZ89MCp5aAaM9uhfl1c2JdxVxl3McqsdVyVNN6JffnEen8UMCdRTzOhGXNQGo5GNL9QugHrz727Wnng==}
 
-  abitype@1.1.0:
-    resolution: {integrity: sha512-6Vh4HcRxNMLA0puzPjM5GBgT4aAcFGKZzSgAXvuZ27shJP6NEpielTuqbBmZILR5/xd0PizkBGy5hReKz9jl5A==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-      zod: ^3.22.0 || ^4.0.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      zod:
-        optional: true
-
   abitype@1.2.3:
     resolution: {integrity: sha512-Ofer5QUnuUdTFsBRwARMoWKOH1ND5ehwYhJ3OJ/BQO+StkwQjHw0XyVh4vDttzHB7QOFhPHa/o413PJ82gU/Tg==}
     peerDependencies:
@@ -1653,9 +1552,6 @@ packages:
 
   aes-js@3.0.0:
     resolution: {integrity: sha512-H7wUZRn8WpTq9jocdxQ2c8x2sKo9ZVmzfRE13GiNJXfp7NcKYEdvl3vspKjXox6RIG2VtaRe4JFvxG4rqp2Zuw==}
-
-  aes-js@4.0.0-beta.5:
-    resolution: {integrity: sha512-G965FqalsNyrPqgEGON7nIx1e/OVENSgiEIzyC63haUMuvNnwIgIjMs52hlTCKhkBny7A2ORNlfY9Zu+jmGk1Q==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -1820,10 +1716,6 @@ packages:
 
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
-
-  bufferutil@4.0.9:
-    resolution: {integrity: sha512-WDtdLmJvAuNNPzByAYpRo2rF1Mmradw6gvWsQKf63476DDXmomT9zUiGypLcG4ibIM67vhAj8jJRdbmEws2Aqw==}
-    engines: {node: '>=6.14.2'}
 
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
@@ -2112,9 +2004,6 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  elliptic@6.5.4:
-    resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
-
   elliptic@6.6.1:
     resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
 
@@ -2316,15 +2205,8 @@ packages:
   ethereum-cryptography@2.2.1:
     resolution: {integrity: sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg==}
 
-  ethers@5.7.2:
-    resolution: {integrity: sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==}
-
   ethers@5.8.0:
     resolution: {integrity: sha512-DUq+7fHrCg1aPDFCHx6UIPb3nmt2XMpM7Y/g2gLhsl3lIBqeAfOJIl1qEvRf2uq3BiKxmh6Fh5pfp2ieyek7Kg==}
-
-  ethers@6.13.5:
-    resolution: {integrity: sha512-+knKNieu5EKRThQJWwqaJ10a6HE9sSehGeqWN65//wE7j47ZpFhKAnHB/JJFibwwg61I/koxaPsXbXpD/skNOQ==}
-    engines: {node: '>=14.0.0'}
 
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
@@ -2493,11 +2375,6 @@ packages:
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
-
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -2818,10 +2695,6 @@ packages:
     resolution: {integrity: sha512-I1fSfDCZL5P0v33sVqeTDSpcstAg/N+wF5HS033mogOVIp4B+oHC7oOCsA3axAbBSGTJ8QubbNmnIRN/h8U7hg==}
     peerDependencies:
       ws: '*'
-
-  jiti@2.6.1:
-    resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
-    hasBin: true
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -3144,14 +3017,6 @@ packages:
       typescript:
         optional: true
 
-  ox@0.9.6:
-    resolution: {integrity: sha512-8SuCbHPvv2eZLYXrNmC0EC12rdzXQLdhnOMlHDW2wiCPLxBrOOJwX5L5E61by+UjTPOryqQiRSnjIKCI+GykKg==}
-    peerDependencies:
-      typescript: '>=5.4.0'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   p-limit@3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}
     engines: {node: '>=10'}
@@ -3253,16 +3118,6 @@ packages:
 
   pino@8.16.1:
     resolution: {integrity: sha512-3bKsVhBmgPjGV9pyn4fO/8RtoVDR8ssW1ev819FsRXlRNgW8gR/9Kx+gCK4UPWd4JjrRDLWpzd/pb1AyWm3MGA==}
-    hasBin: true
-
-  playwright-core@1.51.1:
-    resolution: {integrity: sha512-/crRMj8+j/Nq5s8QcvegseuyeZPxpQCZb6HNk3Sos3BlZyAknRjoyJPFWkpNn8v0+P3WiwqFF8P+zQo4eqiNuw==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.51.1:
-    resolution: {integrity: sha512-kkx+MB2KQRkyxjYPc3a0wLZZoDczmppyGJIvQ43l+aZihkaVvmu/21kiyaHeHjiFxjxNNFnUncKmcGIyOojsaw==}
-    engines: {node: '>=18'}
     hasBin: true
 
   postcss@8.5.3:
@@ -3789,9 +3644,6 @@ packages:
   tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
 
-  tslib@2.7.0:
-    resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
-
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -3850,9 +3702,6 @@ packages:
   undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
 
-  undici-types@7.18.2:
-    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
-
   undici@5.29.0:
     resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
     engines: {node: '>=14.0'}
@@ -3871,10 +3720,6 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  utf-8-validate@5.0.10:
-    resolution: {integrity: sha512-Z6czzLq4u8fPOyx7TU6X3dvUZVvoJmxSQ+IcrlmagKhilxlhZgxPK6C5Jqbkw1IDUmFTM+cz9QDnnLTwDz/2gQ==}
-    engines: {node: '>=6.14.2'}
-
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -3884,6 +3729,7 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vary@1.1.2:
@@ -3899,14 +3745,6 @@ packages:
     resolution: {integrity: sha512-C6fEeO2hfvGEtiRd4ZE/82rWdSzf98YBuWxG7qmrSjOAcz7gVJEt8jpSFHUvVP0IZl0/1N+eix7JHDXGZ6iyHQ==}
     peerDependencies:
       viem: ^2.21.0
-
-  viem@2.38.6:
-    resolution: {integrity: sha512-aqO6P52LPXRjdnP6rl5Buab65sYa4cZ6Cpn+k4OLOzVJhGIK8onTVoKMFMT04YjDfyDICa/DZyV9HmvLDgcjkw==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   viem@2.46.2:
     resolution: {integrity: sha512-w8Qv5Vyo7TfXcH3vgmxRa1NRvzJCDy2aSGSRsJn3503nC/qVbgEQ+n3aj/CkqWXbloudZh97h5o5aQrQSVGy0w==}
@@ -4050,36 +3888,12 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  ws@7.4.6:
-    resolution: {integrity: sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==}
-    engines: {node: '>=8.3.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@7.5.10:
     resolution: {integrity: sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==}
     engines: {node: '>=8.3.0'}
     peerDependencies:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
-  ws@8.17.1:
-    resolution: {integrity: sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
     peerDependenciesMeta:
       bufferutil:
         optional: true
@@ -4166,9 +3980,6 @@ packages:
     resolution: {integrity: sha512-0LPOt3AxKqMdFBZA3HBAt/t/8vIKq7VaQYbuA8WxCgung+p9TVyKRYdpvCb80HcdTN2NkbIKbhNwKUfm3tQywQ==}
 
 snapshots:
-
-  '@adraffy/ens-normalize@1.10.1':
-    optional: true
 
   '@adraffy/ens-normalize@1.11.0': {}
 
@@ -4438,9 +4249,9 @@ snapshots:
   '@esbuild/win32-x64@0.27.3':
     optional: true
 
-  '@eslint-community/eslint-utils@4.5.1(eslint@9.23.0(jiti@2.6.1))':
+  '@eslint-community/eslint-utils@4.5.1(eslint@9.23.0)':
     dependencies:
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.1': {}
@@ -4491,19 +4302,6 @@ snapshots:
       ethereum-cryptography: 2.2.1
     optional: true
 
-  '@ethersproject/abi@5.7.0':
-    dependencies:
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/strings': 5.7.0
-    optional: true
-
   '@ethersproject/abi@5.8.0':
     dependencies:
       '@ethersproject/address': 5.8.0
@@ -4517,17 +4315,6 @@ snapshots:
       '@ethersproject/strings': 5.8.0
     optional: true
 
-  '@ethersproject/abstract-provider@5.7.0':
-    dependencies:
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/networks': 5.7.1
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/web': 5.7.1
-    optional: true
-
   '@ethersproject/abstract-provider@5.8.0':
     dependencies:
       '@ethersproject/bignumber': 5.8.0
@@ -4539,15 +4326,6 @@ snapshots:
       '@ethersproject/web': 5.8.0
     optional: true
 
-  '@ethersproject/abstract-signer@5.7.0':
-    dependencies:
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-    optional: true
-
   '@ethersproject/abstract-signer@5.8.0':
     dependencies:
       '@ethersproject/abstract-provider': 5.8.0
@@ -4555,15 +4333,6 @@ snapshots:
       '@ethersproject/bytes': 5.8.0
       '@ethersproject/logger': 5.8.0
       '@ethersproject/properties': 5.8.0
-    optional: true
-
-  '@ethersproject/address@5.7.0':
-    dependencies:
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/rlp': 5.7.0
     optional: true
 
   '@ethersproject/address@5.8.0':
@@ -4575,33 +4344,15 @@ snapshots:
       '@ethersproject/rlp': 5.8.0
     optional: true
 
-  '@ethersproject/base64@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-    optional: true
-
   '@ethersproject/base64@5.8.0':
     dependencies:
       '@ethersproject/bytes': 5.8.0
-    optional: true
-
-  '@ethersproject/basex@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/properties': 5.7.0
     optional: true
 
   '@ethersproject/basex@5.8.0':
     dependencies:
       '@ethersproject/bytes': 5.8.0
       '@ethersproject/properties': 5.8.0
-    optional: true
-
-  '@ethersproject/bignumber@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      bn.js: 5.2.2
     optional: true
 
   '@ethersproject/bignumber@5.8.0':
@@ -4611,38 +4362,14 @@ snapshots:
       bn.js: 5.2.2
     optional: true
 
-  '@ethersproject/bytes@5.7.0':
-    dependencies:
-      '@ethersproject/logger': 5.7.0
-    optional: true
-
   '@ethersproject/bytes@5.8.0':
     dependencies:
       '@ethersproject/logger': 5.8.0
     optional: true
 
-  '@ethersproject/constants@5.7.0':
-    dependencies:
-      '@ethersproject/bignumber': 5.7.0
-    optional: true
-
   '@ethersproject/constants@5.8.0':
     dependencies:
       '@ethersproject/bignumber': 5.8.0
-    optional: true
-
-  '@ethersproject/contracts@5.7.0':
-    dependencies:
-      '@ethersproject/abi': 5.7.0
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/transactions': 5.7.0
     optional: true
 
   '@ethersproject/contracts@5.8.0':
@@ -4659,19 +4386,6 @@ snapshots:
       '@ethersproject/transactions': 5.8.0
     optional: true
 
-  '@ethersproject/hash@5.7.0':
-    dependencies:
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/base64': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/strings': 5.7.0
-    optional: true
-
   '@ethersproject/hash@5.8.0':
     dependencies:
       '@ethersproject/abstract-signer': 5.8.0
@@ -4683,22 +4397,6 @@ snapshots:
       '@ethersproject/logger': 5.8.0
       '@ethersproject/properties': 5.8.0
       '@ethersproject/strings': 5.8.0
-    optional: true
-
-  '@ethersproject/hdnode@5.7.0':
-    dependencies:
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/basex': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/pbkdf2': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/sha2': 5.7.0
-      '@ethersproject/signing-key': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/wordlists': 5.7.0
     optional: true
 
   '@ethersproject/hdnode@5.8.0':
@@ -4715,23 +4413,6 @@ snapshots:
       '@ethersproject/strings': 5.8.0
       '@ethersproject/transactions': 5.8.0
       '@ethersproject/wordlists': 5.8.0
-    optional: true
-
-  '@ethersproject/json-wallets@5.7.0':
-    dependencies:
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/hdnode': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/pbkdf2': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/random': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      aes-js: 3.0.0
-      scrypt-js: 3.0.1
     optional: true
 
   '@ethersproject/json-wallets@5.8.0':
@@ -4763,26 +4444,12 @@ snapshots:
       js-sha3: 0.8.0
     optional: true
 
-  '@ethersproject/logger@5.7.0':
-    optional: true
-
   '@ethersproject/logger@5.8.0':
-    optional: true
-
-  '@ethersproject/networks@5.7.1':
-    dependencies:
-      '@ethersproject/logger': 5.7.0
     optional: true
 
   '@ethersproject/networks@5.8.0':
     dependencies:
       '@ethersproject/logger': 5.8.0
-    optional: true
-
-  '@ethersproject/pbkdf2@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/sha2': 5.7.0
     optional: true
 
   '@ethersproject/pbkdf2@5.8.0':
@@ -4791,44 +4458,12 @@ snapshots:
       '@ethersproject/sha2': 5.8.0
     optional: true
 
-  '@ethersproject/properties@5.7.0':
-    dependencies:
-      '@ethersproject/logger': 5.7.0
-    optional: true
-
   '@ethersproject/properties@5.8.0':
     dependencies:
       '@ethersproject/logger': 5.8.0
     optional: true
 
-  '@ethersproject/providers@5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/base64': 5.7.0
-      '@ethersproject/basex': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/networks': 5.7.1
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/random': 5.7.0
-      '@ethersproject/rlp': 5.7.0
-      '@ethersproject/sha2': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/web': 5.7.1
-      bech32: 1.1.4
-      ws: 7.4.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    optional: true
-
-  '@ethersproject/providers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@ethersproject/providers@5.8.0':
     dependencies:
       '@ethersproject/abstract-provider': 5.8.0
       '@ethersproject/abstract-signer': 5.8.0
@@ -4849,16 +4484,10 @@ snapshots:
       '@ethersproject/transactions': 5.8.0
       '@ethersproject/web': 5.8.0
       bech32: 1.1.4
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-    optional: true
-
-  '@ethersproject/random@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
     optional: true
 
   '@ethersproject/random@5.8.0':
@@ -4867,39 +4496,16 @@ snapshots:
       '@ethersproject/logger': 5.8.0
     optional: true
 
-  '@ethersproject/rlp@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-    optional: true
-
   '@ethersproject/rlp@5.8.0':
     dependencies:
       '@ethersproject/bytes': 5.8.0
       '@ethersproject/logger': 5.8.0
     optional: true
 
-  '@ethersproject/sha2@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      hash.js: 1.1.7
-    optional: true
-
   '@ethersproject/sha2@5.8.0':
     dependencies:
       '@ethersproject/bytes': 5.8.0
       '@ethersproject/logger': 5.8.0
-      hash.js: 1.1.7
-    optional: true
-
-  '@ethersproject/signing-key@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      bn.js: 5.2.2
-      elliptic: 6.5.4
       hash.js: 1.1.7
     optional: true
 
@@ -4911,16 +4517,6 @@ snapshots:
       bn.js: 5.2.2
       elliptic: 6.6.1
       hash.js: 1.1.7
-    optional: true
-
-  '@ethersproject/solidity@5.7.0':
-    dependencies:
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/sha2': 5.7.0
-      '@ethersproject/strings': 5.7.0
     optional: true
 
   '@ethersproject/solidity@5.8.0':
@@ -4947,19 +4543,6 @@ snapshots:
       '@ethersproject/logger': 5.8.0
     optional: true
 
-  '@ethersproject/transactions@5.7.0':
-    dependencies:
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/rlp': 5.7.0
-      '@ethersproject/signing-key': 5.7.0
-    optional: true
-
   '@ethersproject/transactions@5.8.0':
     dependencies:
       '@ethersproject/address': 5.8.0
@@ -4973,37 +4556,11 @@ snapshots:
       '@ethersproject/signing-key': 5.8.0
     optional: true
 
-  '@ethersproject/units@5.7.0':
-    dependencies:
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/logger': 5.7.0
-    optional: true
-
   '@ethersproject/units@5.8.0':
     dependencies:
       '@ethersproject/bignumber': 5.8.0
       '@ethersproject/constants': 5.8.0
       '@ethersproject/logger': 5.8.0
-    optional: true
-
-  '@ethersproject/wallet@5.7.0':
-    dependencies:
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/hdnode': 5.7.0
-      '@ethersproject/json-wallets': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/random': 5.7.0
-      '@ethersproject/signing-key': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/wordlists': 5.7.0
     optional: true
 
   '@ethersproject/wallet@5.8.0':
@@ -5025,15 +4582,6 @@ snapshots:
       '@ethersproject/wordlists': 5.8.0
     optional: true
 
-  '@ethersproject/web@5.7.1':
-    dependencies:
-      '@ethersproject/base64': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/strings': 5.7.0
-    optional: true
-
   '@ethersproject/web@5.8.0':
     dependencies:
       '@ethersproject/base64': 5.8.0
@@ -5041,15 +4589,6 @@ snapshots:
       '@ethersproject/logger': 5.8.0
       '@ethersproject/properties': 5.8.0
       '@ethersproject/strings': 5.8.0
-    optional: true
-
-  '@ethersproject/wordlists@5.7.0':
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/strings': 5.7.0
     optional: true
 
   '@ethersproject/wordlists@5.8.0':
@@ -5111,17 +4650,11 @@ snapshots:
       '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
       '@morpho-org/morpho-ts': 2.4.6
 
-  '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(typescript@5.8.2))':
     dependencies:
       '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
       '@morpho-org/morpho-ts': 2.4.6
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-
-  '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
-    dependencies:
-      '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
-      '@morpho-org/morpho-ts': 2.4.6
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.46.2(typescript@5.8.2)
 
   '@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6)':
     dependencies:
@@ -5134,46 +4667,22 @@ snapshots:
 
   '@morpho-org/morpho-ts@2.4.6': {}
 
-  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))':
+  '@morpho-org/test@2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))':
     dependencies:
       lodash.kebabcase: 4.1.1
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-      viem-deal: 2.0.4(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      viem-tracer: 1.5.5(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      viem: 2.46.2(typescript@5.8.2)
+      viem-deal: 2.0.4(viem@2.46.2(typescript@5.8.2))
+      viem-tracer: 1.5.5(viem@2.46.2(typescript@5.8.2))
     optionalDependencies:
-      '@playwright/test': 1.51.1
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      vitest: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0)
+      vitest: 3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0)
 
-  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))':
-    dependencies:
-      lodash.kebabcase: 4.1.1
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-      viem-deal: 2.0.4(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      viem-tracer: 1.5.5(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-    optionalDependencies:
-      '@playwright/test': 1.51.1
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      vitest: 3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0)
-
-  '@morpho-org/test@2.1.1(@playwright/test@1.51.1)(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0))':
-    dependencies:
-      lodash.kebabcase: 4.1.1
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-      viem-deal: 2.0.4(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      viem-tracer: 1.5.5(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-    optionalDependencies:
-      '@playwright/test': 1.51.1
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      vitest: 3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0)
-
-  '@mswjs/interceptors@0.38.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@mswjs/interceptors@0.38.0':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
       '@open-draft/until': 2.1.0
       is-node-process: 1.2.0
-      jsdom: 26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      jsdom: 26.0.0
       outvariant: 1.4.3
       strict-event-emitter: 0.5.1
     transitivePeerDependencies:
@@ -5191,11 +4700,6 @@ snapshots:
 
   '@noble/ciphers@1.3.0': {}
 
-  '@noble/curves@1.2.0':
-    dependencies:
-      '@noble/hashes': 1.3.2
-    optional: true
-
   '@noble/curves@1.4.2':
     dependencies:
       '@noble/hashes': 1.4.0
@@ -5211,9 +4715,6 @@ snapshots:
       '@noble/hashes': 1.8.0
 
   '@noble/hashes@1.2.0':
-    optional: true
-
-  '@noble/hashes@1.3.2':
     optional: true
 
   '@noble/hashes@1.4.0':
@@ -5331,11 +4832,6 @@ snapshots:
   '@pinojs/redact@0.4.0': {}
 
   '@pkgr/core@0.2.0': {}
-
-  '@playwright/test@1.51.1':
-    dependencies:
-      playwright: 1.51.1
-    optional: true
 
   '@rescript/react@0.14.1(react-dom@19.2.4(react@19.2.0))(react@19.2.0)':
     dependencies:
@@ -5507,12 +5003,7 @@ snapshots:
 
   '@types/bn.js@5.2.0':
     dependencies:
-      '@types/node': 25.4.0
-    optional: true
-
-  '@types/debug@4.1.12':
-    dependencies:
-      '@types/ms': 2.1.0
+      '@types/node': 22.13.14
     optional: true
 
   '@types/doctrine@0.0.9': {}
@@ -5536,9 +5027,6 @@ snapshots:
   '@types/lru-cache@5.1.1':
     optional: true
 
-  '@types/ms@2.1.0':
-    optional: true
-
   '@types/node@20.17.28':
     dependencies:
       undici-types: 6.19.8
@@ -5547,31 +5035,21 @@ snapshots:
     dependencies:
       undici-types: 6.20.0
 
-  '@types/node@22.7.5':
-    dependencies:
-      undici-types: 6.19.8
-    optional: true
-
-  '@types/node@25.4.0':
-    dependencies:
-      undici-types: 7.18.2
-    optional: true
-
   '@types/yargs-parser@21.0.3': {}
 
   '@types/yargs@17.0.33':
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@8.28.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2))(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)':
+  '@typescript-eslint/eslint-plugin@8.28.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)(typescript@5.8.2)':
     dependencies:
       '@eslint-community/regexpp': 4.12.1
-      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
       '@typescript-eslint/scope-manager': 8.28.0
-      '@typescript-eslint/type-utils': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
-      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+      '@typescript-eslint/type-utils': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
+      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
       '@typescript-eslint/visitor-keys': 8.28.0
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       graphemer: 1.4.0
       ignore: 5.3.2
       natural-compare: 1.4.0
@@ -5580,14 +5058,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)':
+  '@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.28.0
       '@typescript-eslint/types': 8.28.0
       '@typescript-eslint/typescript-estree': 8.28.0(typescript@5.8.2)
       '@typescript-eslint/visitor-keys': 8.28.0
       debug: 4.4.0
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
@@ -5597,12 +5075,12 @@ snapshots:
       '@typescript-eslint/types': 8.28.0
       '@typescript-eslint/visitor-keys': 8.28.0
 
-  '@typescript-eslint/type-utils@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)':
+  '@typescript-eslint/type-utils@8.28.0(eslint@9.23.0)(typescript@5.8.2)':
     dependencies:
       '@typescript-eslint/typescript-estree': 8.28.0(typescript@5.8.2)
-      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
       debug: 4.4.0
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       ts-api-utils: 2.1.0(typescript@5.8.2)
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -5624,13 +5102,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)':
+  '@typescript-eslint/utils@8.28.0(eslint@9.23.0)(typescript@5.8.2)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.5.1(eslint@9.23.0(jiti@2.6.1))
+      '@eslint-community/eslint-utils': 4.5.1(eslint@9.23.0)
       '@typescript-eslint/scope-manager': 8.28.0
       '@typescript-eslint/types': 8.28.0
       '@typescript-eslint/typescript-estree': 8.28.0(typescript@5.8.2)
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
@@ -5643,27 +5121,25 @@ snapshots:
   '@uniswap/lib@4.0.1-alpha':
     optional: true
 
-  '@uniswap/permit2-sdk@1.3.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@uniswap/permit2-sdk@1.3.1':
     dependencies:
-      ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers: 5.8.0
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     optional: true
 
-  '@uniswap/router-sdk@2.0.3(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
+  '@uniswap/router-sdk@2.0.3(hardhat@2.24.1(typescript@5.8.2))':
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@uniswap/sdk-core': 7.7.2
-      '@uniswap/swap-router-contracts': 1.3.1(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@uniswap/swap-router-contracts': 1.3.1(hardhat@2.24.1(typescript@5.8.2))
       '@uniswap/v2-sdk': 4.15.2
-      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      '@uniswap/v4-sdk': 1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(typescript@5.8.2))
+      '@uniswap/v4-sdk': 1.21.4(hardhat@2.24.1(typescript@5.8.2))
     transitivePeerDependencies:
-      - bufferutil
       - hardhat
-      - utf-8-validate
     optional: true
 
   '@uniswap/sdk-core@7.7.2':
@@ -5679,32 +5155,32 @@ snapshots:
       toformat: 2.0.0
     optional: true
 
-  '@uniswap/swap-router-contracts@1.3.1(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@uniswap/swap-router-contracts@1.3.1(hardhat@2.24.1(typescript@5.8.2))':
     dependencies:
       '@openzeppelin/contracts': 3.4.2-solc-0.7
       '@uniswap/v2-core': 1.0.1
       '@uniswap/v3-core': 1.0.1
       '@uniswap/v3-periphery': 1.4.4
       dotenv: 14.3.2
-      hardhat-watcher: 2.5.0(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      hardhat-watcher: 2.5.0(hardhat@2.24.1(typescript@5.8.2))
     transitivePeerDependencies:
       - hardhat
     optional: true
 
-  '@uniswap/universal-router-sdk@4.19.5(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
+  '@uniswap/universal-router-sdk@4.19.5(hardhat@2.24.1(typescript@5.8.2))':
     dependencies:
       '@openzeppelin/contracts': 4.7.0
-      '@uniswap/permit2-sdk': 1.3.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@uniswap/router-sdk': 2.0.3(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@uniswap/permit2-sdk': 1.3.1
+      '@uniswap/router-sdk': 2.0.3(hardhat@2.24.1(typescript@5.8.2))
       '@uniswap/sdk-core': 7.7.2
       '@uniswap/universal-router': 2.0.0-beta.2
       '@uniswap/v2-core': 1.0.1
       '@uniswap/v2-sdk': 4.15.2
       '@uniswap/v3-core': 1.0.0
-      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      '@uniswap/v4-sdk': 1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
+      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(typescript@5.8.2))
+      '@uniswap/v4-sdk': 1.21.4(hardhat@2.24.1(typescript@5.8.2))
       bignumber.js: 9.1.2
-      ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers: 5.8.0
     transitivePeerDependencies:
       - bufferutil
       - hardhat
@@ -5745,12 +5221,12 @@ snapshots:
       base64-sol: 1.0.1
     optional: true
 
-  '@uniswap/v3-sdk@3.25.2(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))':
+  '@uniswap/v3-sdk@3.25.2(hardhat@2.24.1(typescript@5.8.2))':
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@ethersproject/solidity': 5.8.0
       '@uniswap/sdk-core': 7.7.2
-      '@uniswap/swap-router-contracts': 1.3.1(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
+      '@uniswap/swap-router-contracts': 1.3.1(hardhat@2.24.1(typescript@5.8.2))
       '@uniswap/v3-periphery': 1.4.4
       '@uniswap/v3-staker': 1.0.0
       tiny-invariant: 1.3.3
@@ -5766,18 +5242,15 @@ snapshots:
       '@uniswap/v3-periphery': 1.4.4
     optional: true
 
-  '@uniswap/v4-sdk@1.21.4(bufferutil@4.0.9)(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)':
+  '@uniswap/v4-sdk@1.21.4(hardhat@2.24.1(typescript@5.8.2))':
     dependencies:
       '@ethersproject/solidity': 5.8.0
       '@uniswap/sdk-core': 7.7.2
-      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10))
-      ethers: 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@uniswap/v3-sdk': 3.25.2(hardhat@2.24.1(typescript@5.8.2))
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
     transitivePeerDependencies:
-      - bufferutil
       - hardhat
-      - utf-8-validate
     optional: true
 
   '@unrs/resolver-binding-darwin-arm64@1.3.2':
@@ -5834,13 +5307,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.0.9(vite@6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0))':
+  '@vitest/mocker@3.0.9(vite@6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0))':
     dependencies:
       '@vitest/spy': 3.0.9
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0)
+      vite: 6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0)
 
   '@vitest/pretty-format@3.0.9':
     dependencies:
@@ -5867,10 +5340,6 @@ snapshots:
       loupe: 3.1.3
       tinyrainbow: 2.0.0
 
-  abitype@1.1.0(typescript@5.8.2):
-    optionalDependencies:
-      typescript: 5.8.2
-
   abitype@1.2.3(typescript@5.8.2):
     optionalDependencies:
       typescript: 5.8.2
@@ -5896,9 +5365,6 @@ snapshots:
     optional: true
 
   aes-js@3.0.0:
-    optional: true
-
-  aes-js@4.0.0-beta.5:
     optional: true
 
   agent-base@6.0.2:
@@ -6080,11 +5546,6 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
-
-  bufferutil@4.0.9:
-    dependencies:
-      node-gyp-build: 4.8.4
-    optional: true
 
   bytes@3.1.2: {}
 
@@ -6332,17 +5793,6 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  elliptic@6.5.4:
-    dependencies:
-      bn.js: 4.12.2
-      brorand: 1.1.0
-      hash.js: 1.1.7
-      hmac-drbg: 1.0.1
-      inherits: 2.0.4
-      minimalistic-assert: 1.0.1
-      minimalistic-crypto-utils: 1.0.1
-    optional: true
-
   elliptic@6.6.1:
     dependencies:
       bn.js: 4.12.2
@@ -6387,7 +5837,7 @@ snapshots:
   envio-linux-x64@3.0.0-alpha.17:
     optional: true
 
-  envio@3.0.0-alpha.17(bufferutil@4.0.9)(react-dom@19.2.4(react@19.2.0))(react@19.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10):
+  envio@3.0.0-alpha.17(react-dom@19.2.4(react@19.2.0))(react@19.2.0)(typescript@5.8.2):
     dependencies:
       '@clickhouse/client': 1.17.0
       '@elastic/ecs-pino-format': 1.4.0
@@ -6399,9 +5849,9 @@ snapshots:
       dotenv: 16.4.5
       eventsource: 4.1.0
       express: 4.19.2
-      ink: 6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10)
-      ink-big-text: 2.0.0(ink@6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10))(react@19.2.0)
-      ink-spinner: 5.0.0(ink@6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10))(react@19.2.0)
+      ink: 6.8.0(react@19.2.0)
+      ink-big-text: 2.0.0(ink@6.8.0(react@19.2.0))(react@19.2.0)
+      ink-spinner: 5.0.0(ink@6.8.0(react@19.2.0))(react@19.2.0)
       pino: 10.3.1
       pino-pretty: 13.1.3
       postgres: 3.4.8
@@ -6410,7 +5860,7 @@ snapshots:
       rescript-envsafe: 5.0.0(rescript-schema@9.3.4(rescript@11.1.3))(rescript@11.1.3)
       rescript-schema: 9.3.4(rescript@11.1.3)
       tsx: 4.21.0
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.46.2(typescript@5.8.2)
       yargs: 17.7.2
     optionalDependencies:
       envio-darwin-arm64: 3.0.0-alpha.17
@@ -6514,9 +5964,9 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-prettier@10.1.1(eslint@9.23.0(jiti@2.6.1)):
+  eslint-config-prettier@10.1.1(eslint@9.23.0):
     dependencies:
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
 
   eslint-import-resolver-node@0.3.9:
     dependencies:
@@ -6526,28 +5976,28 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.0(eslint-plugin-import-x@4.9.3(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2))(eslint@9.23.0(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.0(eslint-plugin-import-x@4.9.3(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.0
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       get-tsconfig: 4.10.0
       is-bun-module: 2.0.0
       stable-hash: 0.0.5
       tinyglobby: 0.2.12
       unrs-resolver: 1.3.2
     optionalDependencies:
-      eslint-plugin-import-x: 4.9.3(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+      eslint-plugin-import-x: 4.9.3(eslint@9.23.0)(typescript@5.8.2)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import-x@4.9.3(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2):
+  eslint-plugin-import-x@4.9.3(eslint@9.23.0)(typescript@5.8.2):
     dependencies:
       '@types/doctrine': 0.0.9
-      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
+      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
       debug: 4.4.0
       doctrine: 3.0.0
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       eslint-import-resolver-node: 0.3.9
       get-tsconfig: 4.10.0
       is-glob: 4.0.3
@@ -6560,14 +6010,14 @@ snapshots:
       - supports-color
       - typescript
 
-  eslint-plugin-prettier@5.2.5(eslint-config-prettier@10.1.1(eslint@9.23.0(jiti@2.6.1)))(eslint@9.23.0(jiti@2.6.1))(prettier@3.5.1):
+  eslint-plugin-prettier@5.2.5(eslint-config-prettier@10.1.1(eslint@9.23.0))(eslint@9.23.0)(prettier@3.5.1):
     dependencies:
-      eslint: 9.23.0(jiti@2.6.1)
+      eslint: 9.23.0
       prettier: 3.5.1
       prettier-linter-helpers: 1.0.0
       synckit: 0.10.3
     optionalDependencies:
-      eslint-config-prettier: 10.1.1(eslint@9.23.0(jiti@2.6.1))
+      eslint-config-prettier: 10.1.1(eslint@9.23.0)
 
   eslint-scope@8.3.0:
     dependencies:
@@ -6578,9 +6028,9 @@ snapshots:
 
   eslint-visitor-keys@4.2.0: {}
 
-  eslint@9.23.0(jiti@2.6.1):
+  eslint@9.23.0:
     dependencies:
-      '@eslint-community/eslint-utils': 4.5.1(eslint@9.23.0(jiti@2.6.1))
+      '@eslint-community/eslint-utils': 4.5.1(eslint@9.23.0)
       '@eslint-community/regexpp': 4.12.1
       '@eslint/config-array': 0.19.2
       '@eslint/config-helpers': 0.2.0
@@ -6615,8 +6065,6 @@ snapshots:
       minimatch: 3.1.2
       natural-compare: 1.4.0
       optionator: 0.9.4
-    optionalDependencies:
-      jiti: 2.6.1
     transitivePeerDependencies:
       - supports-color
 
@@ -6660,44 +6108,7 @@ snapshots:
       '@scure/bip39': 1.3.0
     optional: true
 
-  ethers@5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    dependencies:
-      '@ethersproject/abi': 5.7.0
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/base64': 5.7.0
-      '@ethersproject/basex': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/contracts': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/hdnode': 5.7.0
-      '@ethersproject/json-wallets': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/networks': 5.7.1
-      '@ethersproject/pbkdf2': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/providers': 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@ethersproject/random': 5.7.0
-      '@ethersproject/rlp': 5.7.0
-      '@ethersproject/sha2': 5.7.0
-      '@ethersproject/signing-key': 5.7.0
-      '@ethersproject/solidity': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/units': 5.7.0
-      '@ethersproject/wallet': 5.7.0
-      '@ethersproject/web': 5.7.1
-      '@ethersproject/wordlists': 5.7.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    optional: true
-
-  ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  ethers@5.8.0:
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@ethersproject/abstract-provider': 5.8.0
@@ -6717,7 +6128,7 @@ snapshots:
       '@ethersproject/networks': 5.8.0
       '@ethersproject/pbkdf2': 5.8.0
       '@ethersproject/properties': 5.8.0
-      '@ethersproject/providers': 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@ethersproject/providers': 5.8.0
       '@ethersproject/random': 5.8.0
       '@ethersproject/rlp': 5.8.0
       '@ethersproject/sha2': 5.8.0
@@ -6729,20 +6140,6 @@ snapshots:
       '@ethersproject/wallet': 5.8.0
       '@ethersproject/web': 5.8.0
       '@ethersproject/wordlists': 5.8.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    optional: true
-
-  ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    dependencies:
-      '@adraffy/ens-normalize': 1.10.1
-      '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
-      '@types/node': 22.7.5
-      aes-js: 4.0.0-beta.5
-      tslib: 2.7.0
-      ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -6774,15 +6171,10 @@ snapshots:
       signal-exit: 4.1.0
       strip-final-newline: 3.0.0
 
-  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.46.2(typescript@5.8.2)):
     dependencies:
       evm-maths: 7.0.1
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-
-  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
-    dependencies:
-      evm-maths: 7.0.1
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.46.2(typescript@5.8.2)
 
   expect-type@1.2.0: {}
 
@@ -6969,9 +6361,6 @@ snapshots:
   fs.realpath@1.0.0:
     optional: true
 
-  fsevents@2.3.2:
-    optional: true
-
   fsevents@2.3.3:
     optional: true
 
@@ -7045,13 +6434,13 @@ snapshots:
 
   graphql@16.12.0: {}
 
-  hardhat-watcher@2.5.0(hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  hardhat-watcher@2.5.0(hardhat@2.24.1(typescript@5.8.2)):
     dependencies:
       chokidar: 3.6.0
-      hardhat: 2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      hardhat: 2.24.1(typescript@5.8.2)
     optional: true
 
-  hardhat@2.24.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10):
+  hardhat@2.24.1(typescript@5.8.2):
     dependencies:
       '@ethereumjs/util': 9.1.0
       '@ethersproject/abi': 5.8.0
@@ -7093,7 +6482,7 @@ snapshots:
       tsort: 0.0.1
       undici: 5.29.0
       uuid: 8.3.2
-      ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 7.5.10
     optionalDependencies:
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -7214,20 +6603,20 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  ink-big-text@2.0.0(ink@6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10))(react@19.2.0):
+  ink-big-text@2.0.0(ink@6.8.0(react@19.2.0))(react@19.2.0):
     dependencies:
       cfonts: 3.3.1
-      ink: 6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10)
+      ink: 6.8.0(react@19.2.0)
       prop-types: 15.8.1
       react: 19.2.0
 
-  ink-spinner@5.0.0(ink@6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10))(react@19.2.0):
+  ink-spinner@5.0.0(ink@6.8.0(react@19.2.0))(react@19.2.0):
     dependencies:
       cli-spinners: 2.9.2
-      ink: 6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10)
+      ink: 6.8.0(react@19.2.0)
       react: 19.2.0
 
-  ink@6.8.0(bufferutil@4.0.9)(react@19.2.0)(utf-8-validate@5.0.10):
+  ink@6.8.0(react@19.2.0):
     dependencies:
       '@alcalzone/ansi-tokenize': 0.2.5
       ansi-escapes: 7.3.0
@@ -7253,7 +6642,7 @@ snapshots:
       type-fest: 5.4.4
       widest-line: 6.0.0
       wrap-ansi: 9.0.0
-      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.19.0
       yoga-layout: 3.2.1
     transitivePeerDependencies:
       - bufferutil
@@ -7332,12 +6721,9 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isows@1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+  isows@1.0.7(ws@8.18.3):
     dependencies:
-      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-
-  jiti@2.6.1:
-    optional: true
+      ws: 8.18.3
 
   joycon@3.1.1: {}
 
@@ -7360,7 +6746,7 @@ snapshots:
   jsbi@3.2.5:
     optional: true
 
-  jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  jsdom@26.0.0:
     dependencies:
       cssstyle: 4.3.0
       data-urls: 5.0.0
@@ -7381,7 +6767,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.19.0
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -7618,9 +7004,9 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  nock@14.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  nock@14.0.2:
     dependencies:
-      '@mswjs/interceptors': 0.38.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@mswjs/interceptors': 0.38.0
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
     transitivePeerDependencies:
@@ -7696,21 +7082,6 @@ snapshots:
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.8.2)
-      eventemitter3: 5.0.1
-    optionalDependencies:
-      typescript: 5.8.2
-    transitivePeerDependencies:
-      - zod
-
-  ox@0.9.6(typescript@5.8.2):
-    dependencies:
-      '@adraffy/ens-normalize': 1.11.0
-      '@noble/ciphers': 1.3.0
-      '@noble/curves': 1.9.1
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.7.0
-      '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.2)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.8.2
@@ -7841,16 +7212,6 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 3.8.1
       thread-stream: 2.7.0
-
-  playwright-core@1.51.1:
-    optional: true
-
-  playwright@1.51.1:
-    dependencies:
-      playwright-core: 1.51.1
-    optionalDependencies:
-      fsevents: 2.3.2
-    optional: true
 
   postcss@8.5.3:
     dependencies:
@@ -8381,9 +7742,6 @@ snapshots:
   tslib@1.14.1:
     optional: true
 
-  tslib@2.7.0:
-    optional: true
-
   tslib@2.8.1: {}
 
   tsort@0.0.1:
@@ -8425,12 +7783,12 @@ snapshots:
       media-typer: 0.3.0
       mime-types: 2.1.35
 
-  typescript-eslint@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2):
+  typescript-eslint@8.28.0(eslint@9.23.0)(typescript@5.8.2):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.28.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2))(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
-      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
-      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.2)
-      eslint: 9.23.0(jiti@2.6.1)
+      '@typescript-eslint/eslint-plugin': 8.28.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)(typescript@5.8.2)
+      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
+      '@typescript-eslint/utils': 8.28.0(eslint@9.23.0)(typescript@5.8.2)
+      eslint: 9.23.0
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
@@ -8440,9 +7798,6 @@ snapshots:
   undici-types@6.19.8: {}
 
   undici-types@6.20.0: {}
-
-  undici-types@7.18.2:
-    optional: true
 
   undici@5.29.0:
     dependencies:
@@ -8476,11 +7831,6 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  utf-8-validate@5.0.10:
-    dependencies:
-      node-gyp-build: 4.8.4
-    optional: true
-
   util-deprecate@1.0.2:
     optional: true
 
@@ -8491,51 +7841,25 @@ snapshots:
 
   vary@1.1.2: {}
 
-  viem-deal@2.0.4(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  viem-deal@2.0.4(viem@2.46.2(typescript@5.8.2)):
     dependencies:
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.46.2(typescript@5.8.2)
 
-  viem-deal@2.0.4(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
-    dependencies:
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-
-  viem-tracer@1.5.5(viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
+  viem-tracer@1.5.5(viem@2.46.2(typescript@5.8.2)):
     dependencies:
       colors: 1.4.0
-      viem: 2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      viem: 2.46.2(typescript@5.8.2)
 
-  viem-tracer@1.5.5(viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)):
-    dependencies:
-      colors: 1.4.0
-      viem: 2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
-
-  viem@2.38.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10):
-    dependencies:
-      '@noble/curves': 1.9.1
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.7.0
-      '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.2)
-      isows: 1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      ox: 0.9.6(typescript@5.8.2)
-      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.8.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
-
-  viem@2.46.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10):
+  viem@2.46.2(typescript@5.8.2):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.8.2)
-      isows: 1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      isows: 1.0.7(ws@8.18.3)
       ox: 0.12.4(typescript@5.8.2)
-      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.3
     optionalDependencies:
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -8543,13 +7867,13 @@ snapshots:
       - utf-8-validate
       - zod
 
-  vite-node@3.0.9(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0):
+  vite-node@3.0.9(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0):
     dependencies:
       cac: 6.7.14
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.3
-      vite: 6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0)
+      vite: 6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -8564,13 +7888,13 @@ snapshots:
       - tsx
       - yaml
 
-  vite-node@3.0.9(@types/node@22.13.14)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0):
+  vite-node@3.0.9(@types/node@22.13.14)(tsx@4.21.0)(yaml@2.7.0):
     dependencies:
       cac: 6.7.14
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.3
-      vite: 6.2.3(@types/node@22.13.14)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
+      vite: 6.2.3(@types/node@22.13.14)(tsx@4.21.0)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -8585,29 +7909,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite-node@3.0.9(@types/node@25.4.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0):
-    dependencies:
-      cac: 6.7.14
-      debug: 4.4.0
-      es-module-lexer: 1.6.0
-      pathe: 2.0.3
-      vite: 6.2.3(@types/node@25.4.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
-    optional: true
-
-  vite@6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0):
+  vite@6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0):
     dependencies:
       esbuild: 0.25.1
       postcss: 8.5.3
@@ -8615,11 +7917,10 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.17.28
       fsevents: 2.3.3
-      jiti: 2.6.1
       tsx: 4.19.3
       yaml: 2.7.0
 
-  vite@6.2.3(@types/node@22.13.14)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0):
+  vite@6.2.3(@types/node@22.13.14)(tsx@4.21.0)(yaml@2.7.0):
     dependencies:
       esbuild: 0.25.1
       postcss: 8.5.3
@@ -8627,27 +7928,13 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.13.14
       fsevents: 2.3.3
-      jiti: 2.6.1
       tsx: 4.21.0
       yaml: 2.7.0
 
-  vite@6.2.3(@types/node@25.4.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0):
-    dependencies:
-      esbuild: 0.25.1
-      postcss: 8.5.3
-      rollup: 4.37.0
-    optionalDependencies:
-      '@types/node': 25.4.0
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      tsx: 4.21.0
-      yaml: 2.7.0
-    optional: true
-
-  vitest@3.0.9(@types/debug@4.1.12)(@types/node@20.17.28)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.19.3)(yaml@2.7.0):
+  vitest@3.0.9(@types/node@20.17.28)(jsdom@26.0.0)(tsx@4.19.3)(yaml@2.7.0):
     dependencies:
       '@vitest/expect': 3.0.9
-      '@vitest/mocker': 3.0.9(vite@6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0))
+      '@vitest/mocker': 3.0.9(vite@6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0))
       '@vitest/pretty-format': 3.0.9
       '@vitest/runner': 3.0.9
       '@vitest/snapshot': 3.0.9
@@ -8663,13 +7950,12 @@ snapshots:
       tinyexec: 0.3.2
       tinypool: 1.0.2
       tinyrainbow: 2.0.0
-      vite: 6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0)
-      vite-node: 3.0.9(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0)
+      vite: 6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0)
+      vite-node: 3.0.9(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/debug': 4.1.12
       '@types/node': 20.17.28
-      jsdom: 26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      jsdom: 26.0.0
     transitivePeerDependencies:
       - jiti
       - less
@@ -8684,10 +7970,10 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@3.0.9(@types/debug@4.1.12)(@types/node@22.13.14)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0):
+  vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0):
     dependencies:
       '@vitest/expect': 3.0.9
-      '@vitest/mocker': 3.0.9(vite@6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0))
+      '@vitest/mocker': 3.0.9(vite@6.2.3(@types/node@20.17.28)(tsx@4.19.3)(yaml@2.7.0))
       '@vitest/pretty-format': 3.0.9
       '@vitest/runner': 3.0.9
       '@vitest/snapshot': 3.0.9
@@ -8703,13 +7989,12 @@ snapshots:
       tinyexec: 0.3.2
       tinypool: 1.0.2
       tinyrainbow: 2.0.0
-      vite: 6.2.3(@types/node@22.13.14)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
-      vite-node: 3.0.9(@types/node@22.13.14)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
+      vite: 6.2.3(@types/node@22.13.14)(tsx@4.21.0)(yaml@2.7.0)
+      vite-node: 3.0.9(@types/node@22.13.14)(tsx@4.21.0)(yaml@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/debug': 4.1.12
       '@types/node': 22.13.14
-      jsdom: 26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      jsdom: 26.0.0
     transitivePeerDependencies:
       - jiti
       - less
@@ -8723,47 +8008,6 @@ snapshots:
       - terser
       - tsx
       - yaml
-
-  vitest@3.0.9(@types/debug@4.1.12)(@types/node@25.4.0)(jiti@2.6.1)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.21.0)(yaml@2.7.0):
-    dependencies:
-      '@vitest/expect': 3.0.9
-      '@vitest/mocker': 3.0.9(vite@6.2.3(@types/node@20.17.28)(jiti@2.6.1)(tsx@4.19.3)(yaml@2.7.0))
-      '@vitest/pretty-format': 3.0.9
-      '@vitest/runner': 3.0.9
-      '@vitest/snapshot': 3.0.9
-      '@vitest/spy': 3.0.9
-      '@vitest/utils': 3.0.9
-      chai: 5.2.0
-      debug: 4.4.0
-      expect-type: 1.2.0
-      magic-string: 0.30.17
-      pathe: 2.0.3
-      std-env: 3.8.1
-      tinybench: 2.9.0
-      tinyexec: 0.3.2
-      tinypool: 1.0.2
-      tinyrainbow: 2.0.0
-      vite: 6.2.3(@types/node@25.4.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
-      vite-node: 3.0.9(@types/node@25.4.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.7.0)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/debug': 4.1.12
-      '@types/node': 25.4.0
-      jsdom: 26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - jiti
-      - less
-      - lightningcss
-      - msw
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
-    optional: true
 
   w3c-xmlserializer@5.0.0:
     dependencies:
@@ -8824,39 +8068,15 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  ws@7.4.6(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
+  ws@7.5.10:
     optional: true
 
-  ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
+  ws@8.18.0:
     optional: true
 
-  ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
-    optional: true
+  ws@8.18.3: {}
 
-  ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
-    optional: true
-
-  ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
-
-  ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.9
-      utf-8-validate: 5.0.10
+  ws@8.19.0: {}
 
   xml-name-validator@5.0.0: {}
 

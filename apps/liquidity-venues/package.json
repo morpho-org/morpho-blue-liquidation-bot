@@ -17,7 +17,7 @@
     "@morpho-blue-liquidation-bot/config": "workspace:*",
     "@morpho-org/blue-sdk": "^5.12.1",
     "executooor-viem": "^1.3.3",
-    "viem": "^2.37.0"
+    "viem": "^2.46.0"
   },
   "devDependencies": {
     "@morpho-org/test": "^2.1.1",
