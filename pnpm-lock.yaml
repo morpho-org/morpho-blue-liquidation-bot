@@ -15,8 +15,8 @@ importers:
         specifier: ^4.19.3
         version: 4.19.3
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(typescript@5.8.2)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@eslint/js':
         specifier: ^9.20.0
@@ -116,7 +116,7 @@ importers:
         version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
       '@morpho-org/blue-sdk-viem':
         specifier: ^4.2.1
-        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(typescript@5.8.2))
+        version: 4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(typescript@5.8.2))
       '@morpho-org/morpho-ts':
         specifier: ^2.4.6
         version: 2.4.6
@@ -130,8 +130,8 @@ importers:
         specifier: ^2.12.6
         version: 2.12.6(graphql@16.12.0)
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(typescript@5.8.2)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
 
   apps/hyperindex:
     dependencies:
@@ -169,12 +169,12 @@ importers:
         specifier: 9.3.4
         version: 9.3.4(rescript@11.1.3)
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(typescript@5.8.2)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(viem@2.38.6(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
@@ -214,14 +214,14 @@ importers:
         version: 5.12.1(@morpho-org/morpho-ts@2.4.6)
       executooor-viem:
         specifier: ^1.3.3
-        version: 1.3.3(evm-maths@7.0.1)(viem@2.38.6(typescript@5.8.2))
+        version: 1.3.3(evm-maths@7.0.1)(viem@2.46.2(typescript@5.8.2))
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(typescript@5.8.2)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(viem@2.38.6(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -245,12 +245,12 @@ importers:
         specifier: workspace:*
         version: link:../config
       viem:
-        specifier: ^2.37.0
-        version: 2.38.6(typescript@5.8.2)
+        specifier: ^2.46.0
+        version: 2.46.2(typescript@5.8.2)
     devDependencies:
       '@morpho-org/test':
         specifier: ^2.1.1
-        version: 2.1.1(viem@2.38.6(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
+        version: 2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -1513,17 +1513,6 @@ packages:
 
   '@vitest/utils@3.0.9':
     resolution: {integrity: sha512-ilHM5fHhZ89MCp5aAaM9uhfl1c2JdxVxl3McqsdVyVNN6JffnEen8UMCdRTzOhGXNQGo5GNL9QugHrz727Wnng==}
-
-  abitype@1.1.0:
-    resolution: {integrity: sha512-6Vh4HcRxNMLA0puzPjM5GBgT4aAcFGKZzSgAXvuZ27shJP6NEpielTuqbBmZILR5/xd0PizkBGy5hReKz9jl5A==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-      zod: ^3.22.0 || ^4.0.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      zod:
-        optional: true
 
   abitype@1.2.3:
     resolution: {integrity: sha512-Ofer5QUnuUdTFsBRwARMoWKOH1ND5ehwYhJ3OJ/BQO+StkwQjHw0XyVh4vDttzHB7QOFhPHa/o413PJ82gU/Tg==}
@@ -3028,14 +3017,6 @@ packages:
       typescript:
         optional: true
 
-  ox@0.9.6:
-    resolution: {integrity: sha512-8SuCbHPvv2eZLYXrNmC0EC12rdzXQLdhnOMlHDW2wiCPLxBrOOJwX5L5E61by+UjTPOryqQiRSnjIKCI+GykKg==}
-    peerDependencies:
-      typescript: '>=5.4.0'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   p-limit@3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}
     engines: {node: '>=10'}
@@ -3764,14 +3745,6 @@ packages:
     resolution: {integrity: sha512-C6fEeO2hfvGEtiRd4ZE/82rWdSzf98YBuWxG7qmrSjOAcz7gVJEt8jpSFHUvVP0IZl0/1N+eix7JHDXGZ6iyHQ==}
     peerDependencies:
       viem: ^2.21.0
-
-  viem@2.38.6:
-    resolution: {integrity: sha512-aqO6P52LPXRjdnP6rl5Buab65sYa4cZ6Cpn+k4OLOzVJhGIK8onTVoKMFMT04YjDfyDICa/DZyV9HmvLDgcjkw==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   viem@2.46.2:
     resolution: {integrity: sha512-w8Qv5Vyo7TfXcH3vgmxRa1NRvzJCDy2aSGSRsJn3503nC/qVbgEQ+n3aj/CkqWXbloudZh97h5o5aQrQSVGy0w==}
@@ -4677,12 +4650,6 @@ snapshots:
       '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
       '@morpho-org/morpho-ts': 2.4.6
 
-  '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.38.6(typescript@5.8.2))':
-    dependencies:
-      '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
-      '@morpho-org/morpho-ts': 2.4.6
-      viem: 2.38.6(typescript@5.8.2)
-
   '@morpho-org/blue-sdk-viem@4.2.1(@morpho-org/blue-sdk@5.12.1(@morpho-org/morpho-ts@2.4.6))(@morpho-org/morpho-ts@2.4.6)(viem@2.46.2(typescript@5.8.2))':
     dependencies:
       '@morpho-org/blue-sdk': 5.12.1(@morpho-org/morpho-ts@2.4.6)
@@ -4699,15 +4666,6 @@ snapshots:
       lodash.mergewith: 4.6.2
 
   '@morpho-org/morpho-ts@2.4.6': {}
-
-  '@morpho-org/test@2.1.1(viem@2.38.6(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))':
-    dependencies:
-      lodash.kebabcase: 4.1.1
-      viem: 2.38.6(typescript@5.8.2)
-      viem-deal: 2.0.4(viem@2.38.6(typescript@5.8.2))
-      viem-tracer: 1.5.5(viem@2.38.6(typescript@5.8.2))
-    optionalDependencies:
-      vitest: 3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0)
 
   '@morpho-org/test@2.1.1(viem@2.46.2(typescript@5.8.2))(vitest@3.0.9(@types/node@22.13.14)(jsdom@26.0.0)(tsx@4.21.0)(yaml@2.7.0))':
     dependencies:
@@ -5381,10 +5339,6 @@ snapshots:
       '@vitest/pretty-format': 3.0.9
       loupe: 3.1.3
       tinyrainbow: 2.0.0
-
-  abitype@1.1.0(typescript@5.8.2):
-    optionalDependencies:
-      typescript: 5.8.2
 
   abitype@1.2.3(typescript@5.8.2):
     optionalDependencies:
@@ -6216,11 +6170,6 @@ snapshots:
       onetime: 6.0.0
       signal-exit: 4.1.0
       strip-final-newline: 3.0.0
-
-  executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.38.6(typescript@5.8.2)):
-    dependencies:
-      evm-maths: 7.0.1
-      viem: 2.38.6(typescript@5.8.2)
 
   executooor-viem@1.3.3(evm-maths@7.0.1)(viem@2.46.2(typescript@5.8.2)):
     dependencies:
@@ -7139,21 +7088,6 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.9.6(typescript@5.8.2):
-    dependencies:
-      '@adraffy/ens-normalize': 1.11.0
-      '@noble/ciphers': 1.3.0
-      '@noble/curves': 1.9.1
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.7.0
-      '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.2)
-      eventemitter3: 5.0.1
-    optionalDependencies:
-      typescript: 5.8.2
-    transitivePeerDependencies:
-      - zod
-
   p-limit@3.1.0:
     dependencies:
       yocto-queue: 0.1.0
@@ -7907,40 +7841,14 @@ snapshots:
 
   vary@1.1.2: {}
 
-  viem-deal@2.0.4(viem@2.38.6(typescript@5.8.2)):
-    dependencies:
-      viem: 2.38.6(typescript@5.8.2)
-
   viem-deal@2.0.4(viem@2.46.2(typescript@5.8.2)):
     dependencies:
       viem: 2.46.2(typescript@5.8.2)
-
-  viem-tracer@1.5.5(viem@2.38.6(typescript@5.8.2)):
-    dependencies:
-      colors: 1.4.0
-      viem: 2.38.6(typescript@5.8.2)
 
   viem-tracer@1.5.5(viem@2.46.2(typescript@5.8.2)):
     dependencies:
       colors: 1.4.0
       viem: 2.46.2(typescript@5.8.2)
-
-  viem@2.38.6(typescript@5.8.2):
-    dependencies:
-      '@noble/curves': 1.9.1
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.7.0
-      '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.2)
-      isows: 1.0.7(ws@8.18.3)
-      ox: 0.9.6(typescript@5.8.2)
-      ws: 8.18.3
-    optionalDependencies:
-      typescript: 5.8.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
 
   viem@2.46.2(typescript@5.8.2):
     dependencies:

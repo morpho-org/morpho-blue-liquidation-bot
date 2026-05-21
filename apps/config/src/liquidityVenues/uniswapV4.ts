@@ -10,6 +10,7 @@ import {
   optimism,
   polygon,
   soneium,
+  tempo,
   unichain,
   worldchain,
   zora,
@@ -137,5 +138,13 @@ export const DEPLOYMENTS: Record<
     UniversalRouter: { address: "0x0d97dc33264bfc1c226207428a79b26757fb9dc3" },
     Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
     Native: { address: "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A" },
+  },
+  [tempo.id]: {
+    PoolManager: { address: "0x33620f62c5b9b2086dd6b62f4a297a9f30347029" },
+    Quoter: { address: "0x20e6487c371a2086f841ef453f85378223df4f4e" },
+    StateView: { address: "0x21b954fba3f5ddebe77ef2d47a3100c066908b2a" },
+    UniversalRouter: { address: "0xa2dc7d0266f0cc50b3eeaf36c9bfcecff1beea91" },
+    Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
+    Native: { address: "0x20C000000000000000000000b9537d11c60E8b50" },
   },
 };
