@@ -23,7 +23,7 @@
     "react": "19.2.0",
     "rescript": "11.1.3",
     "rescript-schema": "9.3.4",
-    "viem": "^2.37.0"
+    "viem": "2.49.3"
   },
   "optionalDependencies": {
     "generated": "./generated"

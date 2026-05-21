@@ -1,4 +1,4 @@
-import { arbitrum, base, katana, mainnet, optimism, polygon, unichain } from "viem/chains";
+import { arbitrum, base, katana, mainnet, tempo, unichain, optimism, polygon } from "viem/chains";
 
 import { hyperevm, monad } from "./chains";
 import type { Config } from "./types";
@@ -156,6 +156,20 @@ export const chainConfigs: Record<number, Config> = {
       liquidationBufferBps: 50,
       useFlashbots: false,
       blockInterval: 30,
+      useTenderly: true,
+    },
+  },
+  [tempo.id]: {
+    chain: tempo,
+    wNative: "0x20C000000000000000000000b9537d11c60E8b50",
+    options: {
+      dataProvider: "morphoApi",
+      vaultWhitelist: "morpho-api",
+      additionalMarketsWhitelist: [],
+      liquidityVenues: ["erc20Wrapper", "erc4626", "uniswapV3", "uniswapV4"],
+      liquidationBufferBps: 50,
+      useFlashbots: false,
+      blockInterval: 5,
       useTenderly: true,
     },
   },

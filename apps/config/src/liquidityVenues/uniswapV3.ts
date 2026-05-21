@@ -1,5 +1,14 @@
 import type { Address } from "viem";
-import { arbitrum, base, katana, optimism, polygon, unichain, worldchain } from "viem/chains";
+import {
+  arbitrum,
+  base,
+  katana,
+  optimism,
+  polygon,
+  unichain,
+  worldchain,
+  tempo,
+} from "viem/chains";
 
 import { hyperevm, monad } from "../chains";
 
@@ -18,6 +27,7 @@ export const specificFactoryAddresses: Record<number, Address> = {
   [arbitrum.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
   [optimism.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
   [polygon.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+  [tempo.id]: "0x24a3d4757e338090a8b89789028c9e58e04611fd6",
 };
 
 export const FEE_TIERS = [500, 3000, 10000];
