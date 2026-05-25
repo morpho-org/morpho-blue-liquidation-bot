@@ -101,6 +101,30 @@ LIQUIDATION_PRIVATE_KEY_1=0x...
 
 Set `ALWAYS_REALIZE_BAD_DEBT` to `true` in `apps/config/src/config.ts` to always fully liquidate bad debt positions, even if not profitable.
 
+### Safety Guards (fork additions)
+
+This fork adds two operational guards. Both are per-chain, configured under `options.safety` in `apps/config/src/config.ts`. Both default to off (preserving upstream behavior).
+
+- `safety.dryRun`: when `true`, the bot simulates every liquidation end-to-end, runs the profit check, and logs `[DRY_RUN] would send liquidation: <collateral> → <loan>, est gas $X` — **never broadcasts the actual transaction**. Use this when calibrating market filters or first deploying on a new chain so you can prove the bot finds the same opportunities your competitors do without burning gas. Counts each would-be tx against the daily gas cap so cap behavior is testable in dry-run.
+
+- `safety.dailyGasCapUsd`: hard ceiling (USD) on total gas the bot is allowed to spend on this chain per UTC day. Independent of profitability — even net-positive txs are skipped once the cap is hit. Resets at midnight UTC. Requires `pricers` to be configured (no pricers ⇒ no USD-denominated accounting ⇒ cap is silently a no-op).
+
+Example:
+
+```ts
+[base.id]: {
+  chain: base,
+  wNative: "0x4200000000000000000000000000000000000006",
+  options: {
+    // ... existing options
+    safety: {
+      dryRun: true,           // log-only; flip to false when you're confident
+      dailyGasCapUsd: 50,     // never spend more than $50/day on Base gas
+    },
+  },
+},
+```
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)). These contracts are gated (only callable by the owner), so you need to deploy your own.

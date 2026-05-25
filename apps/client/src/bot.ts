@@ -1,4 +1,4 @@
-import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
+import { chainConfigs, type SafetyGuards } from "@morpho-blue-liquidation-bot/config";
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
 import type { LiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
 import type { Pricer } from "@morpho-blue-liquidation-bot/pricers";
@@ -42,6 +42,12 @@ import { Flashbots } from "./utils/flashbots.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
 
+// UTC `YYYY-MM-DD` — used as the rollover key for the daily gas cap so the
+// cap resets at midnight UTC regardless of where the bot runs.
+function utcDayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export interface LiquidationBotInputs {
   logTag: string;
   chainId: number;
@@ -58,6 +64,8 @@ export interface LiquidationBotInputs {
   positionLiquidationCooldownMechanism?: PositionLiquidationCooldownMechanism;
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
+  /** Operational safety guards (dry-run, daily gas cap). */
+  safety?: SafetyGuards;
 }
 
 export class LiquidationBot {
@@ -78,6 +86,8 @@ export class LiquidationBot {
   private flashbotAccount?: LocalAccount;
   private coveredMarkets: Hex[];
   private alwaysRealizeBadDebt: boolean;
+  private safety: SafetyGuards;
+  private dailyGasSpendUsd: { day: string; total: number };
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -97,6 +107,18 @@ export class LiquidationBot {
     this.flashbotAccount = inputs.flashbotAccount;
     this.coveredMarkets = [];
     this.alwaysRealizeBadDebt = inputs.alwaysRealizeBadDebt;
+    this.safety = inputs.safety ?? {};
+    this.dailyGasSpendUsd = { day: utcDayKey(), total: 0 };
+    if (this.safety.dryRun) {
+      console.log(
+        `${this.logTag}🛟 DRY_RUN mode — txs will be simulated and logged, never broadcast`,
+      );
+    }
+    if (this.safety.dailyGasCapUsd !== undefined) {
+      console.log(
+        `${this.logTag}🛟 Daily gas cap: $${this.safety.dailyGasCapUsd.toFixed(2)} USD per UTC day`,
+      );
+    }
   }
 
   async run() {
@@ -272,6 +294,40 @@ export class LiquidationBot {
     )
       return false;
 
+    // SAFETY GUARDS — compute tx gas USD once, enforce daily cap, honor dry-run.
+    // gasUsedUsd is only available when pricers are configured; without them
+    // we proceed (the cap and accounting are USD-denominated by design).
+    let gasUsedUsd: number | undefined;
+    if (this.pricers && this.pricers.length > 0) {
+      gasUsedUsd = await this.price(this.wNative, results[1].gasUsed * gasPrice, this.pricers);
+    }
+
+    if (this.safety.dailyGasCapUsd !== undefined && gasUsedUsd !== undefined) {
+      this.rolloverDailyGasIfNeeded();
+      if (this.dailyGasSpendUsd.total + gasUsedUsd > this.safety.dailyGasCapUsd) {
+        console.warn(
+          `${this.logTag}🛟 Daily gas cap reached ` +
+            `($${this.dailyGasSpendUsd.total.toFixed(2)}/$${this.safety.dailyGasCapUsd.toFixed(2)}) ` +
+            `— skipping tx that would cost $${gasUsedUsd.toFixed(4)}`,
+        );
+        return false;
+      }
+    }
+
+    if (this.safety.dryRun) {
+      console.log(
+        `${this.logTag}[DRY_RUN] would send liquidation: ` +
+          `${marketParams.collateralToken} → ${marketParams.loanToken}, ` +
+          `est gas $${gasUsedUsd?.toFixed(4) ?? "?"}` +
+          (badDebtPosition ? " (bad debt)" : ""),
+      );
+      if (gasUsedUsd !== undefined) {
+        this.rolloverDailyGasIfNeeded();
+        this.dailyGasSpendUsd.total += gasUsedUsd;
+      }
+      return true;
+    }
+
     // TX EXECUTION
 
     if (this.flashbotAccount) {
@@ -287,12 +343,23 @@ export class LiquidationBot {
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-      return true;
     } else {
       await writeContract(this.client, { address: encoder.address, ...functionData });
     }
 
+    if (gasUsedUsd !== undefined) {
+      this.rolloverDailyGasIfNeeded();
+      this.dailyGasSpendUsd.total += gasUsedUsd;
+    }
+
     return true;
+  }
+
+  private rolloverDailyGasIfNeeded() {
+    const today = utcDayKey();
+    if (this.dailyGasSpendUsd.day !== today) {
+      this.dailyGasSpendUsd = { day: today, total: 0 };
+    }
   }
 
   private async convertCollateralToLoan(

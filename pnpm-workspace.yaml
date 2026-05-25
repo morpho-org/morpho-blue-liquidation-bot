@@ -2,10 +2,15 @@ packages:
   - "packages/*"
   - "apps/*"
 
+onlyBuiltDependencies:
+  - esbuild
+  - keccak
+  - rescript
+
+# 3 days (4320 minutes) — delay newly published packages to reduce supply-chain risk.
+minimumReleaseAge: 4320
+
 allowBuilds:
   esbuild: set this to true or false
   keccak: set this to true or false
   rescript: set this to true or false
-
-# 3 days (4320 minutes) — delay newly published packages to reduce supply-chain risk.
-minimumReleaseAge: 4320
