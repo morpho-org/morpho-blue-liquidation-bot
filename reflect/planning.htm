@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yearly Recurring Tasks - 3x4 Calendar</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .month {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 150px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .month:hover {
+            transform: scale(1.02);
+            border-color: #aaa;
+        }
+        .month h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            color: #333;
+        }
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .task-item {
+            background-color: #e2f0ff;
+            border-radius: 4px;
+            padding: 5px 8px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .task-item:hover {
+            background-color: #cce5ff;
+        }
+        .task-item a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .modal-content input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+        }
+        #save-task { background-color: #28a745; color: white; }
+        #delete-task { background-color: #dc3545; color: white; }
+        #close-modal { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Yearly Recurring Tasks</h1>
+    <div id="calendar" class="calendar-grid">
+        <!-- Months will be generated or hardcoded here -->
+        <div class="month" data-month="0"><h3>January</h3><div class="task-list"></div></div>
+        <div class="month" data-month="1"><h3>February</h3><div class="task-list"></div></div>
+        <div class="month" data-month="2"><h3>March</h3><div class="task-list"></div></div>
+        <div class="month" data-month="3"><h3>April</h3><div class="task-list"></div></div>
+        <div class="month" data-month="4"><h3>May</h3><div class="task-list"></div></div>
+        <div class="month" data-month="5"><h3>June</h3><div class="task-list"></div></div>
+        <div class="month" data-month="6"><h3>July</h3><div class="task-list"></div></div>
+        <div class="month" data-month="7"><h3>August</h3><div class="task-list"></div></div>
+        <div class="month" data-month="8"><h3>September</h3><div class="task-list"></div></div>
+        <div class="month" data-month="9"><h3>October</h3><div class="task-list"></div></div>
+        <div class="month" data-month="10"><h3>November</h3><div class="task-list"></div></div>
+        <div class="month" data-month="11"><h3>December</h3><div class="task-list"></div></div>
+    </div>
+
+    <!-- Modal for adding/editing tasks -->
+    <div id="task-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="modal-title">Add Task</h2>
+            <input type="hidden" id="task-id">
+            <input type="hidden" id="task-month">
+            <label for="task-name">Title:</label>
+            <input type="text" id="task-name" placeholder="Task Title">
+            <label for="task-url">URL:</label>
+            <input type="url" id="task-url" placeholder="https://example.com">
+            <div class="modal-buttons">
+                <button id="save-task">Save</button>
+                <button id="delete-task" style="display: none;">Delete</button>
+                <button id="close-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'yearly-tasks';
+        let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        const calendar = document.getElementById('calendar');
+        const modal = document.getElementById('task-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const taskIdInput = document.getElementById('task-id');
+        const taskMonthInput = document.getElementById('task-month');
+        const taskNameInput = document.getElementById('task-name');
+        const taskUrlInput = document.getElementById('task-url');
+        const saveBtn = document.getElementById('save-task');
+        const deleteBtn = document.getElementById('delete-task');
+        const closeBtn = document.getElementById('close-modal');
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            document.querySelectorAll('.task-list').forEach(list => list.innerHTML = '');
+
+            tasks.forEach(task => {
+                const monthEl = document.querySelector(`.month[data-month="${task.month}"] .task-list`);
+                if (monthEl) {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task-item';
+
+                    const link = document.createElement('a');
+                    link.href = task.url;
+                    link.target = '_blank';
+                    link.textContent = task.title;
+                    link.onclick = (e) => e.stopPropagation(); // Allow clicking the link
+
+                    taskEl.appendChild(link);
+
+                    const editBtn = document.createElement('span');
+                    editBtn.textContent = ' ✏️';
+                    editBtn.style.cursor = 'pointer';
+                    editBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        openModal(task);
+                    };
+                    taskEl.appendChild(editBtn);
+
+                    monthEl.appendChild(taskEl);
+                }
+            });
+        }
+
+        function openModal(task = null, month = null) {
+            if (task) {
+                modalTitle.textContent = 'Edit Task';
+                taskIdInput.value = task.id;
+                taskMonthInput.value = task.month;
+                taskNameInput.value = task.title;
+                taskUrlInput.value = task.url;
+                deleteBtn.style.display = 'block';
+            } else {
+                modalTitle.textContent = 'Add Task';
+                taskIdInput.value = '';
+                taskMonthInput.value = month;
+                taskNameInput.value = '';
+                taskUrlInput.value = '';
+                deleteBtn.style.display = 'none';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        document.querySelectorAll('.month').forEach(monthEl => {
+            monthEl.onclick = () => {
+                openModal(null, monthEl.dataset.month);
+            };
+        });
+
+        saveBtn.onclick = () => {
+            const id = taskIdInput.value;
+            const month = parseInt(taskMonthInput.value);
+            const title = taskNameInput.value.trim();
+            const url = taskUrlInput.value.trim();
+
+            if (!title) {
+                alert('Title is required');
+                return;
+            }
+
+            if (id) {
+                const index = tasks.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    tasks[index] = { ...tasks[index], title, url };
+                }
+            } else {
+                tasks.push({
+                    id: Date.now().toString(),
+                    month,
+                    title,
+                    url
+                });
+            }
+
+            saveToStorage();
+            renderTasks();
+            closeModal();
+        };
+
+        deleteBtn.onclick = () => {
+            const id = taskIdInput.value;
+            tasks = tasks.filter(t => t.id !== id);
+            saveToStorage();
+            renderTasks();
+            closeModal();
+        };
+
+        closeBtn.onclick = closeModal;
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
+
+        // Initial render
+        renderTasks();
+    </script>
+</body>
+</html>
