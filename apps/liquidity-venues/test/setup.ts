@@ -43,6 +43,22 @@ export const encoderTestLaterBlock = createViemTest(mainnet, {
   },
 });
 
+export const zeroExTest = createViemTest(mainnet, {
+  forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
+  forkBlockNumber: 25_352_408,
+  timeout: 100_000,
+}).extend<ExecutorEncoderTestContext<typeof mainnet>>({
+  encoder: async ({ client }, use) => {
+    const receipt = await client.deployContractWait({
+      abi: executorAbi,
+      bytecode,
+      args: [client.account.address],
+    });
+
+    await use(new ExecutorEncoder(receipt.contractAddress, client));
+  },
+});
+
 export const oneInchTest = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
   forkBlockNumber: 23_474_754,
