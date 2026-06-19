@@ -24,7 +24,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1
         with:
-          version: stable
+          version: "1.5.1"
       - name: Run liquidity venue tests
         run: pnpm test:liquidity-venues
         env:
@@ -48,7 +48,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1
         with:
-          version: stable
+          version: "1.5.1"
       - name: Run pricers tests
         run: pnpm test:pricers
         env:
@@ -71,7 +71,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1
         with:
-          version: stable
+          version: "1.5.1"
       - name: Run liquidation execution tests
         run: pnpm test:client
         env:
@@ -95,7 +95,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1
         with:
-          version: stable
+          version: "1.5.1"
       - name: Build config package
         run: pnpm build:config
       - name: Run hyperindex tests
