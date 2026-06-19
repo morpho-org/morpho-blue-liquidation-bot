@@ -4,6 +4,7 @@ export type LiquidityVenueName =
   | "1inch"
   | "erc20Wrapper"
   | "erc4626"
+  | "lifi"
   | "liquidSwap"
   | "midas"
   | "pendlePT"
