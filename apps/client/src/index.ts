@@ -1,19 +1,26 @@
 import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
 import { READ_ONLY } from "@morpho-blue-liquidation-bot/config";
+import {
+  MARKETS_FETCHING_COOLDOWN_PERIOD,
+  POSITION_LIQUIDATION_COOLDOWN_ENABLED,
+  POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+  ALWAYS_REALIZE_BAD_DEBT,
+  type ChainConfig,
+} from "@morpho-blue-liquidation-bot/config";
+import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
+import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
+import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
-import { Erc4626 } from "./liquidityVenues/erc4626";
-import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
-import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
-import { UniswapV4Venue } from "./liquidityVenues/uniswapV4";
-import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
-import type { Pricer } from "./pricers/pricer";
+import {
+  MarketsFetchingCooldownMechanism,
+  PositionLiquidationCooldownMechanism,
+} from "./utils/cooldownMechanisms";
 
-export const launchBot = (config: ChainConfig) => {
+export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   const logTag = `[${config.chain.name} client]: `;
   console.log(`${logTag}Starting up`);
 
@@ -24,20 +31,16 @@ export const launchBot = (config: ChainConfig) => {
   });
 
   // LIQUIDITY VENUES
-  const liquidityVenues: LiquidityVenue[] = [];
-  liquidityVenues.push(new Erc20Wrapper());
-  liquidityVenues.push(new Erc4626());
-  liquidityVenues.push(new UniswapV3Venue());
-  liquidityVenues.push(new UniswapV4Venue());
+  const liquidityVenues = config.liquidityVenues.map((liquidityVenueName) =>
+    createLiquidityVenue(liquidityVenueName),
+  );
 
   // PRICERS
-  const pricers: Pricer[] = [];
-  pricers.push(new DefiLlamaPricer());
-  pricers.push(new ChainlinkPricer());
+  const pricers = config.pricers
+    ? config.pricers.map((pricerName) => createPricer(pricerName))
+    : undefined;
 
-  if (config.checkProfit && pricers.length === 0) {
-    throw new Error(`${logTag} You must configure pricers!`);
-  }
+  // FlASHBOTS
 
   let flashbotAccount = undefined;
   if (config.useFlashbots) {
@@ -50,20 +53,34 @@ export const launchBot = (config: ChainConfig) => {
     flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
   }
 
+  let positionLiquidationCooldownMechanism = undefined;
+  if (POSITION_LIQUIDATION_COOLDOWN_ENABLED) {
+    positionLiquidationCooldownMechanism = new PositionLiquidationCooldownMechanism(
+      POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+    );
+  }
+
+  const marketsFetchingCooldownMechanism = new MarketsFetchingCooldownMechanism(
+    MARKETS_FETCHING_COOLDOWN_PERIOD,
+  );
+
   const inputs: LiquidationBotInputs = {
     logTag,
     chainId: config.chainId,
     client,
-    morphoAddress: config.morpho.address,
     wNative: config.wNative,
     vaultWhitelist: config.vaultWhitelist,
     additionalMarketsWhitelist: config.additionalMarketsWhitelist,
     executorAddress: config.executorAddress,
     treasuryAddress: config.treasuryAddress ?? client.account.address,
+    dataProvider,
     liquidityVenues,
-    pricers: config.checkProfit ? pricers : undefined,
+    pricers,
+    marketsFetchingCooldownMechanism,
+    positionLiquidationCooldownMechanism,
     flashbotAccount,
     readOnly: READ_ONLY,
+    alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
   };
 
   const bot = new LiquidationBot(inputs);
@@ -71,16 +88,26 @@ export const launchBot = (config: ChainConfig) => {
   const blockInterval = config.blockInterval ?? 1;
   let count = 0;
 
-  watchBlocks(client, {
-    onBlock: () => {
-      if (count % blockInterval === 0) {
-        try {
-          void bot.run();
-        } catch (e) {
-          console.error(`${logTag} uncaught error in bot.run():`, e);
+  const startWatching = () => {
+    watchBlocks(client, {
+      onBlock: () => {
+        if (count % blockInterval === 0) {
+          bot.run().catch((e) => {
+            console.error(`${logTag} uncaught error in bot.run():`, e);
+          });
         }
-      }
-      count++;
-    },
-  });
+        count++;
+      },
+      onError: (error) => {
+        const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
+        console.error(
+          `${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`,
+          error,
+        );
+        setTimeout(startWatching, retryDelay);
+      },
+    });
+  };
+
+  startWatching();
 };

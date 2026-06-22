@@ -39,7 +39,7 @@ export namespace Flashbots {
       client: client;
     }[],
   ) {
-    const nonces: { [address: string]: number } = {};
+    const nonces: Record<string, number> = {};
 
     const signatures: Hex[] = [];
     for (const { transaction, client } of bundle) {

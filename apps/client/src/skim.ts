@@ -1,11 +1,11 @@
 import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import dotenv from "dotenv";
-import { ExecutorEncoder } from "executooor-viem";
-import { type Address, createWalletClient, erc20Abi, formatUnits, type Hex, http } from "viem";
+import { type Address, createWalletClient, type Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { readContract } from "viem/actions";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+
+import { skim } from "./utils/skim.js";
 
 async function run() {
   dotenv.config();
@@ -56,35 +56,9 @@ async function run() {
     account: privateKeyToAccount(privateKey as Hex),
   });
 
-  const recipient = argv.recipient ?? client.account.address;
+  const recipient = (argv.recipient as Address) ?? client.account.address;
 
-  const encoder = new ExecutorEncoder(executorAddress as Address, client);
-
-  const [balance, decimals, symbol] = await Promise.all([
-    readContract(client, {
-      address: token,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [executorAddress as Address],
-    }),
-    readContract(client, {
-      address: token,
-      abi: erc20Abi,
-      functionName: "decimals",
-    }),
-    readContract(client, {
-      address: token,
-      abi: erc20Abi,
-      functionName: "symbol",
-    }),
-  ]);
-
-  if (balance > 0n) {
-    encoder.erc20Transfer(token, recipient as Address, balance);
-    await encoder.exec();
-
-    console.log(`Transferred ${formatUnits(balance, decimals)} ${symbol} to ${recipient} ✅`);
-  }
+  await skim(client, token, executorAddress as Address, recipient);
 }
 
 void run();

@@ -1,0 +1,66 @@
+type Market {
+  id: ID!
+  chainId: Int!
+  marketId: String! @index
+
+  # MarketParams fields
+  loanToken: String!
+  collateralToken: String!
+  oracle: String!
+  irm: String!
+  lltv: BigInt!
+
+  # Market fields
+  totalSupplyAssets: BigInt!
+  totalSupplyShares: BigInt!
+  totalBorrowAssets: BigInt!
+  totalBorrowShares: BigInt!
+  lastUpdate: BigInt!
+  fee: BigInt!
+
+  # AdaptiveCurveIrm fields
+  rateAtTarget: BigInt!
+}
+
+type Position {
+  id: ID!
+  chainId: Int!
+  market_id: String! @index
+  user: String! @index
+
+  # Position fields
+  supplyShares: BigInt!
+  borrowShares: BigInt!
+  collateral: BigInt!
+}
+
+type Authorization {
+  id: ID!
+  chainId: Int!
+  authorizer: String! @index
+  authorizee: String! @index
+  isAuthorized: Boolean!
+}
+
+type PreLiquidationContract {
+  id: ID!
+  chainId: Int!
+  market_id: String! @index
+  address: String!
+
+  # PreLiquidationParams fields
+  preLltv: BigInt!
+  preLCF1: BigInt!
+  preLCF2: BigInt!
+  preLIF1: BigInt!
+  preLIF2: BigInt!
+  preLiquidationOracle: String!
+}
+
+type Vault {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+
+  withdrawQueue: [String!]!
+}

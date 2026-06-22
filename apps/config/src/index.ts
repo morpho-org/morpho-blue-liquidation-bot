@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import type { Address, Chain, Hex } from "viem";
 
 import { chainConfigs } from "./config";
-import type { ChainConfig } from "./types";
+import type { ChainConfig, DataProviderName, LiquidityVenueName, PricerName } from "./types";
 
 dotenv.config();
 
@@ -54,7 +54,14 @@ export function getSecrets(chainId: number, chain?: Chain) {
 }
 
 export * from "./chains";
-export { chainConfigs, type ChainConfig };
+export {
+  chainConfigs,
+  type ChainConfig,
+  type DataProviderName,
+  type LiquidityVenueName,
+  type PricerName,
+};
+export * from "./dataProviders";
 export * from "./liquidityVenues";
 export * from "./pricers";
 export { COOLDOWN_PERIOD, COOLDOWN_ENABLED, ALWAYS_REALIZE_BAD_DEBT } from "./config";
@@ -63,3 +70,9 @@ import { READ_ONLY as _READ_ONLY } from "./config";
 export const READ_ONLY = process.env.READ_ONLY !== undefined
   ? process.env.READ_ONLY === "true"
   : _READ_ONLY;
+export {
+  POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+  POSITION_LIQUIDATION_COOLDOWN_ENABLED,
+  MARKETS_FETCHING_COOLDOWN_PERIOD,
+  ALWAYS_REALIZE_BAD_DEBT,
+} from "./config";

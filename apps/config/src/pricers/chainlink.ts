@@ -1,0 +1,19 @@
+import type { Address } from "viem";
+
+export const FEED_REGISTRY_ADDRESS: Address = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf";
+
+/**
+ * ISO 4217 denominations used by Chainlink
+ */
+export const DENOMINATIONS = {
+  EUR: "0x00000000000000000000000000000000000003d2",
+  GBP: "0x000000000000000000000000000000000000033a",
+  USD: "0x0000000000000000000000000000000000000348",
+  ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+  BTC: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+} as const;
+
+export const MAPPINGS: Record<Address, Address> = {
+  ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]: DENOMINATIONS.ETH, // WETH → ETH
+  ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]: DENOMINATIONS.BTC, // WBTC → BTC
+};
