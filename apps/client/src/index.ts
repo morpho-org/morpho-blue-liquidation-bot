@@ -1,3 +1,5 @@
+import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import { READ_ONLY } from "@morpho-blue-liquidation-bot/config";
 import {
   MARKETS_FETCHING_COOLDOWN_PERIOD,
   POSITION_LIQUIDATION_COOLDOWN_ENABLED,
@@ -77,6 +79,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     marketsFetchingCooldownMechanism,
     positionLiquidationCooldownMechanism,
     flashbotAccount,
+    readOnly: READ_ONLY,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
   };
 

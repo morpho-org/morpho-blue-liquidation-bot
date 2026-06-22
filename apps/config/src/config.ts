@@ -6,6 +6,7 @@ import type { Config } from "./types";
 /// Bad debt realization
 
 export const ALWAYS_REALIZE_BAD_DEBT = false; // true if you want to always realize bad debt
+export const READ_ONLY = false; // true if you want to find opportunities but not execute them
 
 /// Cooldown mechanisms
 
