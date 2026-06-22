@@ -14,7 +14,12 @@ import { preLiquidationFactoryAbi } from "../../../src/abis/morpho/preLiquidatio
 import { LiquidationBot } from "../../../src/bot.js";
 import { MarketsFetchingCooldownMechanism } from "../../../src/utils/cooldownMechanisms.js";
 import { borrower, MORPHO, PRE_LIQUIDATION_FACTORY, WETH, wbtcUSDT } from "../../constants.js";
-import { MockDataProvider, mockEtherPrice, syncTimestamp } from "../../helpers.js";
+import {
+  MockDataProvider,
+  mockEtherPrice,
+  mockPersistentPrices,
+  syncTimestamp,
+} from "../../helpers.js";
 import { preLiquidationTest } from "../../setup.js";
 
 const oracleAbi = [
@@ -233,6 +238,108 @@ describe("execute pre-liquidation", () => {
       });
 
       expect(accountBalance).toBeGreaterThan(0n);
+    },
+  );
+
+  preLiquidationTest.sequential(
+    "should pre-liquidate at full size when partialLiquidationMinSeizeUsd is set and full is profitable",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
+      const { client } = encoder;
+
+      const { marketParams, preLiqPosition } = await setupPreLiquidationPosition(client);
+
+      const mockDataProvider = new MockDataProvider();
+      mockDataProvider.setPreLiquidatablePositions([preLiqPosition]);
+      mockPersistentPrices({
+        etherPriceUsd: 2640,
+        loanToken: marketParams.loanToken,
+        collateralToken: marketParams.collateralToken,
+        // wBTC at ~$95k around the preLiquidation fork block.
+        collateralTokenPriceUsd: 95_000,
+      });
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDT],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        dataProvider: mockDataProvider,
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        alwaysRealizeBadDebt: false,
+        partialLiquidationMinSeizeUsd: 10,
+      });
+
+      await bot.run();
+
+      const accountBalance = await readContract(client, {
+        address: marketParams.loanToken,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [client.account.address],
+      });
+
+      // First (largest) candidate succeeded → pre-liquidation went through.
+      expect(accountBalance).toBeGreaterThan(0n);
+    },
+  );
+
+  preLiquidationTest.sequential(
+    "should skip pre-liquidation when every candidate is below the USD threshold",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
+      const { client } = encoder;
+
+      const { marketParams, preLiqPosition } = await setupPreLiquidationPosition(client);
+
+      const mockDataProvider = new MockDataProvider();
+      mockDataProvider.setPreLiquidatablePositions([preLiqPosition]);
+      mockPersistentPrices({
+        etherPriceUsd: 2640,
+        loanToken: marketParams.loanToken,
+        collateralToken: marketParams.collateralToken,
+        collateralTokenPriceUsd: 95_000,
+      });
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDT],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        dataProvider: mockDataProvider,
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        alwaysRealizeBadDebt: false,
+        // Threshold well above the pre-liquidatable position's USD value.
+        partialLiquidationMinSeizeUsd: 1_000_000_000,
+      });
+
+      await bot.run();
+
+      const accountBalance = await readContract(client, {
+        address: marketParams.loanToken,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [client.account.address],
+      });
+
+      // No candidate survived the USD filter → no pre-liquidation attempted.
+      expect(accountBalance).toBe(0n);
     },
   );
 });

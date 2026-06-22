@@ -58,6 +58,14 @@ export interface LiquidationBotInputs {
   positionLiquidationCooldownMechanism?: PositionLiquidationCooldownMechanism;
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
+  /**
+   * When set, enables partial liquidation: the bot tries candidate seize amounts
+   * `seizableCollateral / 2^i` for i in [0, 10) from largest to smallest, skipping
+   * any candidate whose collateral USD value is below this threshold (except a
+   * full bad-debt seize, which is always tried). Submits the first profitable
+   * candidate. Undefined disables the feature (single-attempt legacy behavior).
+   */
+  partialLiquidationMinSeizeUsd?: number;
 }
 
 export class LiquidationBot {
@@ -78,6 +86,7 @@ export class LiquidationBot {
   private flashbotAccount?: LocalAccount;
   private coveredMarkets: Hex[];
   private alwaysRealizeBadDebt: boolean;
+  private partialLiquidationMinSeizeUsd?: number;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -97,6 +106,7 @@ export class LiquidationBot {
     this.flashbotAccount = inputs.flashbotAccount;
     this.coveredMarkets = [];
     this.alwaysRealizeBadDebt = inputs.alwaysRealizeBadDebt;
+    this.partialLiquidationMinSeizeUsd = inputs.partialLiquidationMinSeizeUsd;
   }
 
   async run() {
@@ -113,13 +123,39 @@ export class LiquidationBot {
 
   private async liquidate(position: AccrualPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = position.seizableCollateral ?? 0n;
-    const badDebtPosition = seizableCollateral === position.collateral;
+    const fullSeizableCollateral = position.seizableCollateral ?? 0n;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const { client, executorAddress } = this;
+    const candidates =
+      this.partialLiquidationMinSeizeUsd === undefined
+        ? [fullSeizableCollateral]
+        : await this.partialLiquidationCandidates(
+            marketParams.collateralToken,
+            fullSeizableCollateral,
+            position.collateral,
+            this.partialLiquidationMinSeizeUsd,
+          );
 
+    for (const seizableCollateral of candidates) {
+      const badDebtPosition = seizableCollateral === position.collateral;
+      const submitted = await this.attemptLiquidation(
+        position.user,
+        marketParams,
+        seizableCollateral,
+        badDebtPosition,
+      );
+      if (submitted) return;
+    }
+  }
+
+  private async attemptLiquidation(
+    user: Address,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+    badDebtPosition: boolean,
+  ): Promise<boolean> {
+    const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
     if (
@@ -129,7 +165,7 @@ export class LiquidationBot {
         encoder,
       ))
     )
-      return;
+      return false;
 
     encoder.erc20Approve(marketParams.loanToken, this.chainAddresses.morpho, maxUint256);
 
@@ -142,7 +178,7 @@ export class LiquidationBot {
         irm: marketParams.irm,
         lltv: BigInt(marketParams.lltv),
       },
-      position.user,
+      user,
       seizableCollateral,
       0n,
       encoder.flush(),
@@ -156,34 +192,59 @@ export class LiquidationBot {
 
       if (success)
         console.log(
-          `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          `${this.logTag}Liquidated ${user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
         );
       else
         console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
+          `${this.logTag}ℹ️ Skipped ${user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
         );
+
+      return Boolean(success);
     } catch (error) {
       console.error(
-        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        `${this.logTag}Failed to liquidate ${user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
         error,
       );
+      return false;
     }
   }
 
   private async preLiquidate(position: PreLiquidationPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = this.decreaseSeizableCollateral(
-      position.seizableCollateral ?? 0n,
-      false,
-    );
+    const fullSeizableCollateral = position.seizableCollateral ?? 0n;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const { client, executorAddress } = this;
+    const candidates =
+      this.partialLiquidationMinSeizeUsd === undefined
+        ? [fullSeizableCollateral]
+        : await this.partialLiquidationCandidates(
+            marketParams.collateralToken,
+            fullSeizableCollateral,
+            position.collateral,
+            this.partialLiquidationMinSeizeUsd,
+          );
 
+    for (const seizableCollateral of candidates) {
+      const submitted = await this.attemptPreLiquidation(
+        position,
+        marketParams,
+        this.decreaseSeizableCollateral(seizableCollateral, false),
+      );
+      if (submitted) return;
+    }
+  }
+
+  private async attemptPreLiquidation(
+    position: PreLiquidationPosition,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+  ): Promise<boolean> {
+    const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder))) return;
+    if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder)))
+      return false;
 
     encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
 
@@ -203,18 +264,52 @@ export class LiquidationBot {
 
       if (success)
         console.log(
-          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
         );
       else
         console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`,
+          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
         );
+
+      return Boolean(success);
     } catch (error) {
       console.error(
-        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)}`,
+        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
         error,
       );
+      return false;
     }
+  }
+
+  /**
+   * Builds the list of seize-amount candidates to try, from largest to smallest:
+   * `seizableCollateral / 2^i` for i in [0, 10). Filters out duplicates and zero,
+   * and drops candidates whose collateral USD value is below `minSeizeUsd` unless
+   * the candidate equals `positionCollateral` (i.e., full bad-debt realization).
+   * If no pricers are configured, the USD filter is skipped (all candidates kept).
+   */
+  private async partialLiquidationCandidates(
+    collateralToken: Address,
+    seizableCollateral: bigint,
+    positionCollateral: bigint,
+    minSeizeUsd: number,
+  ): Promise<bigint[]> {
+    const raw = Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
+      (amount, index, arr) => amount > 0n && arr.indexOf(amount) === index,
+    );
+
+    if (this.pricers === undefined || this.pricers.length === 0) return raw;
+
+    const kept: bigint[] = [];
+    for (const candidate of raw) {
+      if (candidate === positionCollateral) {
+        kept.push(candidate);
+        continue;
+      }
+      const usdValue = await this.price(collateralToken, candidate, this.pricers);
+      if (usdValue !== undefined && usdValue >= minSeizeUsd) kept.push(candidate);
+    }
+    return kept;
   }
 
   private async handleTx(

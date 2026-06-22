@@ -78,6 +78,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     positionLiquidationCooldownMechanism,
     flashbotAccount,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
+    partialLiquidationMinSeizeUsd: config.partialLiquidationMinSeizeUsd,
   };
 
   const bot = new LiquidationBot(inputs);
@@ -89,7 +90,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     watchBlocks(client, {
       onBlock: () => {
         if (count % blockInterval === 0) {
-          bot.run().catch((e) => {
+          bot.run().catch((e: unknown) => {
             console.error(`${logTag} uncaught error in bot.run():`, e);
           });
         }
@@ -97,10 +98,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
       },
       onError: (error) => {
         const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
-        console.error(
-          `${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`,
-          error,
-        );
+        console.error(`${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`, error);
         setTimeout(startWatching, retryDelay);
       },
     });
