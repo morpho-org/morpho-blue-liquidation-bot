@@ -25,3 +25,5 @@ yarn-error.log*
 # Tools
 .claude/settings.local.json
 .dockerignore
+# Internal context notes — must never be committed.
+INTERNAL_CONTEXT.md
