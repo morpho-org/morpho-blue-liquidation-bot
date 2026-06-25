@@ -3,6 +3,7 @@ import type { LiquidityVenueName } from "@morpho-blue-liquidation-bot/config";
 import { OneInch } from "./1inch";
 import { Erc20Wrapper } from "./erc20Wrapper";
 import { Erc4626 } from "./erc4626";
+import { LiFi } from "./lifi";
 import { LiquidityVenue } from "./liquidityVenue";
 import { LiquidSwapVenue } from "./liquidSwap";
 import { MidasVenue } from "./midas";
@@ -34,6 +35,8 @@ export function createLiquidityVenue(liquidityVenueName: LiquidityVenueName): Li
       return new PendlePTVenue();
     case "1inch":
       return new OneInch();
+    case "lifi":
+      return new LiFi();
     case "zeroEx":
       return new ZeroEx();
     default:
