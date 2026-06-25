@@ -293,7 +293,7 @@ describe("execute pre-liquidation", () => {
   );
 
   preLiquidationTest.sequential(
-    "should skip pre-liquidation when every candidate is below the USD threshold",
+    "should fall back to a single full-seize pre-liquidation when position borrow is below the partial threshold",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
       const { client } = encoder;
@@ -325,7 +325,8 @@ describe("execute pre-liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        // Threshold well above the pre-liquidatable position's USD value.
+        // Threshold well above the position's borrow assets → partial mode is OFF for this
+        // position, the bot falls back to a single full-seize pre-liquidation.
         partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
@@ -338,8 +339,8 @@ describe("execute pre-liquidation", () => {
         args: [client.account.address],
       });
 
-      // No candidate survived the USD filter → no pre-liquidation attempted.
-      expect(accountBalance).toBe(0n);
+      // Single full-seize pre-liquidation went through.
+      expect(accountBalance).toBeGreaterThan(0n);
     },
   );
 });

@@ -764,17 +764,17 @@ describe("execute partial liquidation", () => {
   );
 
   encoderTest.sequential(
-    "should not liquidate when every non-bad-debt candidate is below the USD threshold",
+    "should fall back to a single full-seize attempt when position borrow is below the partial threshold",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
 
       const { client } = encoder;
-      // Non-bad-debt liquidatable position: collateral $3.25k post-halving > debt $2.9k,
-      // but LTV ~89% > LLTV 86% so the position is liquidatable. seizableCollateral is a
-      // strict fraction of position.collateral → the bad-debt exception in the candidate
-      // filter does NOT kick in.
+      // Liquidatable wBTC/USDC position (0.1 wBTC supply → 0.05 wBTC after halving,
+      // 5000 USDC debt). borrowAssets ≈ 5_000_000_000n atoms is well below the absurd
+      // 10^15 threshold below, so the position is NOT partialised — the bot tries only
+      // a single full-seize attempt.
       const collateralAmount = parseUnits("0.1", 8);
-      const borrowAmount = parseUnits("2900", 6);
+      const borrowAmount = parseUnits("5000", 6);
 
       const _marketParams = await readContract(encoder.client, {
         address: MORPHO,
@@ -800,6 +800,12 @@ describe("execute partial liquidation", () => {
         collateralTokenPriceUsd: 60_000,
       });
 
+      // Same gating venue used in the "smaller candidate wins" test above: it rejects
+      // any conversion > 0.005 wBTC. With partial mode OFF (position below threshold),
+      // the bot only tries the full seize (~0.05 wBTC) → the venue rejects → no
+      // liquidation. There's no fallback to a smaller candidate.
+      const limitedVenue = new SizeLimitedSwapVenue(parseUnits("0.005", 8), uniswapV3);
+
       const bot = new LiquidationBot({
         logTag: "test client",
         chainId: mainnet.id,
@@ -810,16 +816,14 @@ describe("execute partial liquidation", () => {
         executorAddress: encoder.address,
         treasuryAddress: client.account.address,
         dataProvider: new MorphoApiDataProvider(),
-        liquidityVenues: [erc4626, uniswapV3],
+        liquidityVenues: [erc4626, limitedVenue],
         pricers: [pricer],
         marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        // Threshold deliberately higher than this whole position's USD value
-        // (0.05 wBTC ≈ ~$3k at fork) so no candidate clears the floor.
-        // Position is not bad debt either (LLTV not exhausted), so the
-        // bad-debt-exception keep-clause does not apply.
+        // Threshold = 10^15 USDC atoms = ~$10^9. Far above the position's 5_000_000_000n
+        // borrow → partial mode is OFF for this position.
         partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
@@ -839,19 +843,21 @@ describe("execute partial liquidation", () => {
         args: [client.account.address],
       });
 
-      // Nothing was liquidated.
+      // Full-seize attempt failed on the gating venue and no partialising happened.
       expect(accountBalance).toBe(0n);
       expect(positionPostLiquidation[2]).toBe(collateralAmount / 2n);
     },
   );
 
   encoderTest.sequential(
-    "should still seize the full amount on a bad-debt position even when below the threshold",
+    "should still seize the full amount on a bad-debt position whose borrow is below the partial threshold",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
 
       const { client } = encoder;
-      // Tiny position — full seize is bad debt and USD value sits below any normal threshold.
+      // Tiny bad-debt position — its 5_000_000n borrow (5 USDC) is far below the partial
+      // threshold, so the bot falls back to a single full-seize attempt and (thanks to
+      // `alwaysRealizeBadDebt`) goes through with the unprofitable bad-debt tx.
       const collateralAmount = parseUnits("0.0001", 8);
       const borrowAmount = parseUnits("5", 6);
 
@@ -908,7 +914,77 @@ describe("execute partial liquidation", () => {
         args: [wbtcUSDC, borrower.address],
       });
 
-      // Bad debt: full seize bypasses the USD filter, alwaysRealizeBadDebt clears profit check.
+      // Below-threshold path used the single full-seize attempt; alwaysRealizeBadDebt
+      // cleared the profitability gate.
+      expect(positionPostLiquidation[0]).toBe(0n);
+      expect(positionPostLiquidation[1]).toBe(0n);
+      expect(positionPostLiquidation[2]).toBe(0n);
+    },
+  );
+
+  encoderTest.sequential(
+    "should fall back to a single full-seize when the market's loan asset is not in the partial-liquidation map",
+    async ({ encoder }) => {
+      const pricer = new MorphoApi();
+
+      const { client } = encoder;
+      const collateralAmount = parseUnits("0.1", 8);
+      const borrowAmount = parseUnits("5000", 6);
+
+      const _marketParams = await readContract(encoder.client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "idToMarketParams",
+        args: [wbtcUSDC],
+      });
+
+      const marketParams = {
+        loanToken: _marketParams[0],
+        collateralToken: _marketParams[1],
+        oracle: _marketParams[2],
+        irm: _marketParams[3],
+        lltv: _marketParams[4],
+      };
+
+      await setupPosition(client, marketParams, collateralAmount, borrowAmount);
+      mockPersistentPrices({
+        etherPriceUsd: 2640,
+        loanToken: marketParams.loanToken,
+        collateralToken: marketParams.collateralToken,
+        collateralTokenPriceUsd: 60_000,
+      });
+
+      const bot = new LiquidationBot({
+        logTag: "test client",
+        chainId: mainnet.id,
+        client,
+        wNative: WETH,
+        vaultWhitelist: [],
+        additionalMarketsWhitelist: [wbtcUSDC],
+        executorAddress: encoder.address,
+        treasuryAddress: client.account.address,
+        dataProvider: new MorphoApiDataProvider(),
+        liquidityVenues: [erc4626, uniswapV3],
+        pricers: [pricer],
+        marketsFetchingCooldownMechanism: new MarketsFetchingCooldownMechanism(
+          MARKETS_FETCHING_COOLDOWN_PERIOD,
+        ),
+        alwaysRealizeBadDebt: true,
+        // Map covers WETH only, NOT the market's loan token (USDC). The bot must
+        // fall back to a single full-seize attempt.
+        partialLiquidationMinRepay: { [WETH]: 1n },
+      });
+
+      await bot.run();
+
+      const positionPostLiquidation = await readContract(client, {
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "position",
+        args: [wbtcUSDC, borrower.address],
+      });
+
+      // Single full-seize attempt cleared the position.
       expect(positionPostLiquidation[0]).toBe(0n);
       expect(positionPostLiquidation[1]).toBe(0n);
       expect(positionPostLiquidation[2]).toBe(0n);

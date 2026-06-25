@@ -7,7 +7,6 @@ import {
   ChainAddresses,
   getChainAddresses,
   type IMarketParams,
-  type Market,
   MarketUtils,
   PreLiquidationPosition,
 } from "@morpho-org/blue-sdk";
@@ -60,14 +59,16 @@ export interface LiquidationBotInputs {
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
   /**
-   * Per-loan-asset minimum repaid amount (in loan-asset atoms) for a partial-
-   * liquidation candidate to be considered. When undefined, or when the loan
-   * asset of a given market is not in this submap, the bot falls back to a
-   * single full-seize attempt. When defined and the loan asset is listed, the
-   * bot tries candidate seize amounts `seizableCollateral / 2^i` for i in [0, 10),
-   * keeps those whose repaid loan-asset amount is ≥ this threshold (plus a full
-   * bad-debt seize regardless of threshold), simulates each, and submits the
-   * one with the largest seize amount among the profitable simulations.
+   * Per-loan-asset minimum borrow-assets threshold (in loan-asset atoms). The
+   * threshold acts as a position-level mode switch:
+   *
+   * - Loan asset missing from this submap → single full-seize attempt (legacy).
+   * - Loan asset present, `position.borrowAssets < threshold` → single full-seize
+   *   attempt (regardless of bad-debt status).
+   * - Loan asset present, `position.borrowAssets >= threshold` → partial mode:
+   *   the bot simulates candidate seize amounts `seizableCollateral / 2^i` for
+   *   i in [0, 10) and submits the candidate with the largest seize amount
+   *   among the profitable simulations.
    *
    * This is the per-chain submap from `partialLiquidationMinRepay` in the
    * config package — the launcher slices it by `config.chainId`.
@@ -140,10 +141,9 @@ export class LiquidationBot {
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const minRepay = this.partialLiquidationMinRepay?.[getAddress(marketParams.loanToken)];
-
-    if (minRepay === undefined) {
-      // Loan asset not configured for partial liquidation → single full-seize attempt.
+    if (!this.partialLiquidationEnabledFor(marketParams.loanToken, position.borrowAssets)) {
+      // Loan asset not configured, or position's borrow assets are below the threshold:
+      // single full-seize attempt regardless of bad-debt status.
       await this.runSingleLiquidationAttempt(
         position.user,
         marketParams,
@@ -153,14 +153,9 @@ export class LiquidationBot {
       return;
     }
 
-    // Partial liquidation enabled: simulate every candidate, keep the profitable ones,
+    // Partial liquidation: simulate every halving candidate, keep the profitable ones,
     // submit the candidate with the largest seize amount.
-    const candidates = this.partialLiquidationCandidates(
-      fullSeizableCollateral,
-      position.collateral,
-      position.market,
-      minRepay,
-    );
+    const candidates = this.partialLiquidationCandidates(fullSeizableCollateral);
 
     const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
     for (const seizableCollateral of candidates) {
@@ -283,9 +278,7 @@ export class LiquidationBot {
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const minRepay = this.partialLiquidationMinRepay?.[getAddress(marketParams.loanToken)];
-
-    if (minRepay === undefined) {
+    if (!this.partialLiquidationEnabledFor(marketParams.loanToken, position.borrowAssets)) {
       await this.runSinglePreLiquidationAttempt(
         position,
         marketParams,
@@ -294,12 +287,7 @@ export class LiquidationBot {
       return;
     }
 
-    const candidates = this.partialLiquidationCandidates(
-      fullSeizableCollateral,
-      position.collateral,
-      position.market,
-      minRepay,
-    );
+    const candidates = this.partialLiquidationCandidates(fullSeizableCollateral);
 
     const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
     for (const seizableCollateral of candidates) {
@@ -387,29 +375,26 @@ export class LiquidationBot {
   }
 
   /**
-   * Builds the list of seize-amount candidates to try, from largest to smallest:
-   * `seizableCollateral / 2^i` for i in [0, 10). Filters out duplicates and zero,
-   * and drops candidates whose repaid loan-asset amount is below `minRepay` unless
-   * the candidate equals `positionCollateral` (i.e., full bad-debt realization),
-   * which is always kept. Returns candidates ordered largest → smallest.
+   * Returns true iff this loan asset is configured for partial liquidation on this
+   * chain AND the position's outstanding borrow assets are at or above the threshold.
+   * The threshold acts as a position-level mode switch: smaller positions are always
+   * liquidated in a single full attempt (regardless of bad-debt status); larger ones
+   * go through the candidate-and-pick-biggest path.
    */
-  private partialLiquidationCandidates(
-    seizableCollateral: bigint,
-    positionCollateral: bigint,
-    market: Market,
-    minRepay: bigint,
-  ): bigint[] {
-    const raw = Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
+  private partialLiquidationEnabledFor(loanToken: Address, positionBorrowAssets: bigint): boolean {
+    const minRepay = this.partialLiquidationMinRepay?.[getAddress(loanToken)];
+    if (minRepay === undefined) return false;
+    return positionBorrowAssets >= minRepay;
+  }
+
+  /**
+   * Builds the list of seize-amount candidates to try, from largest to smallest:
+   * `seizableCollateral / 2^i` for i in [0, 10). Deduped, zero-stripped.
+   */
+  private partialLiquidationCandidates(seizableCollateral: bigint): bigint[] {
+    return Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
       (amount, index, arr) => amount > 0n && arr.indexOf(amount) === index,
     );
-
-    return raw.filter((candidate) => {
-      if (candidate === positionCollateral) return true;
-      const repaidShares = market.getLiquidationRepaidShares(candidate);
-      if (repaidShares === undefined) return false;
-      const repaidAssets = market.toBorrowAssets(repaidShares);
-      return repaidAssets >= minRepay;
-    });
   }
 
   /**
