@@ -20,7 +20,7 @@ export const chainConfigs: Record<number, Config> = {
       dataProvider: "morphoApi",
       vaultWhitelist: [],
       additionalMarketsWhitelist: [],
-      liquidityVenues: ["zeroEx", "erc20Wrapper", "erc4626"],
+      liquidityVenues: ["zeroEx", "uniswapV3", "uniswapV4", "erc20Wrapper", "erc4626"],
       // Pricers omitted → profitability check disabled until oracle/data sources are wired up.
       useFlashbots: false,
       useTenderly: false,

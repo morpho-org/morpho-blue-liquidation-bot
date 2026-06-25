@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { arbitrum, base, katana, optimism, polygon, tempo, unichain } from "viem/chains";
 
-import { hyperevm, monad } from "../chains";
+import { hyperevm, monad, robinhoodChain } from "../chains";
 
 export const MIN_SQRT_RATIO = 4295128739n;
 export const MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342n;
@@ -18,6 +18,7 @@ export const specificFactoryAddresses: Record<number, Address> = {
   [optimism.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
   [polygon.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
   [tempo.id]: "0x24a3d4757E330890A8b8978028c9e58E04611fd6",
+  [robinhoodChain.id]: "0x1f7d7550b1b028f7571e69a784071f0205fd2efa",
 };
 
 export const FEE_TIERS = [500, 3000, 10000];

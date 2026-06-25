@@ -16,7 +16,7 @@ import {
   zora,
 } from "viem/chains";
 
-import { monad } from "../chains";
+import { monad, robinhoodChain } from "../chains";
 
 type Contracts = "PoolManager" | "Quoter" | "StateView" | "UniversalRouter" | "Permit2" | "Native";
 
@@ -146,5 +146,13 @@ export const DEPLOYMENTS: Record<
     UniversalRouter: { address: "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91" },
     Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
     Native: { address: "0x20C000000000000000000000b9537d11c60E8b50" },
+  },
+  [robinhoodChain.id]: {
+    PoolManager: { address: "0x8366a39cc670b4001a1121b8f6a443a643e40951" },
+    Quoter: { address: "0x8dc178efb8111bb0973dd9d722ebeff267c98f94" },
+    StateView: { address: "0xf3334192d15450cdd385c8b70e03f9a6bd9e673b" },
+    UniversalRouter: { address: "0x8876789976decbfcbbbe364623c63652db8c0904" },
+    Permit2: { address: "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
+    Native: { address: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73" },
   },
 };
