@@ -101,6 +101,30 @@ LIQUIDATION_PRIVATE_KEY_1=0x...
 
 Set `ALWAYS_REALIZE_BAD_DEBT` to `true` in `apps/config/src/config.ts` to always fully liquidate bad debt positions, even if not profitable.
 
+### Partial Liquidation
+
+By default, every liquidatable position is attempted as a single full-seize call (the legacy path). For large positions where the full seize would push too much through the configured liquidity venues, the bot can optionally fall back to a smaller seize.
+
+Configure it in `apps/config/src/partialLiquidation.ts`:
+
+```ts
+export const partialLiquidationMinRepay: Record<number, Partial<Record<Address, bigint>>> = {
+  [mainnet.id]: {
+    // 100 USDC. Threshold is in loan-asset atoms.
+    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": 100_000_000n,
+  },
+};
+```
+
+The threshold is a position-level mode switch:
+
+- **Chain absent from the map** → partial liquidation disabled for that chain.
+- **Chain present, loan asset absent from the chain's submap** → that market falls back to a single full-seize attempt.
+- **Chain present, loan asset present, `position.borrowAssets < threshold`** → single full-seize attempt (regardless of bad-debt status — small positions are never partialised).
+- **Chain present, loan asset present, `position.borrowAssets >= threshold`** → partial mode: the bot simulates 10 candidate seize amounts (`seizableCollateral / 2^i` for `i ∈ [0, 10)`) and submits the candidate with the **largest seize amount** among the profitable simulations.
+
+Thresholds are in the loan asset's smallest unit. For USDC (6 decimals) `100_000_000n` = 100 USDC; for DAI (18 decimals) `100_000_000_000_000_000_000n` = 100 DAI.
+
 ## Executor Contract Deployment
 
 The bot uses an executor contract to execute liquidations ([executor repository](https://github.com/Rubilmax/executooor)). These contracts are gated (only callable by the owner), so you need to deploy your own.

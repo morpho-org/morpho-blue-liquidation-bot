@@ -58,21 +58,8 @@ export interface LiquidationBotInputs {
   positionLiquidationCooldownMechanism?: PositionLiquidationCooldownMechanism;
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
-  /**
-   * Per-loan-asset minimum borrow-assets threshold (in loan-asset atoms). The
-   * threshold acts as a position-level mode switch:
-   *
-   * - Loan asset missing from this submap → single full-seize attempt (legacy).
-   * - Loan asset present, `position.borrowAssets < threshold` → single full-seize
-   *   attempt (regardless of bad-debt status).
-   * - Loan asset present, `position.borrowAssets >= threshold` → partial mode:
-   *   the bot simulates candidate seize amounts `seizableCollateral / 2^i` for
-   *   i in [0, 10) and submits the candidate with the largest seize amount
-   *   among the profitable simulations.
-   *
-   * This is the per-chain submap from `partialLiquidationMinRepay` in the
-   * config package — the launcher slices it by `config.chainId`.
-   */
+  // Per-chain submap from config's `partialLiquidationMinRepay`. See the
+  // "Partial Liquidation" section of the README for the semantics.
   partialLiquidationMinRepay?: Partial<Record<Address, bigint>>;
 }
 
@@ -374,34 +361,19 @@ export class LiquidationBot {
     return { encoder, calls, profitable };
   }
 
-  /**
-   * Returns true iff this loan asset is configured for partial liquidation on this
-   * chain AND the position's outstanding borrow assets are at or above the threshold.
-   * The threshold acts as a position-level mode switch: smaller positions are always
-   * liquidated in a single full attempt (regardless of bad-debt status); larger ones
-   * go through the candidate-and-pick-biggest path.
-   */
   private partialLiquidationEnabledFor(loanToken: Address, positionBorrowAssets: bigint): boolean {
     const minRepay = this.partialLiquidationMinRepay?.[getAddress(loanToken)];
     if (minRepay === undefined) return false;
     return positionBorrowAssets >= minRepay;
   }
 
-  /**
-   * Builds the list of seize-amount candidates to try, from largest to smallest:
-   * `seizableCollateral / 2^i` for i in [0, 10). Deduped, zero-stripped.
-   */
   private partialLiquidationCandidates(seizableCollateral: bigint): bigint[] {
     return Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
       (amount, index, arr) => amount > 0n && arr.indexOf(amount) === index,
     );
   }
 
-  /**
-   * Simulates the full executor call, then runs the profitability check.
-   * Returns `true` if profitable (or unconditionally on bad-debt + `alwaysRealizeBadDebt`),
-   * `false` if simulation succeeded but not profitable, `undefined` if simulation reverted.
-   */
+  // Returns true if profitable, false if not profitable, undefined if simulation reverted.
   private async simulateAndCheckProfit(
     encoder: LiquidationEncoder,
     calls: Hex[],
