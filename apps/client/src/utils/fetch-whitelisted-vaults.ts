@@ -2,7 +2,7 @@ import { type Address } from "viem";
 
 const QUERY = `
   query ExampleQuery($chainIds: [Int!]!) {
-    vaults(where: { chainId_in: $chainIds, whitelisted: true }) {
+    vaults(where: { chainId_in: $chainIds, listed: true }) {
       items {
         address
         chain {

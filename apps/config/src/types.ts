@@ -4,11 +4,13 @@ export type LiquidityVenueName =
   | "1inch"
   | "erc20Wrapper"
   | "erc4626"
+  | "lifi"
   | "liquidSwap"
   | "midas"
   | "pendlePT"
   | "uniswapV3"
-  | "uniswapV4";
+  | "uniswapV4"
+  | "zeroEx";
 
 export type PricerName = "chainlink" | "defillama" | "morphoApi" | "uniswapV3";
 

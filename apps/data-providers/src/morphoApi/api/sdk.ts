@@ -32,7 +32,7 @@ export const GetLiquidatablePositionsDocument = gql`
           address
         }
         market {
-          uniqueKey
+          uniqueKey: marketId
           oracle {
             address
           }

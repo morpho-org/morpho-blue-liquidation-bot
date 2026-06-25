@@ -3,12 +3,14 @@ import type { LiquidityVenueName } from "@morpho-blue-liquidation-bot/config";
 import { OneInch } from "./1inch";
 import { Erc20Wrapper } from "./erc20Wrapper";
 import { Erc4626 } from "./erc4626";
+import { LiFi } from "./lifi";
 import { LiquidityVenue } from "./liquidityVenue";
 import { LiquidSwapVenue } from "./liquidSwap";
 import { MidasVenue } from "./midas";
 import { PendlePTVenue } from "./pendlePT";
 import { UniswapV3Venue } from "./uniswapV3";
 import { UniswapV4Venue } from "./uniswapV4";
+import { ZeroEx } from "./zeroEx";
 
 /**
  * Creates a liquidity venue instance based on the liquidity venue name from config.
@@ -33,6 +35,10 @@ export function createLiquidityVenue(liquidityVenueName: LiquidityVenueName): Li
       return new PendlePTVenue();
     case "1inch":
       return new OneInch();
+    case "lifi":
+      return new LiFi();
+    case "zeroEx":
+      return new ZeroEx();
     default:
       throw new Error(`Unknown liquidity venue: ${liquidityVenueName}`);
   }
