@@ -3,6 +3,7 @@ import {
   POSITION_LIQUIDATION_COOLDOWN_ENABLED,
   POSITION_LIQUIDATION_COOLDOWN_PERIOD,
   ALWAYS_REALIZE_BAD_DEBT,
+  partialLiquidationMinBorrow,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
@@ -78,6 +79,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     positionLiquidationCooldownMechanism,
     flashbotAccount,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
+    partialLiquidationMinBorrow: partialLiquidationMinBorrow[config.chainId],
   };
 
   const bot = new LiquidationBot(inputs);
@@ -89,7 +91,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     watchBlocks(client, {
       onBlock: () => {
         if (count % blockInterval === 0) {
-          bot.run().catch((e) => {
+          bot.run().catch((e: unknown) => {
             console.error(`${logTag} uncaught error in bot.run():`, e);
           });
         }
@@ -97,10 +99,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
       },
       onError: (error) => {
         const retryDelay = config.watchBlocksRetryDelayMs ?? 5_000;
-        console.error(
-          `${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`,
-          error,
-        );
+        console.error(`${logTag} watchBlocks error, restarting watcher in ${retryDelay}ms:`, error);
         setTimeout(startWatching, retryDelay);
       },
     });

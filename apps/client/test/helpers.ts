@@ -228,6 +228,36 @@ export function mockEtherPrice(
     });
 }
 
+// Permissive Morpho API price mock — every POST /graphql returns both `chains` and an `assets`
+// list containing WETH, the loan token, and the collateral token at the supplied prices. The
+// pricer reads either `data.chains` or `data.assets.items` from the same body, so this single
+// persistent interceptor handles any sequence of init/price calls. Use this for tests that price
+// the collateral token directly (e.g. partial-liquidation candidate filtering), where the call
+// ordering doesn't line up with `mockEtherPrice`'s sequential interceptors.
+export function mockPersistentPrices(args: {
+  etherPriceUsd: number;
+  loanToken: Address;
+  loanTokenPriceUsd?: number;
+  collateralToken: Address;
+  collateralTokenPriceUsd: number;
+}) {
+  nock("https://blue-api.morpho.org")
+    .persist()
+    .post("/graphql")
+    .reply(200, {
+      data: {
+        chains: [{ id: 1 }],
+        assets: {
+          items: [
+            { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", priceUsd: args.etherPriceUsd },
+            { address: args.loanToken, priceUsd: args.loanTokenPriceUsd ?? 1 },
+            { address: args.collateralToken, priceUsd: args.collateralTokenPriceUsd },
+          ],
+        },
+      },
+    });
+}
+
 async function overwriteCollateral(
   client: AnvilTestClient,
   marketId: Hex,
