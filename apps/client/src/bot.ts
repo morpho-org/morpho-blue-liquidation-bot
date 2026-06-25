@@ -7,6 +7,7 @@ import {
   ChainAddresses,
   getChainAddresses,
   type IMarketParams,
+  type Market,
   MarketUtils,
   PreLiquidationPosition,
 } from "@morpho-org/blue-sdk";
@@ -59,13 +60,25 @@ export interface LiquidationBotInputs {
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
   /**
-   * When set, enables partial liquidation: the bot tries candidate seize amounts
-   * `seizableCollateral / 2^i` for i in [0, 10) from largest to smallest, skipping
-   * any candidate whose collateral USD value is below this threshold (except a
-   * full bad-debt seize, which is always tried). Submits the first profitable
-   * candidate. Undefined disables the feature (single-attempt legacy behavior).
+   * Per-loan-asset minimum repaid amount (in loan-asset atoms) for a partial-
+   * liquidation candidate to be considered. When undefined, or when the loan
+   * asset of a given market is not in this submap, the bot falls back to a
+   * single full-seize attempt. When defined and the loan asset is listed, the
+   * bot tries candidate seize amounts `seizableCollateral / 2^i` for i in [0, 10),
+   * keeps those whose repaid loan-asset amount is ≥ this threshold (plus a full
+   * bad-debt seize regardless of threshold), simulates each, and submits the
+   * one with the largest seize amount among the profitable simulations.
+   *
+   * This is the per-chain submap from `partialLiquidationMinRepay` in the
+   * config package — the launcher slices it by `config.chainId`.
    */
-  partialLiquidationMinSeizeUsd?: number;
+  partialLiquidationMinRepay?: Partial<Record<Address, bigint>>;
+}
+
+interface PreparedLiquidation {
+  encoder: LiquidationEncoder;
+  calls: Hex[];
+  profitable: boolean;
 }
 
 export class LiquidationBot {
@@ -86,7 +99,7 @@ export class LiquidationBot {
   private flashbotAccount?: LocalAccount;
   private coveredMarkets: Hex[];
   private alwaysRealizeBadDebt: boolean;
-  private partialLiquidationMinSeizeUsd?: number;
+  private partialLiquidationMinRepay?: Partial<Record<Address, bigint>>;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -106,7 +119,7 @@ export class LiquidationBot {
     this.flashbotAccount = inputs.flashbotAccount;
     this.coveredMarkets = [];
     this.alwaysRealizeBadDebt = inputs.alwaysRealizeBadDebt;
-    this.partialLiquidationMinSeizeUsd = inputs.partialLiquidationMinSeizeUsd;
+    this.partialLiquidationMinRepay = inputs.partialLiquidationMinRepay;
   }
 
   async run() {
@@ -127,34 +140,100 @@ export class LiquidationBot {
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const candidates =
-      this.partialLiquidationMinSeizeUsd === undefined
-        ? [fullSeizableCollateral]
-        : await this.partialLiquidationCandidates(
-            marketParams.collateralToken,
-            fullSeizableCollateral,
-            position.collateral,
-            this.partialLiquidationMinSeizeUsd,
-          );
+    const minRepay = this.partialLiquidationMinRepay?.[getAddress(marketParams.loanToken)];
 
+    if (minRepay === undefined) {
+      // Loan asset not configured for partial liquidation → single full-seize attempt.
+      await this.runSingleLiquidationAttempt(
+        position.user,
+        marketParams,
+        fullSeizableCollateral,
+        fullSeizableCollateral === position.collateral,
+      );
+      return;
+    }
+
+    // Partial liquidation enabled: simulate every candidate, keep the profitable ones,
+    // submit the candidate with the largest seize amount.
+    const candidates = this.partialLiquidationCandidates(
+      fullSeizableCollateral,
+      position.collateral,
+      position.market,
+      minRepay,
+    );
+
+    const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
     for (const seizableCollateral of candidates) {
       const badDebtPosition = seizableCollateral === position.collateral;
-      const submitted = await this.attemptLiquidation(
+      const prepared = await this.prepareLiquidation(
         position.user,
         marketParams,
         seizableCollateral,
         badDebtPosition,
       );
-      if (submitted) return;
+      if (prepared?.profitable) successes.push({ seizableCollateral, prepared });
+    }
+
+    if (successes.length === 0) return;
+
+    const winner = successes.reduce((a, b) =>
+      a.seizableCollateral > b.seizableCollateral ? a : b,
+    );
+
+    try {
+      await this.sendLiquidationTx(winner.prepared);
+      console.log(
+        `${this.logTag}Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${winner.seizableCollateral}, biggest of ${successes.length} profitable candidate(s))`,
+      );
+    } catch (error) {
+      console.error(
+        `${this.logTag}Failed to liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seize ${winner.seizableCollateral})`,
+        error,
+      );
     }
   }
 
-  private async attemptLiquidation(
+  private async runSingleLiquidationAttempt(
     user: Address,
     marketParams: IMarketParams,
     seizableCollateral: bigint,
     badDebtPosition: boolean,
-  ): Promise<boolean> {
+  ) {
+    const prepared = await this.prepareLiquidation(
+      user,
+      marketParams,
+      seizableCollateral,
+      badDebtPosition,
+    );
+
+    if (prepared === null) return;
+
+    if (!prepared.profitable) {
+      console.log(
+        `${this.logTag}ℹ️ Skipped ${user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
+      );
+      return;
+    }
+
+    try {
+      await this.sendLiquidationTx(prepared);
+      console.log(
+        `${this.logTag}Liquidated ${user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
+      );
+    } catch (error) {
+      console.error(
+        `${this.logTag}Failed to liquidate ${user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
+        error,
+      );
+    }
+  }
+
+  private async prepareLiquidation(
+    user: Address,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+    badDebtPosition: boolean,
+  ): Promise<PreparedLiquidation | null> {
     const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
@@ -165,7 +244,7 @@ export class LiquidationBot {
         encoder,
       ))
     )
-      return false;
+      return null;
 
     encoder.erc20Approve(marketParams.loanToken, this.chainAddresses.morpho, maxUint256);
 
@@ -187,26 +266,15 @@ export class LiquidationBot {
 
     const calls = encoder.flush();
 
-    try {
-      const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
+    const profitable = await this.simulateAndCheckProfit(
+      encoder,
+      calls,
+      marketParams,
+      badDebtPosition,
+    );
+    if (profitable === undefined) return null;
 
-      if (success)
-        console.log(
-          `${this.logTag}Liquidated ${user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
-        );
-      else
-        console.log(
-          `${this.logTag}ℹ️ Skipped ${user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
-        );
-
-      return Boolean(success);
-    } catch (error) {
-      console.error(
-        `${this.logTag}Failed to liquidate ${user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
-        error,
-      );
-      return false;
-    }
+    return { encoder, calls, profitable };
   }
 
   private async preLiquidate(position: PreLiquidationPosition) {
@@ -215,36 +283,89 @@ export class LiquidationBot {
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const candidates =
-      this.partialLiquidationMinSeizeUsd === undefined
-        ? [fullSeizableCollateral]
-        : await this.partialLiquidationCandidates(
-            marketParams.collateralToken,
-            fullSeizableCollateral,
-            position.collateral,
-            this.partialLiquidationMinSeizeUsd,
-          );
+    const minRepay = this.partialLiquidationMinRepay?.[getAddress(marketParams.loanToken)];
 
-    for (const seizableCollateral of candidates) {
-      const submitted = await this.attemptPreLiquidation(
+    if (minRepay === undefined) {
+      await this.runSinglePreLiquidationAttempt(
         position,
         marketParams,
-        this.decreaseSeizableCollateral(seizableCollateral, false),
+        this.decreaseSeizableCollateral(fullSeizableCollateral, false),
       );
-      if (submitted) return;
+      return;
+    }
+
+    const candidates = this.partialLiquidationCandidates(
+      fullSeizableCollateral,
+      position.collateral,
+      position.market,
+      minRepay,
+    );
+
+    const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
+    for (const seizableCollateral of candidates) {
+      const adjusted = this.decreaseSeizableCollateral(seizableCollateral, false);
+      const prepared = await this.preparePreLiquidation(position, marketParams, adjusted);
+      if (prepared?.profitable) successes.push({ seizableCollateral: adjusted, prepared });
+    }
+
+    if (successes.length === 0) return;
+
+    const winner = successes.reduce((a, b) =>
+      a.seizableCollateral > b.seizableCollateral ? a : b,
+    );
+
+    try {
+      await this.sendLiquidationTx(winner.prepared);
+      console.log(
+        `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${winner.seizableCollateral}, biggest of ${successes.length} profitable candidate(s))`,
+      );
+    } catch (error) {
+      console.error(
+        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seize ${winner.seizableCollateral})`,
+        error,
+      );
     }
   }
 
-  private async attemptPreLiquidation(
+  private async runSinglePreLiquidationAttempt(
     position: PreLiquidationPosition,
     marketParams: IMarketParams,
     seizableCollateral: bigint,
-  ): Promise<boolean> {
+  ) {
+    const prepared = await this.preparePreLiquidation(position, marketParams, seizableCollateral);
+
+    if (prepared === null) return;
+
+    if (!prepared.profitable) {
+      console.log(
+        `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
+      );
+      return;
+    }
+
+    try {
+      await this.sendLiquidationTx(prepared);
+      console.log(
+        `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
+      );
+    } catch (error) {
+      console.error(
+        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
+        error,
+      );
+    }
+  }
+
+  private async preparePreLiquidation(
+    position: PreLiquidationPosition,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+  ): Promise<PreparedLiquidation | null> {
     const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
     if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder)))
-      return false;
+      return null;
 
     encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
 
@@ -259,65 +380,49 @@ export class LiquidationBot {
 
     const calls = encoder.flush();
 
-    try {
-      const success = await this.handleTx(encoder, calls, marketParams, false);
+    const profitable = await this.simulateAndCheckProfit(encoder, calls, marketParams, false);
+    if (profitable === undefined) return null;
 
-      if (success)
-        console.log(
-          `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`,
-        );
-      else
-        console.log(
-          `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`,
-        );
-
-      return Boolean(success);
-    } catch (error) {
-      console.error(
-        `${this.logTag}Failed to pre-liquidate ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seize ${seizableCollateral})`,
-        error,
-      );
-      return false;
-    }
+    return { encoder, calls, profitable };
   }
 
   /**
    * Builds the list of seize-amount candidates to try, from largest to smallest:
    * `seizableCollateral / 2^i` for i in [0, 10). Filters out duplicates and zero,
-   * and drops candidates whose collateral USD value is below `minSeizeUsd` unless
-   * the candidate equals `positionCollateral` (i.e., full bad-debt realization).
-   * If no pricers are configured, the USD filter is skipped (all candidates kept).
+   * and drops candidates whose repaid loan-asset amount is below `minRepay` unless
+   * the candidate equals `positionCollateral` (i.e., full bad-debt realization),
+   * which is always kept. Returns candidates ordered largest → smallest.
    */
-  private async partialLiquidationCandidates(
-    collateralToken: Address,
+  private partialLiquidationCandidates(
     seizableCollateral: bigint,
     positionCollateral: bigint,
-    minSeizeUsd: number,
-  ): Promise<bigint[]> {
+    market: Market,
+    minRepay: bigint,
+  ): bigint[] {
     const raw = Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
       (amount, index, arr) => amount > 0n && arr.indexOf(amount) === index,
     );
 
-    if (this.pricers === undefined || this.pricers.length === 0) return raw;
-
-    const kept: bigint[] = [];
-    for (const candidate of raw) {
-      if (candidate === positionCollateral) {
-        kept.push(candidate);
-        continue;
-      }
-      const usdValue = await this.price(collateralToken, candidate, this.pricers);
-      if (usdValue !== undefined && usdValue >= minSeizeUsd) kept.push(candidate);
-    }
-    return kept;
+    return raw.filter((candidate) => {
+      if (candidate === positionCollateral) return true;
+      const repaidShares = market.getLiquidationRepaidShares(candidate);
+      if (repaidShares === undefined) return false;
+      const repaidAssets = market.toBorrowAssets(repaidShares);
+      return repaidAssets >= minRepay;
+    });
   }
 
-  private async handleTx(
+  /**
+   * Simulates the full executor call, then runs the profitability check.
+   * Returns `true` if profitable (or unconditionally on bad-debt + `alwaysRealizeBadDebt`),
+   * `false` if simulation succeeded but not profitable, `undefined` if simulation reverted.
+   */
+  private async simulateAndCheckProfit(
     encoder: LiquidationEncoder,
     calls: Hex[],
     marketParams: IMarketParams,
     badDebtPosition: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     const functionData = {
       abi: executorAbi,
       functionName: "exec_606BaXt",
@@ -348,31 +453,34 @@ export class LiquidationBot {
 
     if (results[1].status !== "success") {
       console.warn(`${this.logTag}Transaction failed in simulation: ${results[1].error}`);
-      return;
+      return undefined;
     }
 
-    if (
-      !(await this.checkProfit(
-        marketParams.loanToken,
-        {
-          beforeTx: results[0].result,
-          afterTx: results[2].result,
-        },
-        {
-          used: results[1].gasUsed,
-          price: gasPrice,
-        },
-        badDebtPosition,
-      ))
-    )
-      return false;
+    return this.checkProfit(
+      marketParams.loanToken,
+      {
+        beforeTx: results[0].result,
+        afterTx: results[2].result,
+      },
+      {
+        used: results[1].gasUsed,
+        price: gasPrice,
+      },
+      badDebtPosition,
+    );
+  }
 
-    // TX EXECUTION
+  private async sendLiquidationTx(prepared: PreparedLiquidation): Promise<void> {
+    const functionData = {
+      abi: executorAbi,
+      functionName: "exec_606BaXt",
+      args: [prepared.calls],
+    } as const;
 
     if (this.flashbotAccount) {
       const signedBundle = await Flashbots.signBundle([
         {
-          transaction: { to: encoder.address, ...functionData },
+          transaction: { to: prepared.encoder.address, ...functionData },
           client: this.client,
         },
       ]);
@@ -382,12 +490,10 @@ export class LiquidationBot {
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-      return true;
-    } else {
-      await writeContract(this.client, { address: encoder.address, ...functionData });
+      return;
     }
 
-    return true;
+    await writeContract(this.client, { address: prepared.encoder.address, ...functionData });
   }
 
   private async convertCollateralToLoan(

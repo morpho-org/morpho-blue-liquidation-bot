@@ -63,6 +63,7 @@ export {
 };
 export * from "./dataProviders";
 export * from "./liquidityVenues";
+export * from "./partialLiquidation";
 export * from "./pricers";
 export {
   POSITION_LIQUIDATION_COOLDOWN_PERIOD,

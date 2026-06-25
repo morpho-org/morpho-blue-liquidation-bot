@@ -610,7 +610,7 @@ describe("execute partial liquidation", () => {
   });
 
   encoderTest.sequential(
-    "should still liquidate at full size when partialLiquidationMinSeizeUsd is set and full is profitable",
+    "should still liquidate at full size when partialLiquidationMinRepay is set and full is profitable",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
 
@@ -658,7 +658,7 @@ describe("execute partial liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        partialLiquidationMinSeizeUsd: 100,
+        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000n },
       });
 
       await bot.run();
@@ -737,7 +737,7 @@ describe("execute partial liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        partialLiquidationMinSeizeUsd: 100,
+        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000n },
       });
 
       await bot.run();
@@ -820,7 +820,7 @@ describe("execute partial liquidation", () => {
         // (0.05 wBTC ≈ ~$3k at fork) so no candidate clears the floor.
         // Position is not bad debt either (LLTV not exhausted), so the
         // bad-debt-exception keep-clause does not apply.
-        partialLiquidationMinSeizeUsd: 1_000_000_000,
+        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
       await bot.run();
@@ -896,7 +896,7 @@ describe("execute partial liquidation", () => {
         ),
         // Required for the bot to actually send the (unprofitable) bad-debt tx.
         alwaysRealizeBadDebt: true,
-        partialLiquidationMinSeizeUsd: 1_000_000_000,
+        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
       await bot.run();

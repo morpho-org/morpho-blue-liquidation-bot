@@ -3,6 +3,7 @@ import {
   POSITION_LIQUIDATION_COOLDOWN_ENABLED,
   POSITION_LIQUIDATION_COOLDOWN_PERIOD,
   ALWAYS_REALIZE_BAD_DEBT,
+  partialLiquidationMinRepay,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
@@ -78,7 +79,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     positionLiquidationCooldownMechanism,
     flashbotAccount,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
-    partialLiquidationMinSeizeUsd: config.partialLiquidationMinSeizeUsd,
+    partialLiquidationMinRepay: partialLiquidationMinRepay[config.chainId],
   };
 
   const bot = new LiquidationBot(inputs);

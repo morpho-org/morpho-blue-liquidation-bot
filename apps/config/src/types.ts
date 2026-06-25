@@ -31,14 +31,6 @@ export interface Options {
   useFlashbots: boolean;
   blockInterval?: number;
   watchBlocksRetryDelayMs?: number;
-  /**
-   * When set, enables partial liquidation: the bot tries candidate seize amounts
-   * `seizableCollateral / 2^i` for i in [0, 10) from largest to smallest, skipping
-   * any candidate whose collateral USD value is below this threshold (except a
-   * full bad-debt seize, which is always tried). Submits the first profitable
-   * candidate. Undefined disables the feature (single-attempt legacy behavior).
-   */
-  partialLiquidationMinSeizeUsd?: number;
 }
 
 export type ChainConfig = Omit<Config, "options"> &
