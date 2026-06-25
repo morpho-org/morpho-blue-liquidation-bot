@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import { chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
 import type { LiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
@@ -11,6 +10,7 @@ import {
   MarketUtils,
   PreLiquidationPosition,
 } from "@morpho-org/blue-sdk";
+import * as Sentry from "@sentry/node";
 import { executorAbi } from "executooor-viem";
 import {
   encodeFunctionData,
@@ -43,8 +43,8 @@ import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
 import { Flashbots } from "./utils/flashbots.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
-import type { TenderlyConfig } from "./utils/types.js";
 import { getTenderlySimulationUrl } from "./utils/tenderly.js";
+import type { TenderlyConfig } from "./utils/types.js";
 
 export interface LiquidationBotInputs {
   logTag: string;
@@ -65,6 +65,15 @@ export interface LiquidationBotInputs {
   tenderlyAccount?: string;
   tenderlyProject?: string;
   tenderlyConfig?: TenderlyConfig;
+  // Per-chain submap from config's `partialLiquidationMinBorrow`. See the
+  // "Partial Liquidation" section of the README for the semantics.
+  partialLiquidationMinBorrow?: Partial<Record<Address, bigint>>;
+}
+
+interface PreparedLiquidation {
+  encoder: LiquidationEncoder;
+  calls: Hex[];
+  profitable: boolean;
 }
 
 export class LiquidationBot {
@@ -86,6 +95,7 @@ export class LiquidationBot {
   private coveredMarkets: Hex[] = [];
   private tenderlyConfig?: TenderlyConfig;
   private alwaysRealizeBadDebt: boolean;
+  private partialLiquidationMinBorrow?: Partial<Record<Address, bigint>>;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -105,6 +115,7 @@ export class LiquidationBot {
     this.flashbotAccount = inputs.flashbotAccount;
     this.tenderlyConfig = inputs.tenderlyConfig;
     this.alwaysRealizeBadDebt = inputs.alwaysRealizeBadDebt;
+    this.partialLiquidationMinBorrow = inputs.partialLiquidationMinBorrow;
   }
 
   async run() {
@@ -121,13 +132,132 @@ export class LiquidationBot {
 
   private async liquidate(position: AccrualPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = position.seizableCollateral ?? 0n;
-    const badDebtPosition = seizableCollateral === position.collateral;
+    const fullSeizableCollateral = position.seizableCollateral ?? 0n;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const { client, executorAddress } = this;
+    if (!this.partialLiquidationEnabledFor(marketParams.loanToken, position.borrowAssets)) {
+      await this.runSingleLiquidationAttempt(
+        position.user,
+        marketParams,
+        fullSeizableCollateral,
+        fullSeizableCollateral === position.collateral,
+      );
+      return;
+    }
 
+    // Partial liquidation: simulate every halving candidate, keep the profitable ones,
+    // submit the candidate with the largest seize amount.
+    const candidates = this.partialLiquidationCandidates(fullSeizableCollateral);
+
+    const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
+    for (const seizableCollateral of candidates) {
+      const badDebtPosition = seizableCollateral === position.collateral;
+      const prepared = await this.prepareLiquidation(
+        position.user,
+        marketParams,
+        seizableCollateral,
+        badDebtPosition,
+      );
+      if (prepared?.profitable) successes.push({ seizableCollateral, prepared });
+    }
+
+    if (successes.length === 0) return;
+
+    const winner = successes.reduce((a, b) =>
+      a.seizableCollateral > b.seizableCollateral ? a : b,
+    );
+
+    try {
+      await this.sendLiquidationTx(winner.prepared);
+      const message = `${this.logTag} Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${winner.seizableCollateral}, biggest of ${successes.length} profitable candidate(s))`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Liquidation",
+          success: true,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+          partial: true,
+        },
+      });
+    } catch (error) {
+      await this.captureLiquidationError(
+        "liquidate",
+        position.user,
+        marketParams,
+        winner.prepared.calls,
+        error,
+        position.seizableCollateral ?? 0n,
+        winner.seizableCollateral === position.collateral,
+      );
+    }
+  }
+
+  private async runSingleLiquidationAttempt(
+    user: Address,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+    badDebtPosition: boolean,
+  ) {
+    const prepared = await this.prepareLiquidation(
+      user,
+      marketParams,
+      seizableCollateral,
+      badDebtPosition,
+    );
+
+    if (prepared === null) return;
+
+    if (!prepared.profitable) {
+      const message = `${this.logTag}ℹ️ Skipped ${user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Liquidation",
+          success: false,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user,
+        },
+      });
+      return;
+    }
+
+    try {
+      await this.sendLiquidationTx(prepared);
+      const message = `${this.logTag} Liquidated ${user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Liquidation",
+          success: true,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user,
+        },
+      });
+    } catch (error) {
+      await this.captureLiquidationError(
+        "liquidate",
+        user,
+        marketParams,
+        prepared.calls,
+        error,
+        seizableCollateral,
+        badDebtPosition,
+      );
+    }
+  }
+
+  private async prepareLiquidation(
+    user: Address,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+    badDebtPosition: boolean,
+  ): Promise<PreparedLiquidation | null> {
+    const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
     if (
@@ -137,7 +267,7 @@ export class LiquidationBot {
         encoder,
       ))
     )
-      return;
+      return null;
 
     encoder.erc20Approve(marketParams.loanToken, this.chainAddresses.morpho, maxUint256);
 
@@ -150,7 +280,7 @@ export class LiquidationBot {
         irm: marketParams.irm,
         lltv: BigInt(marketParams.lltv),
       },
-      position.user,
+      user,
       seizableCollateral,
       0n,
       encoder.flush(),
@@ -159,87 +289,134 @@ export class LiquidationBot {
 
     const calls = encoder.flush();
 
-    try {
-      const success = await this.handleTx(encoder, calls, marketParams, badDebtPosition);
+    const profitable = await this.simulateAndCheckProfit(
+      encoder,
+      calls,
+      marketParams,
+      badDebtPosition,
+    );
+    if (profitable === undefined) return null;
 
-      if (success) {
-        const message = `${this.logTag} Liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
-        console.log(message);
-        Sentry.logger.info(message, {
-          tags: {
-            chainId: this.chainId.toString(),
-            operation: "Liquidation",
-            success: true,
-            marketId: MarketUtils.getMarketId(marketParams),
-            user: position.user,
-          },
-        });
-      } else {
-        const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`;
-        console.log(message);
-        Sentry.logger.info(message, {
-          tags: {
-            chainId: this.chainId.toString(),
-            operation: "Liquidation",
-            success: false,
-            marketId: MarketUtils.getMarketId(marketParams),
-            user: position.user,
-          },
-        });
-      }
-    } catch (error) {
-      const tenderlyUrl = await getTenderlySimulationUrl(
-        encodeFunctionData({
-          abi: executorAbi,
-          functionName: "exec_606BaXt",
-          args: [calls],
-        }),
-        this.client,
-        this.tenderlyConfig,
-        this.executorAddress,
-        this.client.account.address,
-      );
-      const errorMessage = `${this.logTag} Liquidation failed: ${error instanceof Error ? error.message : String(error)}.`;
-
-      const err = new Error(errorMessage);
-      console.error(err);
-
-      Sentry.captureException(err, {
-        tags: {
-          chainId: this.chainId.toString(),
-          operation: "liquidate",
-          success: false,
-          marketId: MarketUtils.getMarketId(marketParams),
-          user: position.user,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        contexts: {
-          position: {
-            seizableCollateral: position.seizableCollateral!.toString(),
-            badDebt: badDebtPosition,
-          },
-          tenderlySimulation: {
-            url: tenderlyUrl,
-          },
-        },
-      });
-    }
+    return { encoder, calls, profitable };
   }
 
   private async preLiquidate(position: PreLiquidationPosition) {
     const marketParams = position.market.params;
-    const seizableCollateral = this.decreaseSeizableCollateral(
-      position.seizableCollateral ?? 0n,
-      false,
-    );
+    const fullSeizableCollateral = position.seizableCollateral ?? 0n;
 
     if (!this.checkCooldown(MarketUtils.getMarketId(marketParams), position.user)) return;
 
-    const { client, executorAddress } = this;
+    if (!this.partialLiquidationEnabledFor(marketParams.loanToken, position.borrowAssets)) {
+      await this.runSinglePreLiquidationAttempt(
+        position,
+        marketParams,
+        this.decreaseSeizableCollateral(fullSeizableCollateral, false),
+      );
+      return;
+    }
 
+    const candidates = this.partialLiquidationCandidates(fullSeizableCollateral);
+
+    const successes: { seizableCollateral: bigint; prepared: PreparedLiquidation }[] = [];
+    for (const seizableCollateral of candidates) {
+      const adjusted = this.decreaseSeizableCollateral(seizableCollateral, false);
+      const prepared = await this.preparePreLiquidation(position, marketParams, adjusted);
+      if (prepared?.profitable) successes.push({ seizableCollateral: adjusted, prepared });
+    }
+
+    if (successes.length === 0) return;
+
+    const winner = successes.reduce((a, b) =>
+      a.seizableCollateral > b.seizableCollateral ? a : b,
+    );
+
+    try {
+      await this.sendLiquidationTx(winner.prepared);
+      const message = `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${winner.seizableCollateral}, biggest of ${successes.length} profitable candidate(s))`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Pre-liquidation",
+          success: true,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+          partial: true,
+        },
+      });
+    } catch (error) {
+      await this.captureLiquidationError(
+        "preLiquidate",
+        position.user,
+        marketParams,
+        winner.prepared.calls,
+        error,
+        position.seizableCollateral ?? 0n,
+        false,
+      );
+    }
+  }
+
+  private async runSinglePreLiquidationAttempt(
+    position: PreLiquidationPosition,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+  ) {
+    const prepared = await this.preparePreLiquidation(position, marketParams, seizableCollateral);
+
+    if (prepared === null) return;
+
+    if (!prepared.profitable) {
+      const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable, seize ${seizableCollateral})`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Pre-liquidation",
+          success: false,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+        },
+      });
+      return;
+    }
+
+    try {
+      await this.sendLiquidationTx(prepared);
+      const message = `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)} (seized ${seizableCollateral})`;
+      console.log(message);
+      Sentry.logger.info(message, {
+        tags: {
+          chainId: this.chainId.toString(),
+          operation: "Pre-liquidation",
+          success: true,
+          marketId: MarketUtils.getMarketId(marketParams),
+          user: position.user,
+        },
+      });
+    } catch (error) {
+      await this.captureLiquidationError(
+        "preLiquidate",
+        position.user,
+        marketParams,
+        prepared.calls,
+        error,
+        seizableCollateral,
+        false,
+      );
+    }
+  }
+
+  private async preparePreLiquidation(
+    position: PreLiquidationPosition,
+    marketParams: IMarketParams,
+    seizableCollateral: bigint,
+  ): Promise<PreparedLiquidation | null> {
+    const { client, executorAddress } = this;
     const encoder = new LiquidationEncoder(executorAddress, client);
 
-    if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder))) return;
+    if (!(await this.convertCollateralToLoan(marketParams, seizableCollateral, encoder)))
+      return null;
 
     encoder.erc20Approve(marketParams.loanToken, position.preLiquidation, maxUint256);
 
@@ -254,77 +431,31 @@ export class LiquidationBot {
 
     const calls = encoder.flush();
 
-    try {
-      const success = await this.handleTx(encoder, calls, marketParams, false);
+    const profitable = await this.simulateAndCheckProfit(encoder, calls, marketParams, false);
+    if (profitable === undefined) return null;
 
-      if (success) {
-        const message = `${this.logTag}Pre-liquidated ${position.user} on ${MarketUtils.getMarketId(marketParams)}`;
-        console.log(message);
-        Sentry.logger.info(message, {
-          tags: {
-            chainId: this.chainId.toString(),
-            operation: "Pre-liquidation",
-            success: true,
-            marketId: MarketUtils.getMarketId(marketParams),
-            user: position.user,
-          },
-        });
-      } else {
-        const message = `${this.logTag}ℹ️ Skipped ${position.user} on ${MarketUtils.getMarketId(marketParams)} (not profitable)`;
-        console.log(message);
-        Sentry.logger.info(message, {
-          tags: {
-            chainId: this.chainId.toString(),
-            operation: "Pre-liquidation",
-            success: false,
-            marketId: MarketUtils.getMarketId(marketParams),
-            user: position.user,
-          },
-        });
-      }
-    } catch (error) {
-      const tenderlyUrl = await getTenderlySimulationUrl(
-        encodeFunctionData({
-          abi: executorAbi,
-          functionName: "exec_606BaXt",
-          args: [calls],
-        }),
-        this.client,
-        this.tenderlyConfig,
-        this.executorAddress,
-        this.client.account.address,
-      );
-      const errorMessage = `${this.logTag} Pre-liquidation failed: ${error instanceof Error ? error.message : String(error)}.`;
-
-      const err = new Error(errorMessage);
-      console.error(err);
-
-      Sentry.captureException(error, {
-        tags: {
-          chainId: this.chainId.toString(),
-          operation: "preLiquidate",
-          marketId: MarketUtils.getMarketId(marketParams),
-          user: position.user,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        contexts: {
-          position: {
-            seizableCollateral: position.seizableCollateral!.toString(),
-          },
-          tenderlySimulation: {
-            url: tenderlyUrl,
-          },
-        },
-      });
-    }
+    return { encoder, calls, profitable };
   }
 
-  private async handleTx(
+  private partialLiquidationEnabledFor(loanToken: Address, positionBorrowAssets: bigint): boolean {
+    const minBorrow = this.partialLiquidationMinBorrow?.[getAddress(loanToken)];
+    if (minBorrow === undefined) return false;
+    return positionBorrowAssets >= minBorrow;
+  }
+
+  private partialLiquidationCandidates(seizableCollateral: bigint): bigint[] {
+    return Array.from({ length: 10 }, (_, i) => seizableCollateral / (1n << BigInt(i))).filter(
+      (amount, index, arr) => amount > 0n && arr.indexOf(amount) === index,
+    );
+  }
+
+  // Returns true if profitable, false if not profitable, undefined if simulation reverted.
+  private async simulateAndCheckProfit(
     encoder: LiquidationEncoder,
     calls: Hex[],
     marketParams: IMarketParams,
     badDebtPosition: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     const functionData = {
       abi: executorAbi,
       functionName: "exec_606BaXt",
@@ -355,36 +486,46 @@ export class LiquidationBot {
 
     if (results[1].status !== "success") {
       const error = results[1].error;
-      if (!error) {
-        throw new Error("Simulation failed: Unknown error");
-      }
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error
+        ? error instanceof Error
+          ? error.message
+          : String(error)
+        : "Unknown error";
       const cleanMessage = errorMessage.split("Contract Call:")[0]?.trimEnd() ?? errorMessage;
-      throw new Error(`Simulation failed: ${cleanMessage}`);
+      console.warn(`${this.logTag}Transaction failed in simulation: ${cleanMessage}`);
+      return undefined;
     }
 
-    if (
-      !(await this.checkProfit(
-        marketParams.loanToken,
-        {
-          beforeTx: results[0].result,
-          afterTx: results[2].result,
-        },
-        {
-          used: results[1].gasUsed,
-          price: gasPrice,
-        },
-        badDebtPosition,
-      ))
-    )
-      return false;
+    return this.checkProfit(
+      marketParams.loanToken,
+      {
+        beforeTx: results[0].result,
+        afterTx: results[2].result,
+      },
+      {
+        used: results[1].gasUsed,
+        price: gasPrice,
+      },
+      badDebtPosition,
+    );
+  }
 
-    // TX EXECUTION
+  private async sendLiquidationTx(prepared: PreparedLiquidation): Promise<void> {
+    const functionData = {
+      abi: executorAbi,
+      functionName: "exec_606BaXt",
+      args: [prepared.calls],
+    } as const;
 
     if (this.flashbotAccount) {
+      const gasPrice = await getGasPrice(this.client);
       const signedBundle = await Flashbots.signBundle([
         {
-          transaction: { to: encoder.address, ...functionData, gasPrice: (gasPrice * 150n) / 100n },
+          transaction: {
+            to: prepared.encoder.address,
+            ...functionData,
+            gasPrice: (gasPrice * 150n) / 100n,
+          },
           client: this.client,
         },
       ]);
@@ -394,12 +535,57 @@ export class LiquidationBot {
         (await getBlockNumber(this.client)) + 1n,
         this.flashbotAccount,
       );
-      return true;
-    } else {
-      await writeContract(this.client, { address: encoder.address, ...functionData });
+      return;
     }
 
-    return true;
+    await writeContract(this.client, { address: prepared.encoder.address, ...functionData });
+  }
+
+  private async captureLiquidationError(
+    operation: "liquidate" | "preLiquidate",
+    user: Address,
+    marketParams: IMarketParams,
+    calls: Hex[],
+    error: unknown,
+    seizableCollateral: bigint,
+    badDebtPosition: boolean,
+  ): Promise<void> {
+    const label = operation === "liquidate" ? "Liquidation" : "Pre-liquidation";
+    const tenderlyUrl = await getTenderlySimulationUrl(
+      encodeFunctionData({
+        abi: executorAbi,
+        functionName: "exec_606BaXt",
+        args: [calls],
+      }),
+      this.client,
+      this.tenderlyConfig,
+      this.executorAddress,
+      this.client.account.address,
+    );
+    const errorMessage = `${this.logTag} ${label} failed: ${error instanceof Error ? error.message : String(error)}.`;
+
+    const err = new Error(errorMessage);
+    console.error(err);
+
+    Sentry.captureException(err, {
+      tags: {
+        chainId: this.chainId.toString(),
+        operation,
+        success: false,
+        marketId: MarketUtils.getMarketId(marketParams),
+        user,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      contexts: {
+        position: {
+          seizableCollateral: seizableCollateral.toString(),
+          badDebt: badDebtPosition,
+        },
+        tenderlySimulation: {
+          url: tenderlyUrl,
+        },
+      },
+    });
   }
 
   private async convertCollateralToLoan(

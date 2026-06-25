@@ -1,25 +1,26 @@
-import * as Sentry from "@sentry/node";
-import dotenv from "dotenv";
 import {
   ALWAYS_REALIZE_BAD_DEBT,
   MARKETS_FETCHING_COOLDOWN_PERIOD,
   POSITION_LIQUIDATION_COOLDOWN_ENABLED,
   POSITION_LIQUIDATION_COOLDOWN_PERIOD,
+  partialLiquidationMinBorrow,
   type ChainConfig,
 } from "@morpho-blue-liquidation-bot/config";
 import type { DataProvider } from "@morpho-blue-liquidation-bot/data-providers";
 import { createLiquidityVenue } from "@morpho-blue-liquidation-bot/liquidity-venues";
 import { createPricer } from "@morpho-blue-liquidation-bot/pricers";
+import * as Sentry from "@sentry/node";
+import dotenv from "dotenv";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
 import { LiquidationBot, type LiquidationBotInputs } from "./bot";
-import { TenderlyConfig } from "./utils/types";
 import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms";
+import { TenderlyConfig } from "./utils/types";
 
 export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
   dotenv.config();
@@ -68,8 +69,8 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
       throw new Error(`${logTag} TENDERLY_ACCOUNT or TENDERLY_PROJECT is not set`);
     }
     tenderlyConfig = {
-      tenderlyAccount: process.env.TENDERLY_ACCOUNT as string,
-      tenderlyProject: process.env.TENDERLY_PROJECT as string,
+      tenderlyAccount: process.env.TENDERLY_ACCOUNT,
+      tenderlyProject: process.env.TENDERLY_PROJECT,
     };
   }
 
@@ -101,6 +102,7 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
     flashbotAccount,
     tenderlyConfig,
     alwaysRealizeBadDebt: ALWAYS_REALIZE_BAD_DEBT,
+    partialLiquidationMinBorrow: partialLiquidationMinBorrow[config.chainId],
   };
 
   const bot = new LiquidationBot(inputs);
@@ -118,15 +120,14 @@ export const launchBot = (config: ChainConfig, dataProvider: DataProvider) => {
         // Reset backoff on successful block
         currentRetryDelay = baseRetryDelay;
         if (count % blockInterval === 0) {
-          bot.run().catch((e) => {
+          bot.run().catch((e: unknown) => {
             console.error(`${logTag} uncaught error in bot.run():`, e);
           });
         }
         count++;
       },
       onError: (error) => {
-        const shortMessage =
-          error instanceof Error ? error.message.split("\n")[0] : String(error);
+        const shortMessage = error instanceof Error ? error.message.split("\n")[0] : String(error);
         console.error(
           `${logTag} watchBlocks error, restarting watcher in ${currentRetryDelay}ms: ${shortMessage}`,
         );
