@@ -58,9 +58,9 @@ export interface LiquidationBotInputs {
   positionLiquidationCooldownMechanism?: PositionLiquidationCooldownMechanism;
   marketsFetchingCooldownMechanism: MarketsFetchingCooldownMechanism;
   flashbotAccount?: LocalAccount;
-  // Per-chain submap from config's `partialLiquidationMinRepay`. See the
+  // Per-chain submap from config's `partialLiquidationMinBorrow`. See the
   // "Partial Liquidation" section of the README for the semantics.
-  partialLiquidationMinRepay?: Partial<Record<Address, bigint>>;
+  partialLiquidationMinBorrow?: Partial<Record<Address, bigint>>;
 }
 
 interface PreparedLiquidation {
@@ -87,7 +87,7 @@ export class LiquidationBot {
   private flashbotAccount?: LocalAccount;
   private coveredMarkets: Hex[];
   private alwaysRealizeBadDebt: boolean;
-  private partialLiquidationMinRepay?: Partial<Record<Address, bigint>>;
+  private partialLiquidationMinBorrow?: Partial<Record<Address, bigint>>;
 
   constructor(inputs: LiquidationBotInputs) {
     this.logTag = inputs.logTag;
@@ -107,7 +107,7 @@ export class LiquidationBot {
     this.flashbotAccount = inputs.flashbotAccount;
     this.coveredMarkets = [];
     this.alwaysRealizeBadDebt = inputs.alwaysRealizeBadDebt;
-    this.partialLiquidationMinRepay = inputs.partialLiquidationMinRepay;
+    this.partialLiquidationMinBorrow = inputs.partialLiquidationMinBorrow;
   }
 
   async run() {
@@ -362,9 +362,9 @@ export class LiquidationBot {
   }
 
   private partialLiquidationEnabledFor(loanToken: Address, positionBorrowAssets: bigint): boolean {
-    const minRepay = this.partialLiquidationMinRepay?.[getAddress(loanToken)];
-    if (minRepay === undefined) return false;
-    return positionBorrowAssets >= minRepay;
+    const minBorrow = this.partialLiquidationMinBorrow?.[getAddress(loanToken)];
+    if (minBorrow === undefined) return false;
+    return positionBorrowAssets >= minBorrow;
   }
 
   private partialLiquidationCandidates(seizableCollateral: bigint): bigint[] {

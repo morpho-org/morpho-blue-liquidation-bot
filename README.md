@@ -108,7 +108,7 @@ By default, every liquidatable position is attempted as a single full-seize call
 Configure it in `apps/config/src/partialLiquidation.ts`:
 
 ```ts
-export const partialLiquidationMinRepay: Record<number, Partial<Record<Address, bigint>>> = {
+export const partialLiquidationMinBorrow: Record<number, Partial<Record<Address, bigint>>> = {
   [mainnet.id]: {
     // 100 USDC. Threshold is in loan-asset atoms.
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": 100_000_000n,

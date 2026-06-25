@@ -5,4 +5,4 @@ import type { Address } from "viem";
  * position into partial-liquidation mode. See the "Partial Liquidation"
  * section of the root README for full semantics.
  */
-export const partialLiquidationMinRepay: Record<number, Partial<Record<Address, bigint>>> = {};
+export const partialLiquidationMinBorrow: Record<number, Partial<Record<Address, bigint>>> = {};

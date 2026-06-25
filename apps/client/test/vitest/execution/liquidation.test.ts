@@ -610,7 +610,7 @@ describe("execute partial liquidation", () => {
   });
 
   encoderTest.sequential(
-    "should still liquidate at full size when partialLiquidationMinRepay is set and full is profitable",
+    "should still liquidate at full size when partialLiquidationMinBorrow is set and full is profitable",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
 
@@ -658,7 +658,7 @@ describe("execute partial liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000n },
       });
 
       await bot.run();
@@ -737,7 +737,7 @@ describe("execute partial liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000n },
       });
 
       await bot.run();
@@ -824,7 +824,7 @@ describe("execute partial liquidation", () => {
         alwaysRealizeBadDebt: false,
         // Threshold = 10^15 USDC atoms = ~$10^9. Far above the position's 5_000_000_000n
         // borrow → partial mode is OFF for this position.
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
       await bot.run();
@@ -902,7 +902,7 @@ describe("execute partial liquidation", () => {
         ),
         // Required for the bot to actually send the (unprofitable) bad-debt tx.
         alwaysRealizeBadDebt: true,
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
       await bot.run();
@@ -972,7 +972,7 @@ describe("execute partial liquidation", () => {
         alwaysRealizeBadDebt: true,
         // Map covers WETH only, NOT the market's loan token (USDC). The bot must
         // fall back to a single full-seize attempt.
-        partialLiquidationMinRepay: { [WETH]: 1n },
+        partialLiquidationMinBorrow: { [WETH]: 1n },
       });
 
       await bot.run();

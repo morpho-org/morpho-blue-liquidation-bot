@@ -242,7 +242,7 @@ describe("execute pre-liquidation", () => {
   );
 
   preLiquidationTest.sequential(
-    "should pre-liquidate at full size when partialLiquidationMinRepay is set and full is profitable",
+    "should pre-liquidate at full size when partialLiquidationMinBorrow is set and full is profitable",
     async ({ encoder }) => {
       const pricer = new MorphoApi();
       const { client } = encoder;
@@ -275,7 +275,7 @@ describe("execute pre-liquidation", () => {
           MARKETS_FETCHING_COOLDOWN_PERIOD,
         ),
         alwaysRealizeBadDebt: false,
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000n },
       });
 
       await bot.run();
@@ -327,7 +327,7 @@ describe("execute pre-liquidation", () => {
         alwaysRealizeBadDebt: false,
         // Threshold well above the position's borrow assets → partial mode is OFF for this
         // position, the bot falls back to a single full-seize pre-liquidation.
-        partialLiquidationMinRepay: { [marketParams.loanToken]: 1_000_000_000_000_000n },
+        partialLiquidationMinBorrow: { [marketParams.loanToken]: 1_000_000_000_000_000n },
       });
 
       await bot.run();
