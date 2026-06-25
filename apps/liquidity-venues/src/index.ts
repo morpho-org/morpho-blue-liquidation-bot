@@ -7,6 +7,7 @@ export * from "./1inch";
 export * from "./pendlePT";
 export * from "./midas";
 export * from "./lifi";
+export * from "./zeroEx";
 export * from "./factory";
 export type { LiquidityVenue } from "./liquidityVenue";
 export type { ToConvert } from "./types";

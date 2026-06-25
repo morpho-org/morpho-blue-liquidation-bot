@@ -19,6 +19,7 @@ Both methods can be sync or async.
 - **UniswapV4** — Swaps tokens on Uniswap V4. Config: `apps/config/src/liquidityVenues/uniswapV4.ts`.
 - **1inch** — Swaps tokens via the 1inch swap aggregator (requires a 1inch API Key). Config: `apps/config/src/liquidityVenues/1inch.ts` (API URL, slippage, supported networks).
 - **Li.Fi** — Swaps tokens via the Li.Fi same-chain quote API (requires an API key via `LIFI_API_KEY`). Config: `apps/config/src/liquidityVenues/lifi.ts` (API URL, slippage, supported networks).
+- **0x** — Swaps tokens via the 0x swap aggregator using the v2 Allowance Holder flow (requires a 0x API Key via `ZERO_EX_API_KEY`). Config: `apps/config/src/liquidityVenues/zeroEx.ts` (API URL, slippage, supported networks).
 - **Pendle** — Swaps and redeems Pendle PT tokens. Config: `apps/config/src/liquidityVenues/pendlePT.ts` (API URL, slippage, refresh interval).
 - **Midas** — Redeems Midas tokens. Config: `apps/config/src/liquidityVenues/midas.ts`.
 - **LiquidSwap** — Swaps tokens on LiquidSwap (HyperEVM). Config: `apps/config/src/liquidityVenues/liquidSwap.ts`.

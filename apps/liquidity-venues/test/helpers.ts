@@ -5,6 +5,7 @@ import { vi } from "vitest";
 
 import { OneInch } from "../src/1inch";
 import { LiFi } from "../src/lifi";
+import { ZeroEx } from "../src/zeroEx";
 
 export class OneInchTest extends OneInch {
   private readonly supportedNetworks: number[];
@@ -20,6 +21,19 @@ export class OneInchTest extends OneInch {
 }
 
 export class LiFiTest extends LiFi {
+  private readonly supportedNetworks: number[];
+
+  constructor(supportedNetworks: number[]) {
+    super();
+    this.supportedNetworks = supportedNetworks;
+  }
+
+  supportsRoute(encoder: ExecutorEncoder, _src: Address, _dst: Address) {
+    return this.supportedNetworks.includes(encoder.client.chain.id);
+  }
+}
+
+export class ZeroExTest extends ZeroEx {
   private readonly supportedNetworks: number[];
 
   constructor(supportedNetworks: number[]) {

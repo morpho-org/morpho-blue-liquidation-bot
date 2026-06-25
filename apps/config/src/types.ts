@@ -9,7 +9,8 @@ export type LiquidityVenueName =
   | "midas"
   | "pendlePT"
   | "uniswapV3"
-  | "uniswapV4";
+  | "uniswapV4"
+  | "zeroEx";
 
 export type PricerName = "chainlink" | "defillama" | "morphoApi" | "uniswapV3";
 

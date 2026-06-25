@@ -6,3 +6,4 @@ export * from "./pendlePT";
 export * from "./midas";
 export * from "./liquidSwap";
 export * from "./lifi";
+export * from "./zeroEx";
