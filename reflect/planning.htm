@@ -195,8 +195,7 @@
         <div class="month" data-month="8"><h3>September</h3><div class="task-list"></div></div>
         <div class="month" data-month="9"><h3>October</h3><div class="task-list"></div></div>
         <div class="month" data-month="10"><h3>November</h3><div class="task-list"></div></div>
-            <div class="month" data-month="11"><h3>December</h3><div class="task-list"></div></div>
-        </div>
+        <div class="month" data-month="11"><h3>December</h3><div class="task-list"></div></div>
     </div>
 
     <div id="officer-tab" class="tab-content">
@@ -247,8 +246,18 @@
     <script>
         const STORAGE_KEY = 'yearly-tasks';
         const OPS_STORAGE_KEY = 'ops-tasks';
-        let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        let opsTasks = JSON.parse(localStorage.getItem(OPS_STORAGE_KEY)) || [];
+
+        function safeParse(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key)) || [];
+            } catch (e) {
+                console.error(`Error parsing ${key} from localStorage:`, e);
+                return [];
+            }
+        }
+
+        let tasks = safeParse(STORAGE_KEY);
+        let opsTasks = safeParse(OPS_STORAGE_KEY);
 
         const calendar = document.getElementById('calendar');
         const modal = document.getElementById('task-modal');
@@ -481,6 +490,7 @@
 
                     const editBtn = document.createElement('span');
                     editBtn.textContent = ' ✏️';
+                    editBtn.style.cursor = 'pointer';
                     editBtn.onclick = (e) => {
                         e.stopPropagation();
                         openOpsModal(task.category, task);
