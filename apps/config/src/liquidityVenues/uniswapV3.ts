@@ -1,7 +1,7 @@
 import type { Address } from "viem";
-import { arbitrum, base, katana, tempo, unichain, worldchain } from "viem/chains";
+import { base, unichain, worldchain } from "viem/chains";
 
-import { hyperevm, monad } from "../chains";
+import { hyperevm, katana } from "../chains";
 
 export const MIN_SQRT_RATIO = 4295128739n;
 export const MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342n;
@@ -14,9 +14,6 @@ export const specificFactoryAddresses: Record<number, Address> = {
   [katana.id]: "0x203e8740894c8955cB8950759876d7E7E45E04c1",
   [worldchain.id]: "0x7a5028BDa40e7B173C278C5342087826455ea25a",
   [hyperevm.id]: "0xB1c0fa0B789320044A6F623cFe5eBda9562602E3",
-  [monad.id]: "0x204faca1764b154221e35c0d20abb3c525710498",
-  [arbitrum.id]: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-  [tempo.id]: "0x24a3d4757e338090a8b89789028c9e58e04611fd6",
 };
 
 export const FEE_TIERS = [500, 3000, 10000];

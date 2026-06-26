@@ -6,18 +6,13 @@
   "scripts": {
     "lint": "pnpm --filter '@morpho-blue-liquidation-bot/*' lint",
     "prepare": "husky",
-    "test:liquidity-venues": "pnpm build && vitest --dir apps/liquidity-venues",
-    "test:pricers": "pnpm build && vitest --dir apps/pricers",
-    "test:client": "pnpm build && vitest --dir apps/client",
-    "test:hyperindex": "pnpm --filter @morpho-blue-liquidation-bot/hyperindex test",
-    "build": "pnpm build:config && pnpm --parallel --filter @morpho-blue-liquidation-bot/data-providers --filter @morpho-blue-liquidation-bot/liquidity-venues --filter @morpho-blue-liquidation-bot/pricers build",
+    "test:liquidity-venues": "pnpm build:config && vitest liquidityVenues",
+    "test:pricers": "pnpm build:config && vitest pricers",
+    "test:bot": "pnpm build:config &&vitest bot",
     "build:config": "pnpm --filter @morpho-blue-liquidation-bot/config build",
-    "build:data-providers": "pnpm --filter @morpho-blue-liquidation-bot/data-providers build",
-    "build:liquidity-venues": "pnpm --filter @morpho-blue-liquidation-bot/liquidity-venues build",
-    "build:pricers": "pnpm --filter @morpho-blue-liquidation-bot/pricers build",
-    "deploy:executor": "pnpm build && tsx apps/client/src/deployExecutor.ts",
-    "liquidate": "pnpm build && tsx apps/client/src/script.ts --env-file=.env",
-    "skim": "pnpm build && tsx apps/client/src/skim.ts --env-file=.env"
+    "deploy:executor": "pnpm build:config && tsx apps/client/src/deployExecutor.ts",
+    "liquidate": "pnpm build:config && tsx apps/client/src/script.ts --env-file=.env",
+    "skim": "pnpm build:config && tsx apps/client/src/skim.ts --env-file=.env"
   },
   "lint-staged": {
     "*.ts": [
@@ -25,9 +20,10 @@
     ]
   },
   "dependencies": {
-    "@morpho-org/blue-sdk": "^5.12.1",
+    "@morpho-org/blue-sdk": "^3.0.9",
+    "ponder": "^0.13.6",
     "tsx": "^4.19.3",
-    "viem": "^2.46.0"
+    "viem": "^2.37.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
@@ -61,5 +57,5 @@
   "workspaces": [
     "apps/*"
   ],
-  "packageManager": "pnpm@11.0.9"
+  "packageManager": "pnpm@9.13.2+sha1.969cc200a41db98449afee1bfa7578b3ce6ff330"
 }

@@ -105,11 +105,84 @@
         #save-task { background-color: #28a745; color: white; }
         #delete-task { background-color: #dc3545; color: white; }
         #close-modal { background-color: #6c757d; color: white; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-link {
+            background-color: #ddd;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .tab-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Ops View */
+        .ops-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .ops-column {
+            flex: 1;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 400px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .ops-column h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .add-ops-task {
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: #e2f0ff;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .officer-actions {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        #mail-report {
+            background-color: #17a2b8;
+            color: white;
+            font-size: 1.1em;
+            padding: 10px 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Yearly Recurring Tasks</h1>
-    <div id="calendar" class="calendar-grid">
+    <div class="tabs">
+        <button class="tab-link active" onclick="openTab(event, 'yearly-tab')">Yearly Planning</button>
+        <button class="tab-link" onclick="openTab(event, 'officer-tab')">Officer View</button>
+        <button class="tab-link" onclick="openTab(event, 'ops-tab')">Actual Ops</button>
+    </div>
+
+    <div id="yearly-tab" class="tab-content active">
+        <h1>Yearly Recurring Tasks</h1>
+        <div id="calendar" class="calendar-grid">
         <!-- Months will be generated or hardcoded here -->
         <div class="month" data-month="0"><h3>January</h3><div class="task-list"></div></div>
         <div class="month" data-month="1"><h3>February</h3><div class="task-list"></div></div>
@@ -122,7 +195,34 @@
         <div class="month" data-month="8"><h3>September</h3><div class="task-list"></div></div>
         <div class="month" data-month="9"><h3>October</h3><div class="task-list"></div></div>
         <div class="month" data-month="10"><h3>November</h3><div class="task-list"></div></div>
-        <div class="month" data-month="11"><h3>December</h3><div class="task-list"></div></div>
+            <div class="month" data-month="11"><h3>December</h3><div class="task-list"></div></div>
+        </div>
+    </div>
+
+    <div id="officer-tab" class="tab-content">
+        <h1>Officer View</h1>
+        <div class="officer-actions">
+            <button id="mail-report">📧 Mail Report</button>
+        </div>
+        <div id="officer-calendar" class="calendar-grid">
+            <!-- Mirror of yearly calendar -->
+        </div>
+    </div>
+
+    <div id="ops-tab" class="tab-content">
+        <h1>Actual Ops</h1>
+        <div class="ops-container">
+            <div class="ops-column" data-category="next-week">
+                <h2>Next Week</h2>
+                <button class="add-ops-task" onclick="openOpsModal('next-week')">+ Add Task</button>
+                <div class="ops-task-list"></div>
+            </div>
+            <div class="ops-column" data-category="future-unscheduled">
+                <h2>Future / Unscheduled</h2>
+                <button class="add-ops-task" onclick="openOpsModal('future-unscheduled')">+ Add Task</button>
+                <div class="ops-task-list"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for adding/editing tasks -->
@@ -131,6 +231,7 @@
             <h2 id="modal-title">Add Task</h2>
             <input type="hidden" id="task-id">
             <input type="hidden" id="task-month">
+            <input type="hidden" id="task-category">
             <label for="task-name">Title:</label>
             <input type="text" id="task-name" placeholder="Task Title">
             <label for="task-url">URL:</label>
@@ -145,13 +246,16 @@
 
     <script>
         const STORAGE_KEY = 'yearly-tasks';
+        const OPS_STORAGE_KEY = 'ops-tasks';
         let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let opsTasks = JSON.parse(localStorage.getItem(OPS_STORAGE_KEY)) || [];
 
         const calendar = document.getElementById('calendar');
         const modal = document.getElementById('task-modal');
         const modalTitle = document.getElementById('modal-title');
         const taskIdInput = document.getElementById('task-id');
         const taskMonthInput = document.getElementById('task-month');
+        const taskCategoryInput = document.getElementById('task-category');
         const taskNameInput = document.getElementById('task-name');
         const taskUrlInput = document.getElementById('task-url');
         const saveBtn = document.getElementById('save-task');
@@ -198,6 +302,7 @@
                 modalTitle.textContent = 'Edit Task';
                 taskIdInput.value = task.id;
                 taskMonthInput.value = task.month;
+                taskCategoryInput.value = '';
                 taskNameInput.value = task.title;
                 taskUrlInput.value = task.url;
                 deleteBtn.style.display = 'block';
@@ -205,6 +310,7 @@
                 modalTitle.textContent = 'Add Task';
                 taskIdInput.value = '';
                 taskMonthInput.value = month;
+                taskCategoryInput.value = '';
                 taskNameInput.value = '';
                 taskUrlInput.value = '';
                 deleteBtn.style.display = 'none';
@@ -224,7 +330,8 @@
 
         saveBtn.onclick = () => {
             const id = taskIdInput.value;
-            const month = parseInt(taskMonthInput.value);
+            const month = taskMonthInput.value !== '' ? parseInt(taskMonthInput.value) : null;
+            const category = taskCategoryInput.value;
             const title = taskNameInput.value.trim();
             const url = taskUrlInput.value.trim();
 
@@ -233,30 +340,56 @@
                 return;
             }
 
-            if (id) {
-                const index = tasks.findIndex(t => t.id === id);
-                if (index !== -1) {
-                    tasks[index] = { ...tasks[index], title, url };
+            if (category) {
+                if (id) {
+                    const index = opsTasks.findIndex(t => t.id === id);
+                    if (index !== -1) {
+                        opsTasks[index] = { ...opsTasks[index], title, url };
+                    }
+                } else {
+                    opsTasks.push({
+                        id: Date.now().toString(),
+                        category,
+                        title,
+                        url
+                    });
                 }
+                localStorage.setItem(OPS_STORAGE_KEY, JSON.stringify(opsTasks));
+                renderOpsTasks();
             } else {
-                tasks.push({
-                    id: Date.now().toString(),
-                    month,
-                    title,
-                    url
-                });
+                if (id) {
+                    const index = tasks.findIndex(t => t.id === id);
+                    if (index !== -1) {
+                        tasks[index] = { ...tasks[index], title, url };
+                    }
+                } else {
+                    tasks.push({
+                        id: Date.now().toString(),
+                        month,
+                        title,
+                        url
+                    });
+                }
+                saveToStorage();
+                renderTasks();
             }
 
-            saveToStorage();
-            renderTasks();
             closeModal();
         };
 
         deleteBtn.onclick = () => {
             const id = taskIdInput.value;
-            tasks = tasks.filter(t => t.id !== id);
-            saveToStorage();
-            renderTasks();
+            const category = taskCategoryInput.value;
+
+            if (category) {
+                opsTasks = opsTasks.filter(t => t.id !== id);
+                localStorage.setItem(OPS_STORAGE_KEY, JSON.stringify(opsTasks));
+                renderOpsTasks();
+            } else {
+                tasks = tasks.filter(t => t.id !== id);
+                saveToStorage();
+                renderTasks();
+            }
             closeModal();
         };
 
@@ -266,6 +399,118 @@
                 closeModal();
             }
         };
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            if (tabName === 'officer-tab') {
+                renderOfficerCalendar();
+            } else if (tabName === 'ops-tab') {
+                renderOpsTasks();
+            }
+        }
+
+        // Add this to the end of your existing script
+        function renderOfficerCalendar() {
+            const officerCalendar = document.getElementById('officer-calendar');
+            officerCalendar.innerHTML = document.getElementById('calendar').innerHTML;
+            // Remove click events from mirrored calendar
+            officerCalendar.querySelectorAll('.month').forEach(m => {
+                 m.onclick = null;
+                 m.style.cursor = 'default';
+                 m.style.transform = 'none';
+            });
+            officerCalendar.querySelectorAll('.task-item').forEach(t => {
+                t.onclick = (e) => e.stopPropagation();
+                t.style.cursor = 'default';
+            });
+            officerCalendar.querySelectorAll('.task-item span').forEach(s => s.remove());
+        }
+
+        document.getElementById('mail-report').onclick = () => {
+            let report = "Yearly Tasks Report:\n\n";
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            months.forEach((month, index) => {
+                const monthTasks = tasks.filter(t => t.month == index);
+                if (monthTasks.length > 0) {
+                    report += `${month}:\n`;
+                    monthTasks.forEach(t => {
+                        report += `- ${t.title} (${t.url})\n`;
+                    });
+                    report += "\n";
+                }
+            });
+
+            const mailtoUrl = `mailto:?subject=Yearly Tasks Report&body=${encodeURIComponent(report)}`;
+
+            // Use an iframe to avoid "leaving page" prompt
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = mailtoUrl;
+            document.body.appendChild(iframe);
+            setTimeout(() => document.body.removeChild(iframe), 300);
+        };
+
+        function renderOpsTasks() {
+            document.querySelectorAll('.ops-task-list').forEach(list => list.innerHTML = '');
+
+            opsTasks.forEach(task => {
+                const columnEl = document.querySelector(`.ops-column[data-category="${task.category}"] .ops-task-list`);
+                if (columnEl) {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task-item';
+
+                    const link = document.createElement('a');
+                    link.href = task.url;
+                    link.target = '_blank';
+                    link.textContent = task.title;
+                    link.onclick = (e) => e.stopPropagation();
+
+                    taskEl.appendChild(link);
+
+                    const editBtn = document.createElement('span');
+                    editBtn.textContent = ' ✏️';
+                    editBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        openOpsModal(task.category, task);
+                    };
+                    taskEl.appendChild(editBtn);
+
+                    columnEl.appendChild(taskEl);
+                }
+            });
+        }
+
+        function openOpsModal(category, task = null) {
+            if (task) {
+                modalTitle.textContent = 'Edit Ops Task';
+                taskIdInput.value = task.id;
+                taskCategoryInput.value = task.category;
+                taskNameInput.value = task.title;
+                taskUrlInput.value = task.url;
+                deleteBtn.style.display = 'block';
+            } else {
+                modalTitle.textContent = 'Add Ops Task';
+                taskIdInput.value = '';
+                taskCategoryInput.value = category;
+                taskNameInput.value = '';
+                taskUrlInput.value = '';
+                deleteBtn.style.display = 'none';
+            }
+            taskMonthInput.value = ''; // Not used for ops
+            modal.style.display = 'flex';
+        }
 
         // Initial render
         renderTasks();

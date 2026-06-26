@@ -1,27 +1,20 @@
 # Dependencies
 **/node_modules
-vendor/
 
-# Build
 **/dist
 
-# Cache
-.cache/
+# Ponder
 .ponder
 
-# Env
-.env
-.env*.local
-
-# Logs
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# OS
+# Misc
 .DS_Store
 
-# Tools
-.claude/settings.local.json
-.dockerignore
+# Env files
+.env*.local
+.env

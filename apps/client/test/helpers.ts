@@ -1,21 +1,10 @@
-import type {
-  DataProvider,
-  LiquidatablePositionsResult,
-} from "@morpho-blue-liquidation-bot/data-providers";
-import { OneInch } from "@morpho-blue-liquidation-bot/liquidity-venues";
-import {
-  type AccrualPosition,
-  MarketUtils,
-  type PreLiquidationPosition,
-} from "@morpho-org/blue-sdk";
+import { MarketUtils } from "@morpho-org/blue-sdk";
 import type { AnvilTestClient } from "@morpho-org/test";
 import { ExecutorEncoder } from "executooor-viem";
 import nock from "nock";
+import { replaceBigInts as replaceBigIntsBase } from "ponder";
 import {
-  type Account,
   type Address,
-  type Chain,
-  type Client,
   encodePacked,
   fromHex,
   type Hex,
@@ -23,46 +12,14 @@ import {
   maxUint128,
   maxUint256,
   toHex,
-  type Transport,
 } from "viem";
 import { getStorageAt, readContract } from "viem/actions";
 import { vi } from "vitest";
 
-import { morphoBlueAbi } from "../src/abis/morpho/morphoBlue";
+import { morphoBlueAbi } from "../../ponder/abis/MorphoBlue";
+import { OneInch } from "../src/liquidityVenues";
 
 import { BORROW_SHARES_AND_COLLATERAL_OFFSET, borrower, MORPHO, POSITION_SLOT } from "./constants";
-
-/// Mock data provider
-
-export class MockDataProvider implements DataProvider {
-  private liquidatablePositions: AccrualPosition[] = [];
-  private preLiquidatablePositions: PreLiquidationPosition[] = [];
-
-  setLiquidatablePositions(positions: AccrualPosition[]) {
-    this.liquidatablePositions = positions;
-  }
-
-  setPreLiquidatablePositions(positions: PreLiquidationPosition[]) {
-    this.preLiquidatablePositions = positions;
-  }
-
-  async fetchMarkets(
-    _client: Client<Transport, Chain, Account>,
-    _vaults: Address[],
-  ): Promise<Hex[]> {
-    return [];
-  }
-
-  async fetchLiquidatablePositions(
-    _client: Client<Transport, Chain, Account>,
-    _marketIds: Hex[],
-  ): Promise<LiquidatablePositionsResult> {
-    return {
-      liquidatablePositions: this.liquidatablePositions,
-      preLiquidatablePositions: this.preLiquidatablePositions,
-    };
-  }
-}
 
 /// test liquidity Venues
 
@@ -74,6 +31,7 @@ export class OneInchTest extends OneInch {
     this.supportedNetworks = supportedNetworks;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   supportsRoute(encoder: ExecutorEncoder, _src: Address, _dst: Address) {
     return this.supportedNetworks.includes(encoder.client.chain.id);
   }
@@ -130,55 +88,32 @@ export async function setupPosition(
     args: [marketId, borrower.address],
   });
 
-  nock("https://api.morpho.org")
-    .post("/graphql", (body) => {
-      // Match the getLiquidatablePositions query
-      return (
-        body.query?.includes("getLiquidatablePositions") &&
-        body.variables?.chainId === 1 &&
-        (body.variables?.marketIds === undefined ||
-          body.variables?.marketIds?.includes(marketId) ||
-          body.variables?.marketIds?.length === 0)
-      );
-    })
-    .reply(200, {
-      data: {
-        marketPositions: {
-          __typename: "PaginatedMarketPositions",
-          pageInfo: {
-            __typename: "PageInfo",
-            count: 1,
-            countTotal: 1,
-            limit: 100,
-            skip: 0,
-          },
-          items: [
-            {
-              __typename: "MarketPosition",
-              healthFactor: 0.5, // Less than 1 to indicate liquidatable
-              user: {
-                __typename: "User",
-                address: borrower.address,
-              },
-              market: {
-                __typename: "Market",
-                uniqueKey: marketId,
-                oracle: {
-                  __typename: "Oracle",
-                  address: marketParams.oracle,
-                },
-              },
-              state: {
-                __typename: "MarketPositionState",
-                borrowShares: position[1].toString(),
-                collateral: position[2].toString(),
-                supplyShares: position[0].toString(),
-              },
+  process.env.PONDER_SERVICE_URL = "http://localhost:42069";
+
+  nock("http://localhost:42069")
+    .post("/chain/1/withdraw-queue-set", { vaults: [] })
+    .reply(200, [])
+    .post("/chain/1/liquidatable-positions", { marketIds: [] })
+    .reply(
+      200,
+      replaceBigInts({
+        warnings: [],
+        results: [
+          {
+            market: {
+              params: marketParams,
             },
-          ],
-        },
-      },
-    });
+            positionsLiq: [
+              {
+                user: borrower.address,
+                seizableCollateral: position[2],
+              },
+            ],
+            positionsPreLiq: [],
+          },
+        ],
+      }),
+    );
 }
 
 export function mockEtherPrice(
@@ -244,7 +179,7 @@ async function overwriteCollateral(
   await client.setStorageAt({
     address: MORPHO,
     index: slot,
-
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     value: modifyCollateralSlot(value!, amount),
   });
 }
@@ -283,17 +218,17 @@ function modifyCollateralSlot(value: Hex, amount: bigint) {
   return `${collateralBytes}${slotBytes}` as Hex;
 }
 
+function replaceBigInts<T>(value: T) {
+  return replaceBigIntsBase(value, (x) => `${String(x)}n`);
+}
+
 export const syncTimestamp = async (client: AnvilTestClient, timestamp?: bigint) => {
   timestamp ??= (await client.timestamp()) + 60n;
 
-  // Use fake timers to mock Date.now() which Time.timestamp() likely uses
   vi.useFakeTimers({
     now: Number(timestamp) * 1000,
     toFake: ["Date"], // Avoid faking setTimeout, used to delay retries.
   });
-
-  // Also set system time to ensure Time.timestamp() uses the mocked time
-  vi.setSystemTime(Number(timestamp) * 1000);
 
   await client.setNextBlockTimestamp({ timestamp });
 
