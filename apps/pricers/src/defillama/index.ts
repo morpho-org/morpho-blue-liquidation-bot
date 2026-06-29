@@ -4,6 +4,21 @@ import type { Pricer } from "../pricer";
 
 type CoinKey = `${string}:0x${string}`;
 
+// DeFiLlama's pricing API uses its own chain slugs, which do not always match
+// viem's `chain.name`. Keep this map in sync with what DeFiLlama accepts for
+// each chain listed in apps/config/src/config.ts.
+export const DEFILLAMA_CHAIN_SLUGS: Record<number, string> = {
+  1: "ethereum",
+  130: "unichain",
+  137: "polygon",
+  143: "monad",
+  480: "wc",
+  747474: "katana",
+  999: "hyperliquid",
+  8453: "base",
+  42161: "arbitrum",
+};
+
 interface CachedPrice {
   price: number;
   fetchTimestamp: number;
@@ -72,6 +87,7 @@ export class DefiLlamaPricer implements Pricer {
   }
 
   private getCoinKey(client: Client<Transport, Chain, Account>, asset: Address): CoinKey {
-    return `${client.chain.name}:${asset}`;
+    const slug = DEFILLAMA_CHAIN_SLUGS[client.chain.id] ?? client.chain.name.toLowerCase();
+    return `${slug}:${asset}`;
   }
 }
