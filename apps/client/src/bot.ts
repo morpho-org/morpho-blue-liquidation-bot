@@ -25,6 +25,7 @@ import {
   type Transport,
   type WalletClient,
 } from "viem";
+import { encodeFunctionData } from "viem";
 import {
   getBlockNumber,
   getGasPrice,
@@ -277,7 +278,11 @@ export class LiquidationBot {
     if (this.flashbotAccount) {
       const signedBundle = await Flashbots.signBundle([
         {
-          transaction: { to: encoder.address, ...functionData },
+          transaction: {
+            to: encoder.address,
+            data: encodeFunctionData(functionData),
+            gasPrice,
+          },
           client: this.client,
         },
       ]);
