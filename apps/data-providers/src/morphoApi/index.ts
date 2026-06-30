@@ -8,8 +8,11 @@ import { readContract } from "viem/actions";
 import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
 
 import { apiSdk } from "./api/index";
+import type { Sdk } from "./api/sdk";
 
 export class MorphoApiDataProvider implements DataProvider {
+  constructor(protected readonly sdk: Sdk = apiSdk) {}
+
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
       const vaultMarkets = await Promise.all(
@@ -31,7 +34,7 @@ export class MorphoApiDataProvider implements DataProvider {
       const PAGE_SIZE = 100;
       const MARKET_BATCH_SIZE = 100;
       const allPositions: NonNullable<
-        Awaited<ReturnType<typeof apiSdk.getLiquidatablePositions>>["marketPositions"]["items"]
+        Awaited<ReturnType<Sdk["getLiquidatablePositions"]>>["marketPositions"]["items"]
       > = [];
 
       // Batch market IDs into chunks of 100 (API limit)
@@ -40,7 +43,7 @@ export class MorphoApiDataProvider implements DataProvider {
 
         let skip = 0;
         while (true) {
-          const positionsQuery = await apiSdk.getLiquidatablePositions({
+          const positionsQuery = await this.sdk.getLiquidatablePositions({
             chainId: client.chain.id,
             marketIds: marketIdsBatch,
             skip,

@@ -1,5 +1,6 @@
 import type { DataProviderName } from "@morpho-blue-liquidation-bot/config";
 
+import { AppMorphoApiDataProvider } from "./appMorphoApi";
 import type { DataProvider } from "./dataProvider";
 import { HyperIndexDataProvider } from "./hyperIndex";
 import { MorphoApiDataProvider } from "./morphoApi";
@@ -18,6 +19,9 @@ export async function createDataProviders(
   switch (dataProviderName) {
     case "morphoApi":
       provider = new MorphoApiDataProvider();
+      break;
+    case "appMorphoApi":
+      provider = new AppMorphoApiDataProvider();
       break;
     case "hyperIndex":
       provider = new HyperIndexDataProvider();

@@ -17,11 +17,12 @@ export const chainConfigs: Record<number, Config> = {
     chain: robinhoodChain,
     wNative: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
     options: {
-      dataProvider: "morphoApi",
+      // Chain is not on the public blue-api yet; use the app-API instance
+      // (app.api.morpho.org) with an API key.
+      dataProvider: "appMorphoApi",
       vaultWhitelist: [],
       additionalMarketsWhitelist: [],
-      liquidityVenues: ["zeroEx", "uniswapV3", "uniswapV4", "erc20Wrapper", "erc4626"],
-      // Pricers omitted → profitability check disabled until oracle/data sources are wired up.
+      liquidityVenues: ["lifi", "zeroEx", "erc20Wrapper", "erc4626"],
       useFlashbots: false,
       useTenderly: false,
     },

@@ -18,6 +18,20 @@ Data providers are multi-chain: a single instance is shared across all chains. T
 
 Queries the [Morpho API](https://docs.morpho.org/api) for liquidatable positions (with pagination) and reads vault markets on-chain. No infrastructure required. Does not support pre-liquidations.
 
+### `appMorphoApi`
+
+Same query semantics as `morphoApi` (same GraphQL document, same pagination, same on-chain market accrual logic), but targets the app/private Morpho GraphQL endpoint instead of the public `blue-api.morpho.org`. Useful for chains that the public API doesn't yet index but the internal app instance does. Requires an API key.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MORPHO_APP_API_KEY` | Yes | API key sent with every GraphQL request. |
+| `MORPHO_APP_API_GRAPHQL_URL` | No | GraphQL endpoint. Defaults to `https://app.api.morpho.org/graphql`. |
+| `MORPHO_APP_API_KEY_HEADER` | No | HTTP header used to carry the key. Defaults to `x-api-key`. |
+
+Caveats:
+- The `vaultWhitelist: "morpho-api"` shortcut still hits `blue-api.morpho.org` — for chains not on the public API, use explicit vault addresses in `vaultWhitelist`.
+- The `morphoApi` pricer also hits `blue-api.morpho.org` — for chains not on the public API, omit `morphoApi` from `pricers` and rely on on-chain pricers (`chainlink`, `uniswapV3`) instead.
+
 ### `hyperIndex`
 
 Queries an [Envio HyperIndex](https://docs.envio.dev/) instance (see `apps/hyperindex`) via GraphQL. Supports both liquidations and pre-liquidations. Fetches positions/markets, pre-liquidation contracts, and authorizations in parallel. Oracle prices are read on-chain. Supports two deployment modes:
@@ -55,7 +69,7 @@ Set the data provider in `apps/config/src/config.ts`:
 ```typescript
 [mainnet.id]: {
   options: {
-    dataProvider: "hyperIndex",  // or "morphoApi"
+    dataProvider: "hyperIndex",  // or "morphoApi", "appMorphoApi"
     // ...
   },
 },

@@ -14,7 +14,7 @@ export type LiquidityVenueName =
 
 export type PricerName = "chainlink" | "defillama" | "morphoApi" | "uniswapV3";
 
-export type DataProviderName = "morphoApi" | "hyperIndex";
+export type DataProviderName = "morphoApi" | "appMorphoApi" | "hyperIndex";
 
 export interface Config {
   chain: Chain;
