@@ -24,9 +24,9 @@ Same query semantics as `morphoApi` (same GraphQL document, same pagination, sam
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MORPHO_APP_API_KEY` | Yes | API key sent with every GraphQL request. |
+| `MORPHO_APP_API_KEY` | Yes | API key sent with every GraphQL request. By default sent as `Authorization: Bearer <key>`. |
 | `MORPHO_APP_API_GRAPHQL_URL` | No | GraphQL endpoint. Defaults to `https://app.api.morpho.org/graphql`. |
-| `MORPHO_APP_API_KEY_HEADER` | No | HTTP header used to carry the key. Defaults to `x-api-key`. |
+| `MORPHO_APP_API_KEY_HEADER` | No | Override the auth header name. When set, the raw key is sent under this header (no `Bearer ` prefix). Leave unset to use the default `Authorization: Bearer <key>`. |
 
 Caveats:
 - The `vaultWhitelist: "morpho-api"` shortcut still hits `blue-api.morpho.org` — for chains not on the public API, use explicit vault addresses in `vaultWhitelist`.
