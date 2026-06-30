@@ -37,7 +37,7 @@ import {
   MarketsFetchingCooldownMechanism,
   PositionLiquidationCooldownMechanism,
 } from "./utils/cooldownMechanisms.js";
-import { fetchWhitelistedVaults } from "./utils/fetch-whitelisted-vaults.js";
+import { fetchListedVaults } from "./utils/fetch-listed-vaults.js";
 import { Flashbots } from "./utils/flashbots.js";
 import { LiquidationEncoder } from "./utils/LiquidationEncoder.js";
 import { DEFAULT_LIQUIDATION_BUFFER_BPS, WAD, wMulDown } from "./utils/maths.js";
@@ -400,7 +400,7 @@ export class LiquidationBot {
     if (!this.marketsFetchingCooldownMechanism.isFetchingReady()) return;
 
     if (this.vaultWhitelist === "morpho-api")
-      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+      this.vaultWhitelist = await fetchListedVaults(this.chainId);
 
     const vaultWhitelist = this.vaultWhitelist;
     console.log(`${this.logTag}📝 Watching markets in the following vaults:`, vaultWhitelist);

@@ -1,75 +1,127 @@
+import { MORPHO_API_GRAPHQL_URL } from "@morpho-blue-liquidation-bot/config";
 import type { Account, Address, Chain, Client, Transport } from "viem";
 
 import type { Pricer } from "../pricer";
 
+const ASSET_BATCH_SIZE = 30;
+
+interface PendingPriceRequest {
+  asset: Address;
+  resolve: (price: number | undefined) => void;
+}
+
+interface AssetsPriceResponse {
+  data?: {
+    assets?: {
+      items?: {
+        address: Address;
+        price: { usd: number | null } | null;
+      }[];
+    };
+  };
+  errors?: { message: string }[];
+}
+
 export class MorphoApi implements Pricer {
-  private readonly API_URL = "https://blue-api.morpho.org/graphql";
-  private supportedChains: number[] = [];
-  private initialized = false;
+  private readonly pendingRequests = new Map<number, PendingPriceRequest[]>();
+  private readonly scheduledChains = new Set<number>();
 
   async price(client: Client<Transport, Chain, Account>, asset: Address) {
-    if (!this.initialized) {
-      await this.initialize();
-    }
+    const chainId = client.chain.id;
 
-    if (!this.supportedChains.includes(client.chain.id)) return;
+    return new Promise<number | undefined>((resolve) => {
+      const requests = this.pendingRequests.get(chainId) ?? [];
+      requests.push({ asset, resolve });
+      this.pendingRequests.set(chainId, requests);
 
-    try {
-      const response = await fetch(this.API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: this.query(client.chain.id, asset) }),
-      });
+      if (!this.scheduledChains.has(chainId)) {
+        this.scheduledChains.add(chainId);
+        queueMicrotask(() => void this.flush(chainId));
+      }
+    });
+  }
 
-      const data = (await response.json()) as {
-        data: { assets: { items: { address: Address; priceUsd: number }[] } };
-      };
+  private async flush(chainId: number) {
+    const requests = this.pendingRequests.get(chainId) ?? [];
+    this.pendingRequests.delete(chainId);
+    this.scheduledChains.delete(chainId);
 
-      const items = data.data.assets.items;
+    if (requests.length === 0) return;
 
-      const priceUsd = items.find((item) => item.address === asset)?.priceUsd ?? null;
+    const uniqueAssets = [
+      ...new Map(requests.map((request) => [this.key(request.asset), request.asset])).values(),
+    ];
+    const prices = await this.fetchPrices(chainId, uniqueAssets);
 
-      return priceUsd ?? undefined;
-    } catch (error) {
-      console.error(error);
-      return undefined;
+    for (const request of requests) {
+      request.resolve(prices.get(this.key(request.asset)));
     }
   }
 
-  private async initialize() {
-    const initilizationQuery = `
-      query {
-        chains{
-            id
+  private async fetchPrices(chainId: number, assets: Address[]) {
+    const prices = new Map<string, number>();
+    const chunks = this.chunk(assets, ASSET_BATCH_SIZE);
+
+    await Promise.all(
+      chunks.map(async (chunk) => {
+        try {
+          const response = await fetch(MORPHO_API_GRAPHQL_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: this.query(),
+              variables: { chainId, addresses: chunk, first: ASSET_BATCH_SIZE },
+            }),
+          });
+
+          if (!response.ok) return;
+
+          const data = (await response.json()) as AssetsPriceResponse;
+
+          if (data.errors?.length) {
+            console.error(data.errors.map((error) => error.message).join("\n"));
+            return;
+          }
+
+          for (const item of data.data?.assets?.items ?? []) {
+            if (item.price?.usd === undefined || item.price.usd === null) continue;
+            prices.set(this.key(item.address), item.price.usd);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }),
+    );
+
+    return prices;
+  }
+
+  private query() {
+    return `
+      query PriceAssets($chainId: Int!, $addresses: [String!]!, $first: Int!) {
+        assets(first: $first, where: { chainId_in: [$chainId], address_in: $addresses }) {
+          items {
+            address
+            price {
+              usd
+            }
+          }
         }
       }
-      `;
-
-    try {
-      const response = await fetch(this.API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: initilizationQuery }),
-      });
-
-      const data = (await response.json()) as { data: { chains: { id: number }[] } };
-      this.supportedChains = data.data.chains.map((chain) => chain.id);
-      this.initialized = true;
-    } catch (error) {
-      console.error(error);
-    }
+    `;
   }
 
-  private query(chainId: number, asset: Address) {
-    return `
-    query {
-        assets(where: { address_in: ["${asset}"], chainId_in: [${chainId}]} ) {
-            items {
-                address
-                priceUsd
-            }
-        }
+  private chunk<T>(items: T[], size: number) {
+    const chunks: T[][] = [];
+
+    for (let i = 0; i < items.length; i += size) {
+      chunks.push(items.slice(i, i + size));
     }
-    `;
+
+    return chunks;
+  }
+
+  private key(address: Address) {
+    return address.toLowerCase();
   }
 }
