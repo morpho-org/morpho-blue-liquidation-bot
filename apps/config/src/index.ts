@@ -4,6 +4,8 @@ import type { Address, Chain, Hex } from "viem";
 import { chainConfigs } from "./config";
 import type { ChainConfig, DataProviderName, LiquidityVenueName, PricerName } from "./types";
 
+export const MORPHO_API_GRAPHQL_URL = "https://api.morpho.org/graphql";
+
 dotenv.config();
 
 export function chainConfig(chainId: number): ChainConfig {

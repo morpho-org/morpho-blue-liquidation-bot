@@ -1,3 +1,4 @@
+import { MORPHO_API_GRAPHQL_URL } from "@morpho-blue-liquidation-bot/config";
 import { type Address } from "viem";
 
 const QUERY = `
@@ -22,8 +23,8 @@ interface VaultsResponse {
   errors?: { message: string }[];
 }
 
-export async function fetchWhitelistedVaults(chainId: number): Promise<Address[]> {
-  const res = await fetch("https://blue-api.morpho.org/graphql", {
+export async function fetchListedVaults(chainId: number): Promise<Address[]> {
+  const res = await fetch(MORPHO_API_GRAPHQL_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query: QUERY, variables: { chainIds: [chainId] } }),

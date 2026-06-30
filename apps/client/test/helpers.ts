@@ -191,37 +191,21 @@ export function mockEtherPrice(
     lltv: bigint;
   },
 ) {
-  nock("https://blue-api.morpho.org")
-    .post("/graphql")
-    .reply(200, {
-      data: {
-        chains: [{ id: 1 }],
-      },
-    })
-    .post("/graphql")
-    .reply(200, {
-      data: {
-        chains: [{ id: 1 }],
-      },
-    })
-    .post("/graphql")
+  nock("https://api.morpho.org")
+    .post(
+      "/graphql",
+      (body) => body.query?.includes("PriceAssets") && body.variables?.chainId === 1,
+    )
     .reply(200, {
       data: {
         assets: {
           items: [
-            { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", priceUsd: etherPrice },
-            { address: marketParams.loanToken, priceUsd: 1 },
-          ],
-        },
-      },
-    })
-    .post("/graphql")
-    .reply(200, {
-      data: {
-        assets: {
-          items: [
-            { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", priceUsd: etherPrice },
-            { address: marketParams.collateralToken, priceUsd: 1 },
+            {
+              address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+              price: { usd: etherPrice },
+            },
+            { address: marketParams.loanToken, price: { usd: 1 } },
+            { address: marketParams.collateralToken, price: { usd: 1 } },
           ],
         },
       },
