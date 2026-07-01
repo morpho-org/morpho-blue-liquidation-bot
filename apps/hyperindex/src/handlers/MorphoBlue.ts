@@ -2,6 +2,8 @@ import { Morpho } from "generated";
 import { getAddress } from "viem";
 import { marketId, positionId, authorizationId } from "../utils/ids.js";
 
+const zeroFloorSub = (a: bigint, b: bigint) => (a > b ? a - b : 0n);
+
 Morpho.CreateMarket.handler(async ({ event, context }) => {
   const id = marketId(event.chainId, event.params.id);
 
@@ -172,7 +174,7 @@ Morpho.Repay.handler(async ({ event, context }) => {
   if (market) {
     context.Market.set({
       ...market,
-      totalBorrowAssets: market.totalBorrowAssets - event.params.assets,
+      totalBorrowAssets: zeroFloorSub(market.totalBorrowAssets, event.params.assets),
       totalBorrowShares: market.totalBorrowShares - event.params.shares,
     });
   }
@@ -197,12 +199,15 @@ Morpho.Liquidate.handler(async ({ event, context }) => {
   const mId = marketId(event.chainId, event.params.id);
   const market = await context.Market.get(mId);
   if (market) {
+    const totalBorrowAssetsAfterRepay = zeroFloorSub(
+      market.totalBorrowAssets,
+      event.params.repaidAssets,
+    );
+
     context.Market.set({
       ...market,
       totalSupplyAssets: market.totalSupplyAssets - event.params.badDebtAssets,
-      totalSupplyShares: market.totalSupplyShares - event.params.badDebtShares,
-      totalBorrowAssets:
-        market.totalBorrowAssets - event.params.repaidAssets - event.params.badDebtAssets,
+      totalBorrowAssets: zeroFloorSub(totalBorrowAssetsAfterRepay, event.params.badDebtAssets),
       totalBorrowShares:
         market.totalBorrowShares - event.params.repaidShares - event.params.badDebtShares,
     });
