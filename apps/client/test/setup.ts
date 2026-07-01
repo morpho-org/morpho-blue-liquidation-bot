@@ -1,4 +1,4 @@
-import { hyperevm } from "@morpho-blue-liquidation-bot/config";
+import { hyperevm, robinhoodChain } from "@morpho-blue-liquidation-bot/config";
 import type { AnvilTestClient } from "@morpho-org/test";
 import { createViemTest } from "@morpho-org/test/vitest";
 import dotenv from "dotenv";
@@ -129,6 +129,24 @@ export const liquidSwapTest = createViemTest(hyperevm, {
   forkUrl: process.env.RPC_URL_999 ?? hyperevm.rpcUrls.default.http[0],
   forkBlockNumber: 18383174,
 }).extend<ExecutorEncoderTestContext<typeof hyperevm>>({
+  encoder: async ({ client }, use) => {
+    const receipt = await client.deployContractWait({
+      abi: executorAbi,
+      bytecode,
+      args: [client.account.address],
+    });
+
+    await use(new ExecutorEncoder(receipt.contractAddress, client));
+  },
+});
+
+// Robinhood Chain — captured against the live state at the time the 0x quote
+// fixture was recorded (apps/client/test/fixtures/zeroEx/4663-919a9b6b.json).
+export const robinhoodTest = createViemTest(robinhoodChain, {
+  forkUrl: process.env.RPC_URL_4663,
+  forkBlockNumber: 604962,
+  timeout: 100_000,
+}).extend<ExecutorEncoderTestContext<typeof robinhoodChain>>({
   encoder: async ({ client }, use) => {
     const receipt = await client.deployContractWait({
       abi: executorAbi,

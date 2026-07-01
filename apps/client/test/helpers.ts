@@ -22,6 +22,7 @@ import {
   keccak256,
   maxUint128,
   maxUint256,
+  parseEther,
   toHex,
   type Transport,
 } from "viem";
@@ -79,6 +80,15 @@ export class OneInchTest extends OneInch {
   }
 }
 
+export interface SetupPositionOptions {
+  /** Morpho Blue address. Defaults to the mainnet deployment. */
+  morpho?: Address;
+  /** Base URL the bot's data provider posts GraphQL queries to. Defaults to the public blue-api. */
+  graphqlBaseUrl?: string;
+  /** Chain ID echoed in the mocked GraphQL response and matched on inbound variables. Defaults to mainnet. */
+  chainId?: number;
+}
+
 export async function setupPosition(
   client: AnvilTestClient,
   marketParams: {
@@ -90,8 +100,18 @@ export async function setupPosition(
   },
   collateralAmount: bigint,
   borrowAmount: bigint,
+  options: SetupPositionOptions = {},
 ) {
+  const morpho = options.morpho ?? MORPHO;
+  const graphqlBaseUrl = options.graphqlBaseUrl ?? "https://api.morpho.org";
+  const chainId = options.chainId ?? 1;
+
   const marketId = MarketUtils.getMarketId(marketParams);
+
+  // Anvil only autofunds the default test accounts on mainnet-like forks; on
+  // chains where the test mnemonic's balance is 0 on the live state, the
+  // borrower runs out of gas before issuing any tx. Set its balance unconditionally.
+  await client.setBalance({ address: borrower.address, value: parseEther("10") });
 
   await client.deal({
     erc20: marketParams.collateralToken,
@@ -102,12 +122,12 @@ export async function setupPosition(
   await client.approve({
     account: borrower,
     address: marketParams.collateralToken,
-    args: [MORPHO, maxUint256],
+    args: [morpho, maxUint256],
   });
 
   await client.writeContract({
     account: borrower,
-    address: MORPHO,
+    address: morpho,
     abi: morphoBlueAbi,
     functionName: "supplyCollateral",
     args: [marketParams, collateralAmount, borrower.address, "0x"],
@@ -115,27 +135,27 @@ export async function setupPosition(
 
   await client.writeContract({
     account: borrower,
-    address: MORPHO,
+    address: morpho,
     abi: morphoBlueAbi,
     functionName: "borrow",
     args: [marketParams, borrowAmount, 0n, borrower.address, borrower.address],
   });
 
-  await overwriteCollateral(client, marketId, borrower.address, collateralAmount / 2n);
+  await overwriteCollateral(client, marketId, borrower.address, collateralAmount / 2n, morpho);
 
   const position = await readContract(client, {
-    address: MORPHO,
+    address: morpho,
     abi: morphoBlueAbi,
     functionName: "position",
     args: [marketId, borrower.address],
   });
 
-  nock("https://api.morpho.org")
+  nock(graphqlBaseUrl)
     .post("/graphql", (body) => {
       // Match the getLiquidatablePositions query
       return (
         body.query?.includes("getLiquidatablePositions") &&
-        body.variables?.chainId === 1 &&
+        body.variables?.chainId === chainId &&
         (body.variables?.marketIds === undefined ||
           body.variables?.marketIds?.includes(marketId) ||
           body.variables?.marketIds?.length === 0)
@@ -263,16 +283,17 @@ async function overwriteCollateral(
   marketId: Hex,
   user: Address,
   amount: bigint,
+  morpho: Address = MORPHO,
 ) {
   const slot = borrowSharesAndCollateralSlot(user, marketId);
 
   const value = await getStorageAt(client, {
-    address: MORPHO,
+    address: morpho,
     slot,
   });
 
   await client.setStorageAt({
-    address: MORPHO,
+    address: morpho,
     index: slot,
 
     value: modifyCollateralSlot(value!, amount),
