@@ -51,7 +51,7 @@ export interface LiquidationBotInputs {
   chainId: number;
   client: WalletClient<Transport, Chain, Account>;
   wNative: Address;
-  vaultWhitelist: Address[] | "morpho-api";
+  vaultWhitelist: Address[] | "morpho-api" | "app-morpho-api";
   additionalMarketsWhitelist: Hex[];
   executorAddress: Address;
   treasuryAddress: Address;
@@ -82,7 +82,7 @@ export class LiquidationBot {
   private client: WalletClient<Transport, Chain, Account>;
   private chainAddresses: ChainAddresses;
   private wNative: Address;
-  private vaultWhitelist: Address[] | "morpho-api";
+  private vaultWhitelist: Address[] | "morpho-api" | "app-morpho-api";
   private additionalMarketsWhitelist: Hex[];
   private executorAddress: Address;
   private treasuryAddress: Address;
@@ -709,8 +709,8 @@ export class LiquidationBot {
   private async fetchMarkets() {
     if (!this.marketsFetchingCooldownMechanism.isFetchingReady()) return;
 
-    if (this.vaultWhitelist === "morpho-api")
-      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId);
+    if (this.vaultWhitelist === "morpho-api" || this.vaultWhitelist === "app-morpho-api")
+      this.vaultWhitelist = await fetchWhitelistedVaults(this.chainId, this.vaultWhitelist);
 
     const vaultWhitelist = this.vaultWhitelist;
     console.log(`${this.logTag}📝 Watching markets in the following vaults:`, vaultWhitelist);

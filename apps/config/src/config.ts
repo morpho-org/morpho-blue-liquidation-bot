@@ -18,9 +18,10 @@ export const chainConfigs: Record<number, Config> = {
     wNative: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
     options: {
       // Chain is not on the public blue-api yet; use the app-API instance
-      // (app.api.morpho.org) with an API key.
+      // (app.api.morpho.org) with an API key for both the data provider and
+      // the listed-vaults lookup.
       dataProvider: "appMorphoApi",
-      vaultWhitelist: [],
+      vaultWhitelist: "app-morpho-api",
       additionalMarketsWhitelist: [],
       liquidityVenues: ["lifi", "zeroEx", "erc20Wrapper", "erc4626"],
       useFlashbots: false,

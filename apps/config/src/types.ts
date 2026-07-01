@@ -24,7 +24,7 @@ export interface Config {
 
 export interface Options {
   dataProvider: DataProviderName;
-  vaultWhitelist: Address[] | "morpho-api";
+  vaultWhitelist: Address[] | "morpho-api" | "app-morpho-api";
   additionalMarketsWhitelist: Hex[];
   liquidityVenues: LiquidityVenueName[];
   pricers?: PricerName[];
