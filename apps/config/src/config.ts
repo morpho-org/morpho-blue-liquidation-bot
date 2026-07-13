@@ -34,6 +34,8 @@ export const chainConfigs: Record<number, Config> = {
       liquidityVenues: ["zeroEx", "uniswapV3", "uniswapV4", "erc20Wrapper", "erc4626"],
       useFlashbots: false,
       useTenderly: false,
+      // ~1s block time, so 600 blocks ≈ 10 minutes between runs.
+      blockInterval: 600,
     },
   },
 };
