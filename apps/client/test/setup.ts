@@ -43,9 +43,10 @@ export const encoderTestLaterBlock = createViemTest(mainnet, {
   },
 });
 
-export const test = createViemTest(mainnet, {
+export const vaultV2Test = createViemTest(mainnet, {
   forkUrl: process.env.RPC_URL_1 ?? mainnet.rpcUrls.default.http[0],
-  forkBlockNumber: 21_000_000,
+  forkBlockNumber: 24_500_000,
+  timeout: 100_000,
 });
 
 export const oneInchTest = createViemTest(mainnet, {
