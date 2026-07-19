@@ -1,11 +1,11 @@
 import { AccrualPosition, Market, MarketId } from "@morpho-org/blue-sdk";
 import "@morpho-org/blue-sdk-viem/lib/augment";
-import { fetchMarket, metaMorphoAbi } from "@morpho-org/blue-sdk-viem";
+import { fetchMarket } from "@morpho-org/blue-sdk-viem";
 import { Time } from "@morpho-org/morpho-ts";
 import type { Account, Address, Chain, Client, Hex, Transport } from "viem";
-import { readContract } from "viem/actions";
 
 import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
+import { fetchVaultMarkets } from "../vaultMarkets";
 
 import { apiSdk } from "./api/index";
 
@@ -13,7 +13,7 @@ export class MorphoApiDataProvider implements DataProvider {
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
       const vaultMarkets = await Promise.all(
-        vaults.map(async (vault) => this.fetchVaultMarkets(client, vault)),
+        vaults.map(async (vault) => fetchVaultMarkets(client, vault)),
       );
 
       return [...new Set(vaultMarkets.flat())];
@@ -124,39 +124,6 @@ export class MorphoApiDataProvider implements DataProvider {
     } catch (error) {
       console.error(`[Chain ${client.chain.id}] Error fetching liquidatable positions:`, error);
       return { liquidatablePositions: [], preLiquidatablePositions: [] };
-    }
-  }
-
-  private async fetchVaultMarkets(
-    client: Client<Transport, Chain, Account>,
-    vaultAddress: Address,
-  ): Promise<Hex[]> {
-    try {
-      const withdrawQueueLength = await readContract(client, {
-        address: vaultAddress,
-        abi: metaMorphoAbi,
-        functionName: "withdrawQueueLength",
-      });
-
-      const indices = Array.from({ length: Number(withdrawQueueLength) }, (_, i) => BigInt(i));
-
-      return await Promise.all(
-        indices.map(async (index) => {
-          const marketId = await readContract(client, {
-            address: vaultAddress,
-            abi: metaMorphoAbi,
-            functionName: "withdrawQueue",
-            args: [index],
-          });
-          return marketId;
-        }),
-      );
-    } catch (error) {
-      console.error(
-        `[Chain ${client.chain.id}] Error fetching vault markets for ${vaultAddress}:`,
-        error,
-      );
-      return [];
     }
   }
 }

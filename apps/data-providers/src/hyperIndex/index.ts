@@ -9,6 +9,7 @@ import { getAddress } from "viem";
 import { readContract } from "viem/actions";
 
 import type { DataProvider, LiquidatablePositionsResult } from "../dataProvider";
+import { fetchVaultMarkets } from "../vaultMarkets";
 
 const DEFAULT_HYPERINDEX_URL = "http://localhost:8080/v1/graphql";
 const HEALTH_CHECK_INTERVAL_MS = 500;
@@ -95,17 +96,6 @@ const GET_AUTHORIZATIONS = gql`
   }
 `;
 
-const GET_VAULT_MARKETS = gql`
-  query GetVaultMarkets($vaultIds: [String!]!) {
-    Vault(where: { id: { _in: $vaultIds } }) {
-      id
-      withdrawQueue(order_by: { ordinal: asc }) {
-        market_id
-      }
-    }
-  }
-`;
-
 interface HyperIndexPosition {
   user: string;
   market_id: string;
@@ -147,11 +137,6 @@ interface HyperIndexAuthorization {
   authorizee: string;
 }
 
-interface HyperIndexVault {
-  id: string;
-  withdrawQueue: { market_id: string }[];
-}
-
 interface PositionsResponse {
   Position: HyperIndexPosition[];
 }
@@ -166,10 +151,6 @@ interface PreLiquidationContractsResponse {
 
 interface AuthorizationsResponse {
   Authorization: HyperIndexAuthorization[];
-}
-
-interface VaultMarketsResponse {
-  Vault: HyperIndexVault[];
 }
 
 function progressBar(current: number, total: number, width = 30): string {
@@ -237,16 +218,11 @@ export class HyperIndexDataProvider implements DataProvider {
 
   async fetchMarkets(client: Client<Transport, Chain, Account>, vaults: Address[]): Promise<Hex[]> {
     try {
-      const vaultIds = vaults.map((v) => `${client.chain.id}-${v.toLowerCase()}`);
-
-      const response = await this.graphqlClient.request<VaultMarketsResponse>(GET_VAULT_MARKETS, {
-        vaultIds,
-      });
-
-      const marketIds = response.Vault.flatMap((vault) =>
-        vault.withdrawQueue.filter((item) => item.market_id != null).map((item) => item.market_id),
+      const vaultMarkets = await Promise.all(
+        vaults.map(async (vault) => fetchVaultMarkets(client, vault)),
       );
-      return [...new Set(marketIds)] as Hex[];
+
+      return [...new Set(vaultMarkets.flat())];
     } catch (error) {
       console.error(`[Chain ${client.chain.id}] Error fetching markets from HyperIndex:`, error);
       return [];
